@@ -20,7 +20,24 @@ M1 is responsible for:
 
 M1 operates purely on structured inputs from Zeek and does not perform any external lookups, threat intelligence matching, or AI-based conclusions.
 
-## 3. Implemented Components (Phase 1)
+## 3. Input → Processing → Output
+
+The complete V1 flow runs sequentially through validated acquisition, Docker-based analysis, and structured normalization stages:
+
+```mermaid
+flowchart TD
+    PCAP[PCAP / PCAPNG Evidence File] --> AQ[AcquisitionService]
+    AQ --> REF[AcquisitionReference]
+    REF --> ZR[ZeekRunner — Docker Container]
+    ZR --> LOGS[conn.log / dns.log / http.log / ssl.log]
+    LOGS --> RD[ZeekReader — Streaming JSON]
+    RD --> AD[Protocol Adapters — conn / dns / http / tls]
+    AD --> FL[Flows + ProtocolEvents]
+    FL --> AX[ArtifactExtractor + ProvenanceValidator]
+    AX --> PKG[NetworkIntelligencePackage → M2]
+```
+
+## 4. Implemented Components (Phase 1)
 
 Phase 1 focuses exclusively on the contract and canonical model definitions.
 
@@ -168,7 +185,7 @@ Phase 10 implements the final orchestration layer that wires all M1 components t
   - **Referential Integrity Validation**: Enforces that all artifacts and events correctly reference known flow IDs and event IDs before assembly.
   - **Downstream Boundary**: Ensures the assembled package contains only raw observations without leaking any downstream analytic fields (e.g. risk score, severity, MITRE tags).
 
-## 4. Total Test Suite Status
+## 5. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
 - **Acquisition Engine Tests (Phase 2)**: 25 tests passing
@@ -182,6 +199,95 @@ Phase 10 implements the final orchestration layer that wires all M1 components t
 - **Orchestrator Tests (Phase 10)**: 4 tests passing
 - **Total M1 Unit Tests**: 192 tests passing
 
-## 5. Next Phases (Roadmap)
+## 6. M1 → M2 Handoff
 
-- **M1 V1 Complete**: Handoff to M2 (Analysis Engine).
+The integration boundary between M1 and M2 is strictly documented and serialized via JSON schema.
+
+- **M1 produces:** `NetworkIntelligencePackage` V1
+- **M2 consumes:** `NetworkIntelligencePackage` V1
+
+**Authoritative contract:**
+`backend/app/contracts/network_intelligence.py`
+
+**Reference fixture:**
+`fixtures/network_intelligence/network-intelligence-v1-m1-phase1.json`
+
+M2 should build directly against the Pydantic contract models and should **not** import M1 internal engine classes (adapters, runner, reader).
+
+## 7. Security / Forensic Design
+
+**IMPLEMENTED:**
+- Strict path-traversal prevention via `Path.resolve()` canonicalization.
+- 4-byte magic byte validation prevents processing of non-PCAP files.
+- Evidence mounted read-only (`:ro`) inside Docker; original capture file is never modified.
+- Zero shell subprocess usage (`shell=False`) throughout all engine layers.
+- Frozen Pydantic models (`model_config = {"frozen": True}`) enforce immutability of all M1 outputs.
+- `extra="forbid"` on protocol data union models prevents undeclared field injection.
+- Provenance tracing links every artifact and event back to its source log, flow ID, and acquisition reference.
+- Deterministic IDs support 100% test reproducibility.
+
+**NOT IMPLEMENTED (Future):**
+- Real-time tamper-evident hashing of log outputs.
+- Encrypted evidence vaults.
+- External SIEM or cloud storage integration.
+- IAM / RBAC tracking per acquisition job.
+
+## 8. Current Limitations
+
+- **Batch-Only:** M1 processes a single static PCAP per invocation; real-time live capture is not supported.
+- **Docker Dependency:** Zeek execution requires a running Docker daemon and the `zeek/zeek:lts` image to be locally cached.
+- **In-Process Only:** No database persistence layer; all intermediate state is in-memory and discarded after the `NetworkIntelligencePackage` is assembled.
+- **No Threat Logic:** M1 strictly observes; it performs zero risk scoring, severity classification, or MITRE ATT&CK tagging.
+
+## 9. Not Implemented in M1 V1
+
+- Threat detection, risk scoring, or severity classification.
+- ML-based anomaly detection or probabilistic heuristics.
+- External Threat Intelligence (OSINT / VirusTotal) enrichment.
+- Real-time live capture or streaming PCAP ingestion.
+- Report generation (explicitly deferred to M4 via M3).
+- Payload/content inspection beyond observable metadata.
+
+## 10. File / Component Inventory
+
+| Component | Location | Purpose | Status |
+|-----------|----------|---------|--------|
+| Network Intelligence Contract | `backend/app/contracts/network_intelligence.py` | M1 Output Schema + M2 Input Contract | COMPLETE |
+| Acquisition Errors | `backend/app/engines/acquisition/errors.py` | Domain exception hierarchy | COMPLETE |
+| Acquisition Validator | `backend/app/engines/acquisition/validator.py` | Path guard + magic byte detection | COMPLETE |
+| Acquisition Hasher | `backend/app/engines/acquisition/hasher.py` | Streamed SHA-256 computation | COMPLETE |
+| Acquisition Service | `backend/app/engines/acquisition/service.py` | Orchestrates validate → hash → reference | COMPLETE |
+| Zeek Runner | `backend/app/engines/packet_intelligence/zeek/runner.py` | Docker-based offline Zeek execution | COMPLETE |
+| Zeek Reader | `backend/app/engines/packet_intelligence/zeek/reader.py` | Streaming JSON log parser | COMPLETE |
+| conn.log Adapter | `backend/app/engines/packet_intelligence/adapters/conn.py` | Maps conn.log → Flow | COMPLETE |
+| dns.log Adapter | `backend/app/engines/packet_intelligence/adapters/dns.py` | Maps dns.log → DNSProtocolEvent | COMPLETE |
+| http.log Adapter | `backend/app/engines/packet_intelligence/adapters/http.py` | Maps http.log → HTTPProtocolEvent | COMPLETE |
+| ssl.log Adapter | `backend/app/engines/packet_intelligence/adapters/tls.py` | Maps ssl.log → TLSProtocolEvent | COMPLETE |
+| Artifact Extractor | `backend/app/engines/packet_intelligence/artifacts/extractor.py` | Extracts DOMAIN / IP / USER_AGENT artifacts | COMPLETE |
+| Provenance Validator | `backend/app/engines/packet_intelligence/provenance/validator.py` | Enforces referential integrity | COMPLETE |
+| M1 Orchestrator | `backend/app/engines/packet_intelligence/orchestrator.py` | Wires all components → NetworkIntelligencePackage | COMPLETE |
+| Reference Fixture | `fixtures/network_intelligence/network-intelligence-v1-m1-phase1.json` | M1→M2 reference payload | COMPLETE |
+
+## 11. Git / Delivery Status
+
+- **Branch:** `feature/m1-packet-intelligence`
+- **Working Tree:** Clean. All phases delivered.
+
+## 12. Final V1 Status
+
+| Area | Status |
+|------|--------|
+| Contract & Domain Models | COMPLETE |
+| Acquisition Engine | COMPLETE |
+| Zeek Runner (Docker) | COMPLETE |
+| Zeek Reader (Streaming) | COMPLETE |
+| conn.log Adapter | COMPLETE |
+| dns.log Adapter | COMPLETE |
+| http.log Adapter | COMPLETE |
+| ssl.log Adapter | COMPLETE |
+| Artifact Extractor | COMPLETE |
+| Provenance Validator | COMPLETE |
+| M1 Orchestrator | COMPLETE |
+| Reference Fixture | COMPLETE |
+| Tests (192 total) | PASS |
+| M2 handoff contract | READY |
