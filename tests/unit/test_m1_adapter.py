@@ -67,3 +67,19 @@ class TestM1Adapter(unittest.TestCase):
     def test_naive_timestamp_rejected(self):
         with self.assertRaises(ValueError):
             self.adapter._parse_timestamp("2026-08-14T18:30:22") # no timezone
+
+    def test_flow_and_artifact_evidence_registration(self):
+        """Verify M1 adapter explicitly registers EvidenceReference for flows and artifacts."""
+        ctx = self.adapter.adapt(self.scenario_001)
+        ev_ids = [ev.evidence_id for ev in ctx.evidence_references]
+        self.assertIn("ev-FLOW-001", ev_ids)
+        self.assertIn("ev-art-001", ev_ids)
+        
+        flow_ev = next(ev for ev in ctx.evidence_references if ev.evidence_id == "ev-FLOW-001")
+        self.assertEqual(flow_ev.evidence_type, "flow")
+        self.assertEqual(flow_ev.source_id, "FLOW-001")
+
+        art_ev = next(ev for ev in ctx.evidence_references if ev.evidence_id == "ev-art-001")
+        self.assertEqual(art_ev.evidence_type, "artifact")
+        self.assertEqual(art_ev.source_id, "art-001")
+
