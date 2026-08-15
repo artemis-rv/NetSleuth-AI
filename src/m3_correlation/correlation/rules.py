@@ -105,6 +105,8 @@ def apply_rules(ctx: InvestigationContext) -> None:
                     )
 
     # Rule 6: Finding <-> Explicit Evidence
+    # Note: 'finding:...' is currently a temporary graph anchor Entity. 
+    # The actual finding data belongs in FindingReference.
     final_rels = []
     for r in ctx.relationships:
         if r.relationship_type == "explicit_reference" and r.source_entity_id.startswith("finding:"):

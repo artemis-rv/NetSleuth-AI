@@ -1,0 +1,116 @@
+from typing import Dict, Any
+from datetime import datetime, timezone
+
+from src.m3_correlation.domain.investigation import InvestigationContext
+from src.shared.contract_validation import ContractValidator
+
+class InvestigationCaseBuilder:
+    def __init__(self, validator: ContractValidator):
+        self.validator = validator
+        
+    def build(self, ctx: InvestigationContext) -> Dict[str, Any]:
+        case_id = getattr(ctx, 'case_id', None)
+        if not case_id:
+            # Deterministic fallback per requirements
+            if getattr(ctx, 'acquisition_id', None):
+                case_id = f"CASE-{ctx.acquisition_id}"
+            else:
+                raise ValueError("InvestigationContext has no case_id and no acquisition_id to fallback on.")
+                
+        # Calculate times deterministically
+        timeline = ctx.timeline_events
+        if timeline:
+            created_at = timeline[0].timestamp.isoformat()
+            updated_at = timeline[-1].timestamp.isoformat()
+        else:
+            raise ValueError("InvestigationContext has no timeline events to establish deterministic created_at.")
+            
+        # Determine Severity from Findings (default 'medium')
+        severities = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+        max_sev = 2
+        for f in ctx.findings:
+            if f.severity in severities:
+                max_sev = max(max_sev, severities[f.severity])
+        
+        sev_map = {4: "critical", 3: "high", 2: "medium", 1: "low"}
+        severity = sev_map[max_sev]
+        
+        # Build document
+        doc = {
+            "schema_version": "investigation-case-v1",
+            "case_id": case_id,
+            "title": f"Investigation Case {case_id}",
+            "description": "Automatically assembled investigation case.",
+            "status": "open",
+            "severity": severity,
+            "created_at": created_at.replace("+00:00", "Z"),
+            "updated_at": updated_at.replace("+00:00", "Z"),
+            "investigator": {
+                "investigator_id": "m3-correlation-engine",
+                "name": "NetSleuth M3 Engine"
+            },
+            "findings": [],
+            "timeline": [],
+            "entities": [],
+            "evidence_references": [],
+            "attack_chain": {
+                "status": "none"
+            }
+        }
+        
+        # 1. Findings
+        # MAPPING GAP: M3 FindingReference has rich data, but the V1 schema only accepts finding_id and role.
+        for f in ctx.findings:
+            doc["findings"].append({
+                "finding_id": f.finding_id,
+                "role": "primary" # Defaulting role to primary since schema lacks M3 context mapping.
+            })
+            
+        # 2. Timeline
+        for t in ctx.timeline_events:
+            t_doc = {
+                "event_id": t.event_id,
+                "timestamp": t.timestamp.isoformat().replace("+00:00", "Z"),
+                "event_type": t.event_type if t.event_type in ["network", "dns", "http", "tls", "session", "flow", "artifact", "finding", "alert", "investigation", "evidence"] else "network",
+                "description": t.description
+            }
+            # MAPPING GAP: The V1 schema lacks 'entity_ids' array and only provides source/target.
+            if t.entity_ids:
+                t_doc["source_entity_id"] = t.entity_ids[0]
+                if len(t.entity_ids) > 1:
+                    t_doc["target_entity_id"] = t.entity_ids[1]
+            if t.evidence_ids:
+                t_doc["evidence_ids"] = t.evidence_ids
+            doc["timeline"].append(t_doc)
+            
+        # 3. Entities
+        valid_types = ["host", "ip", "domain", "url", "session", "flow", "ioc", "artifact", "finding"]
+        for e in ctx.entities:
+            e_doc = {
+                "entity_id": e.entity_id,
+                # MAPPING GAP: protocol_event is not supported by InvestigationEntity schema. Mapping to artifact safely.
+                "entity_type": e.entity_type if e.entity_type in valid_types else "artifact"
+            }
+            if e.first_seen:
+                e_doc["first_seen"] = e.first_seen.isoformat().replace("+00:00", "Z")
+            if e.last_seen:
+                e_doc["last_seen"] = e.last_seen.isoformat().replace("+00:00", "Z")
+            doc["entities"].append(e_doc)
+            
+        # 4. Evidence
+        valid_ev_types = ["pcap", "flow", "session", "dns", "http", "tls", "artifact", "log", "finding"]
+        for ev in ctx.evidence_references:
+            doc["evidence_references"].append({
+                "evidence_id": ev.evidence_id,
+                "evidence_type": ev.evidence_type if ev.evidence_type in valid_ev_types else "log",
+                "source_id": ev.source_id
+            })
+            
+        # 5. Relationships
+        # CRITICAL MAPPING GAP: investigation-case-v1.json completely lacks a 'relationships' array.
+        # All explicit relationship metadata generated by correlation engine is DROPPED here.
+        
+        # Validate output against schema
+        self.validator.validate("investigation-case-v1.json", doc)
+        
+        return doc

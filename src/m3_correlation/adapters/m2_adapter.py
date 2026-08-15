@@ -115,6 +115,9 @@ class M2Adapter:
         ctx.findings.append(f_ref)
         
         # 4. Expose the finding itself as a formal Entity to anchor relationships
+        # IMPORTANT: For the hackathon, this exists purely as a temporary graph relationship anchor.
+        # The canonical source of truth for findings remains the FindingReference objects
+        # added to ctx.findings above. Do not rely on this Entity for finding data!
         finding_entity = Entity(
             entity_id=f"finding:{finding_id}",
             entity_type="finding",
