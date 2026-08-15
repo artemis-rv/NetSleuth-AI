@@ -1,0 +1,142 @@
+{
+  "package_id": "nip-m1-v1-001",
+  "contract_version": "1.0",
+  "acquisition_id": "ACQ-001",
+  "flows": [
+    {
+      "object_type": "flow",
+      "flow_id": "FLOW-001",
+      "zeek_uid": "C1xYz2abc123",
+      "acquisition_id": "ACQ-001",
+      "evidence_id": "EV-001",
+      "timestamp": "2026-08-15T10:00:00Z",
+      "start_time": "2026-08-15T10:00:00Z",
+      "end_time": "2026-08-15T10:00:05Z",
+      "source": {
+        "ip": "10.0.0.10",
+        "port": 52341
+      },
+      "destination": {
+        "ip": "203.0.113.10",
+        "port": 443
+      },
+      "protocol": "tcp",
+      "service": "ssl",
+      "duration": 5.0,
+      "orig_bytes": 1024,
+      "resp_bytes": 4096,
+      "orig_packets": 10,
+      "resp_packets": 15,
+      "connection_state": "SF",
+      "provenance": {
+        "acquisition_id": "ACQ-001",
+        "evidence_id": "EV-001",
+        "zeek_uid": "C1xYz2abc123",
+        "source": "zeek",
+        "source_log": "conn.log",
+        "processed_at": "2026-08-15T10:30:00Z",
+        "processor_version": "m1-v1.0"
+      }
+    }
+  ],
+  "protocol_events": [
+    {
+      "event_id": "EVT-001",
+      "flow_id": "FLOW-001",
+      "zeek_uid": "C1xYz2abc123",
+      "acquisition_id": "ACQ-001",
+      "evidence_id": "EV-001",
+      "timestamp": "2026-08-15T09:59:58Z",
+      "protocol": "dns",
+      "protocol_data": {
+        "query": "suspicious.example.com",
+        "query_type": "A",
+        "answers": ["203.0.113.10"],
+        "response_code": "NOERROR"
+      },
+      "provenance": {
+        "acquisition_id": "ACQ-001",
+        "evidence_id": "EV-001",
+        "zeek_uid": "CdnsUid999",
+        "source": "zeek",
+        "source_log": "dns.log",
+        "processed_at": "2026-08-15T10:30:00Z",
+        "processor_version": "m1-v1.0"
+      }
+    },
+    {
+      "event_id": "EVT-002",
+      "flow_id": "FLOW-001",
+      "zeek_uid": "C1xYz2abc123",
+      "acquisition_id": "ACQ-001",
+      "evidence_id": "EV-001",
+      "timestamp": "2026-08-15T10:00:00Z",
+      "protocol": "tls",
+      "protocol_data": {
+        "version": "TLSv1.3",
+        "server_name": "suspicious.example.com",
+        "cipher": "TLS_AES_256_GCM_SHA384",
+        "subject": null,
+        "issuer": null,
+        "not_valid_before": null,
+        "not_valid_after": null
+      },
+      "provenance": {
+        "acquisition_id": "ACQ-001",
+        "evidence_id": "EV-001",
+        "zeek_uid": "C1xYz2abc123",
+        "source": "zeek",
+        "source_log": "ssl.log",
+        "processed_at": "2026-08-15T10:30:00Z",
+        "processor_version": "m1-v1.0"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "ART-001",
+      "type": "DOMAIN",
+      "value": "suspicious.example.com",
+      "source_event_id": "EVT-001",
+      "flow_id": "FLOW-001",
+      "acquisition_id": "ACQ-001",
+      "evidence_id": "EV-001",
+      "first_seen": "2026-08-15T09:59:58Z",
+      "last_seen": "2026-08-15T09:59:58Z",
+      "provenance": {
+        "acquisition_id": "ACQ-001",
+        "evidence_id": "EV-001",
+        "source_event_id": "EVT-001",
+        "derived_from": "Extracted from DNS query field in dns.log"
+      }
+    },
+    {
+      "artifact_id": "ART-002",
+      "type": "IP",
+      "value": "203.0.113.10",
+      "source_event_id": "EVT-001",
+      "flow_id": "FLOW-001",
+      "acquisition_id": "ACQ-001",
+      "evidence_id": "EV-001",
+      "first_seen": "2026-08-15T09:59:58Z",
+      "last_seen": "2026-08-15T10:00:05Z",
+      "provenance": {
+        "acquisition_id": "ACQ-001",
+        "evidence_id": "EV-001",
+        "source_event_id": "EVT-001",
+        "derived_from": "Extracted from DNS answer in dns.log"
+      }
+    }
+  ],
+  "packet_references": [
+    {
+      "evidence_id": "EV-001",
+      "acquisition_id": "ACQ-001",
+      "packet_start": 1,
+      "packet_end": 25,
+      "timestamp_start": "2026-08-15T10:00:00Z",
+      "timestamp_end": "2026-08-15T10:00:05Z",
+      "byte_offset": null
+    }
+  ]
+}
