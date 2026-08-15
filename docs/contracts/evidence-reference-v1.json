@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceReference",
+  "type": "object",
+  "properties": {
+    "schema_version": { "type": "string", "const": "evidence-reference-v1" },
+    "evidence_id": { "type": "string" },
+    "evidence_type": { 
+      "type": "string", 
+      "enum": ["pcap", "flow", "session", "dns", "http", "tls", "artifact", "log", "finding"] 
+    },
+    "source": { "type": "string" },
+    "integrity": { "type": "string" },
+    "provenance": { "type": "object" },
+    "status": { "type": "string" }
+  },
+  "required": ["schema_version", "evidence_id", "evidence_type"],
+  "additionalProperties": false
+}

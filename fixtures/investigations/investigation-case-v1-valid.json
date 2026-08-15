@@ -1,0 +1,68 @@
+{
+  "schema_version": "investigation-case-v1",
+  "case_id": "CASE-12345",
+  "title": "Suspicious Exfiltration Activity",
+  "description": "Investigating potential data exfiltration from an internal host to an unknown external IP.",
+  "status": "investigating",
+  "severity": "high",
+  "created_at": "2026-08-15T10:00:00Z",
+  "updated_at": "2026-08-15T11:30:00Z",
+  "investigator": {
+    "investigator_id": "INV-001",
+    "name": "Alice Smith"
+  },
+  "tags": ["exfiltration", "apt"],
+  "findings": [
+    {
+      "finding_id": "finding-001",
+      "role": "primary"
+    }
+  ],
+  "timeline": [
+    {
+      "event_id": "evt-001",
+      "timestamp": "2026-08-15T09:45:00Z",
+      "event_type": "network",
+      "description": "Large outbound transfer detected.",
+      "source_entity_id": "ent-host-1",
+      "target_entity_id": "ent-ip-1",
+      "finding_ids": ["finding-001"],
+      "evidence_ids": ["ev-001"]
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "ent-host-1",
+      "entity_type": "host",
+      "label": "Internal Server 1",
+      "role": "primary",
+      "first_seen": "2026-08-15T09:40:00Z",
+      "last_seen": "2026-08-15T11:00:00Z"
+    },
+    {
+      "entity_id": "ent-ip-1",
+      "entity_type": "ip",
+      "label": "203.0.113.10",
+      "role": "related",
+      "first_seen": "2026-08-15T09:45:00Z",
+      "last_seen": "2026-08-15T09:50:00Z"
+    }
+  ],
+  "evidence_references": [
+    {
+      "evidence_id": "ev-001",
+      "evidence_type": "flow",
+      "source_id": "flow-001",
+      "hash": null,
+      "hash_algorithm": null
+    }
+  ],
+  "assessment": {
+    "facts": [
+      {
+        "statement": "Host transferred 850MB to 203.0.113.10.",
+        "source_ids": ["ev-001"]
+      }
+    ]
+  }
+}

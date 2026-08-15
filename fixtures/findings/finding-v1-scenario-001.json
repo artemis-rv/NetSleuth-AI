@@ -1,0 +1,54 @@
+{
+  "finding_id": "FINDING-001",
+  "contract_version": "1.0",
+  "acquisition_id": "ACQ-001",
+  "finding_type": "potential_beaconing",
+  "title": "Potential Beaconing Activity",
+  "description": "A host initiated a suspicious connection following a DNS query to an untrusted domain.",
+  "severity": "medium",
+  "risk_score": 60,
+  "confidence_score": 0.85,
+  "status": "new",
+  "first_seen": "2026-08-15T10:00:00Z",
+  "last_seen": "2026-08-15T10:05:00Z",
+  "detection": {
+    "methods": [
+      "heuristic"
+    ],
+    "explanation": [
+      "Matched known heuristic for beaconing sequence."
+    ],
+    "features": [],
+    "model": {}
+  },
+  "entities": [
+    {
+      "entity_type": "flow",
+      "entity_id": "FLOW-001"
+    },
+    {
+      "entity_type": "protocol_event",
+      "entity_id": "EVENT-001"
+    },
+    {
+      "entity_type": "ip",
+      "entity_id": "203.0.113.10"
+    }
+  ],
+  "evidence_references": [
+    {
+      "reference_type": "flow",
+      "reference_id": "FLOW-001",
+      "role": "primary"
+    },
+    {
+      "reference_type": "protocol_event",
+      "reference_id": "EVENT-001",
+      "role": "supporting"
+    }
+  ],
+  "provenance": {
+    "engine": "analysis-engine",
+    "engine_version": "1.0"
+  }
+}

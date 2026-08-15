@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Finding",
+  "type": "object",
+  "properties": {
+    "finding_id": { "type": "string" },
+    "contract_version": { "type": "string" },
+    "acquisition_id": { "type": "string" },
+    "finding_type": { "type": "string" },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "severity": { "type": "string" },
+    "risk_score": { "type": "number" },
+    "confidence_score": { "type": "number" },
+    "status": { "type": "string" },
+    "first_seen": { "type": "string", "format": "date-time" },
+    "last_seen": { "type": "string", "format": "date-time" },
+    "detection": {
+      "type": "object",
+      "properties": {
+        "methods": { "type": "array" },
+        "explanation": { "type": "array" },
+        "features": { "type": "array" },
+        "model": { "type": "object" }
+      },
+      "required": ["methods", "explanation", "features", "model"],
+      "additionalProperties": false
+    },
+    "entities": { "type": "array" },
+    "evidence_references": { "type": "array" },
+    "provenance": { "type": "object" }
+  },
+  "required": [
+    "finding_id", "contract_version", "acquisition_id", "finding_type", "title",
+    "description", "severity", "risk_score", "confidence_score", "status",
+    "first_seen", "last_seen", "detection", "entities", "evidence_references", "provenance"
+  ],
+  "additionalProperties": false
+}

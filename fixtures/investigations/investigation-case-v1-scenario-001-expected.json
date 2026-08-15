@@ -1,0 +1,85 @@
+{
+  "schema_version": "investigation-case-v1",
+  "case_id": "CASE-SCENARIO-001",
+  "title": "Investigation into Synthetic Beaconing Scenario",
+  "description": "Synthetic case generated to validate deterministic relationships between findings, flows, events, and entities.",
+  "status": "open",
+  "severity": "medium",
+  "created_at": "2026-08-15T10:00:00Z",
+  "updated_at": "2026-08-15T10:05:00Z",
+  "investigator": {
+    "investigator_id": "SYSTEM",
+    "name": "Automated Engine"
+  },
+  "findings": [
+    {
+      "finding_id": "FINDING-001",
+      "role": "primary"
+    }
+  ],
+  "timeline": [
+    {
+      "event_id": "evt-dns-1",
+      "timestamp": "2026-08-15T10:00:01Z",
+      "event_type": "dns",
+      "description": "DNS query for suspicious.example",
+      "source_entity_id": "HOST-001",
+      "target_entity_id": "suspicious.example",
+      "finding_ids": [
+        "FINDING-001"
+      ],
+      "evidence_ids": [
+        "ev-EVENT-001"
+      ]
+    },
+    {
+      "event_id": "evt-flow-1",
+      "timestamp": "2026-08-15T10:00:00Z",
+      "event_type": "flow",
+      "description": "SSL connection established",
+      "source_entity_id": "HOST-001",
+      "target_entity_id": "203.0.113.10",
+      "finding_ids": [
+        "FINDING-001"
+      ],
+      "evidence_ids": [
+        "ev-FLOW-001"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "HOST-001",
+      "entity_type": "host",
+      "label": "10.0.0.10",
+      "role": "primary"
+    },
+    {
+      "entity_id": "203.0.113.10",
+      "entity_type": "ip",
+      "label": "203.0.113.10",
+      "role": "related"
+    },
+    {
+      "entity_id": "suspicious.example",
+      "entity_type": "domain",
+      "label": "suspicious.example",
+      "role": "related"
+    }
+  ],
+  "evidence_references": [
+    {
+      "evidence_id": "ev-FLOW-001",
+      "evidence_type": "flow",
+      "source_id": "FLOW-001"
+    },
+    {
+      "evidence_id": "ev-EVENT-001",
+      "evidence_type": "dns",
+      "source_id": "EVENT-001"
+    }
+  ],
+  "attack_chain": {
+    "status": "none"
+  }
+}
