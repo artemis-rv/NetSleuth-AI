@@ -16,6 +16,7 @@ class AdapterErrorCode(str, Enum):
     INVALID_TYPE = "INVALID_TYPE"
     UNSUPPORTED_LOG_TYPE = "UNSUPPORTED_LOG_TYPE"
     MALFORMED_RECORD = "MALFORMED_RECORD"
+    UNKNOWN_UID = "UNKNOWN_UID"
 
 
 @dataclass(frozen=True)
