@@ -55,10 +55,33 @@ Phase 1 focuses exclusively on the contract and canonical model definitions.
   - Referential integrity between Flows, Events, and Artifacts.
   - Fixture round-trip serialization.
 
-## 4. Next Phases (Roadmap)
+### 3.4. Phase 2 (Acquisition Engine Implementation)
+Phase 2 establishes a trustworthy, validated identity for evidence files (`.pcap` / `.pcapng`) prior to downstream processing.
 
-- **Phase 2 (Acquisition)**: PCAP validation, SHA-256 hashing, and AcquisitionReference creation.
+- **Files**:
+  - `backend/app/engines/acquisition/__init__.py`: Package entry point.
+  - `backend/app/engines/acquisition/errors.py`: Domain exception `AcquisitionError` and `AcquisitionErrorCode` enum (`FILE_NOT_FOUND`, `NOT_A_FILE`, `UNSUPPORTED_FORMAT`, `EMPTY_FILE`, `UNREADABLE_FILE`, `INVALID_CAPTURE`, `HASH_FAILURE`).
+  - `backend/app/engines/acquisition/validator.py`: Path traversal guard via `Path.resolve()`, extension filtering, and 4-byte magic byte detection for PCAP/PCAPNG.
+  - `backend/app/engines/acquisition/hasher.py`: Streamed SHA-256 computation in 64 KiB chunks using Python `hashlib`.
+  - `backend/app/engines/acquisition/service.py`: `AcquisitionService.acquire()` orchestrating validation, hashing, and returning an immutable `AcquisitionReference`.
+- **Tests**:
+  - `backend/tests/unit/test_acquisition.py`: 25 unit and benchmark tests covering all error conditions, contract compliance, forensic integrity, and performance SLAs.
+- **Key Features & Guarantees**:
+  - **Security & Safety**: Zero subprocess/shell execution, strict path canonicalization.
+  - **Forensic Integrity**: Byte-for-byte read-only operation; original evidence file remains unmodified.
+  - **Performance SLAs**: SHA-256 throughput $\ge 50$ MB/s, 1 MB acquisition execution $\le 200$ ms, validation rejection $\le 5$ ms.
+  - **Memory Efficiency**: Memory footprint bounded to 64 KiB regardless of file size.
+
+## 4. Total Test Suite Status
+
+- **Contract Tests (Phase 1)**: 78 tests passing
+- **Acquisition Engine Tests (Phase 2)**: 25 tests passing
+- **Total M1 Unit Tests**: 103 tests passing
+
+## 5. Next Phases (Roadmap)
+
 - **Phase 3 (Zeek Runner)**: Docker-based Zeek execution.
 - **Phase 4 (Zeek Reader)**: Reading JSON logs and handling missing/malformed records.
 - **Phases 5-8 (Adapters)**: Converting `conn.log`, `dns.log`, `http.log`, and `ssl.log` into M1 models.
 - **Phases 9-10 (Provenance & Package)**: Assembling the final package and preserving source traceability.
+
