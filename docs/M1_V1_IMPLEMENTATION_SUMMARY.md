@@ -100,16 +100,29 @@ Phase 4 implements a streaming JSON log reader that consumes the output of the Z
   - **Deterministic Error Handling**: Malformed lines yield `RawZeekErrorRecord` objects cleanly without silently discarding data or crashing the stream.
   - **Zero Canonical Coercion**: Output fields retain original Zeek types and names, preserving full source data fidelity for downstream adapters.
 
+### 3.7. Phase 5 (conn.log to Flow Adapter)
+Phase 5 implements the conversion of raw Zeek `conn.log` records into canonical M1 `Flow` objects without performing any downstream threat logic or artifacts extraction.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/adapters/conn.py`: `ConnAdapter` implementation.
+  - `backend/app/engines/packet_intelligence/adapters/errors.py`: Adapter domain errors (`AdapterError`, `AdapterErrorCode`).
+- **Tests**:
+  - `backend/tests/unit/test_conn_adapter.py`: 10 unit tests covering edge cases and deterministic errors, plus 1 integration test for JSON -> Flow mapping.
+- **Key Features & Guarantees**:
+  - **Deterministic Error Boundary**: Returns `AdapterError` on malformed logs rather than throwing exceptions to support streaming workflows.
+  - **Strict "Observe Only" Mapping**: Maps types robustly but explicitly avoids deriving assumptions (e.g. `end_time` remains absent if unobserved directly as such).
+
 ## 4. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
 - **Acquisition Engine Tests (Phase 2)**: 25 tests passing
 - **Zeek Runner Tests (Phase 3)**: 10 unit + 2 integration tests passing
 - **Zeek Reader Tests (Phase 4)**: 10 unit + 1 integration tests passing
-- **Total M1 Unit Tests**: 124 tests passing
+- **Flow Adapter Tests (Phase 5)**: 10 unit + 1 integration tests passing
+- **Total M1 Unit Tests**: 135 tests passing
 
 ## 5. Next Phases (Roadmap)
 
-- **Phases 5-8 (Adapters)**: Converting `conn.log`, `dns.log`, `http.log`, and `ssl.log` into M1 models.
+- **Phases 6-8 (Adapters)**: Converting `dns.log`, `http.log`, and `ssl.log` into M1 models.
 - **Phases 9-10 (Provenance & Package)**: Assembling the final package and preserving source traceability.
 
