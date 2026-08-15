@@ -28,3 +28,7 @@ Thumbs.db
 # Evidence files — never commit capture data
 sample_data/evidence/*.pcap
 sample_data/evidence/*.pcapng
+
+# Zeek dynamic outputs — never commit runtime outputs
+sample_data/zeek_output/
+
