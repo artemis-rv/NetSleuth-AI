@@ -30,6 +30,9 @@ class InvestigationContext:
                 if entity.last_seen:
                     new_last = max(new_last, entity.last_seen) if new_last else entity.last_seen
                 
-                self.entities[i] = replace(existing, first_seen=new_first, last_seen=new_last)
+                new_attrs = dict(existing.attributes)
+                new_attrs.update(entity.attributes)
+                
+                self.entities[i] = replace(existing, first_seen=new_first, last_seen=new_last, attributes=new_attrs)
                 return
         self.entities.append(entity)

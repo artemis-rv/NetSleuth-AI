@@ -62,6 +62,13 @@ class M2Adapter:
                     source_id=ref_id
                 ))
 
+        # We need a way to find the role for a given entity_id if it exists in evidence_references
+        role_map = {}
+        for ev in m2_payload.get("evidence_references", []):
+            role_map[f"{ev['reference_type']}:{ev['reference_id']}"] = ev.get("role", "supporting")
+            if ev["reference_type"] == "protocol_event":
+                role_map[f"protocol_event:{ev['reference_id']}"] = ev.get("role", "supporting")
+
         # 2. Map Entities and Explicit Relationships
         for ent_ref in m2_payload.get("entities", []):
             ent_type = ent_ref["entity_type"]
@@ -80,6 +87,8 @@ class M2Adapter:
             )
             ctx.add_entity(shell_ent)
             
+            role = role_map.get(ns_entity_id)
+            
             # Create explicit finding -> entity relationship
             rel = Relationship(
                 relationship_id=f"rel-{finding_id}-{ns_entity_id}",
@@ -87,7 +96,8 @@ class M2Adapter:
                 relationship_type="explicit_reference",
                 target_entity_id=ns_entity_id,
                 confidence=1.0,
-                evidence_ids=finding_ev_ids
+                evidence_ids=finding_ev_ids,
+                attributes={"role": role} if role else {}
             )
             ctx.relationships.append(rel)
             

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 @dataclass(frozen=True)
 class Relationship:
@@ -12,6 +12,8 @@ class Relationship:
     evidence_ids: List[str] = field(default_factory=list)
     first_seen: Optional[datetime] = None
     last_seen: Optional[datetime] = None
+    reason: Optional[str] = None
+    attributes: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         if not self.relationship_id:
