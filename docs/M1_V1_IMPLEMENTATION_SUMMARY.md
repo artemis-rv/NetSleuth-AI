@@ -156,6 +156,18 @@ Phase 9 implements the dynamic extraction of canonical `Artifact` models (DOMAIN
   - **Immutable Provenance**: Every extracted artifact receives a generated UUIDv4 and retains its source event ID, flow ID, and acquisition context.
   - **No Inferences**: Abstained from synthesizing URLs, file paths, or certificate identities unless they are directly observed and uniquely identifiable in the protocol data.
 
+### 3.12. Phase 10 (NetworkIntelligencePackage Assembly)
+Phase 10 implements the final orchestration layer that wires all M1 components together to produce the `NetworkIntelligencePackage`.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/orchestrator.py`: `M1Orchestrator` implementation.
+  - `backend/app/engines/packet_intelligence/errors.py`: Package assembly error models.
+- **Tests**:
+  - `backend/tests/unit/test_orchestrator.py`: 4 unit/E2E integration tests.
+- **Key Features & Guarantees**:
+  - **Referential Integrity Validation**: Enforces that all artifacts and events correctly reference known flow IDs and event IDs before assembly.
+  - **Downstream Boundary**: Ensures the assembled package contains only raw observations without leaking any downstream analytic fields (e.g. risk score, severity, MITRE tags).
+
 ## 4. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
@@ -167,8 +179,9 @@ Phase 9 implements the dynamic extraction of canonical `Artifact` models (DOMAIN
 - **HTTP Adapter Tests (Phase 7)**: 15 tests passing
 - **TLS Adapter Tests (Phase 8)**: 12 tests passing
 - **Artifact Extractor & Provenance Tests (Phase 9)**: 13 tests passing
-- **Total M1 Unit Tests**: 188 tests passing
+- **Orchestrator Tests (Phase 10)**: 4 tests passing
+- **Total M1 Unit Tests**: 192 tests passing
 
 ## 5. Next Phases (Roadmap)
 
-- **Phase 10 (NetworkIntelligencePackage Assembly)**: Assembling the final package from the flows, protocol events, and extracted artifacts.
+- **M1 V1 Complete**: Handoff to M2 (Analysis Engine).
