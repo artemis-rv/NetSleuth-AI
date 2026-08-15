@@ -112,17 +112,50 @@ Phase 5 implements the conversion of raw Zeek `conn.log` records into canonical 
   - **Deterministic Error Boundary**: Returns `AdapterError` on malformed logs rather than throwing exceptions to support streaming workflows.
   - **Strict "Observe Only" Mapping**: Maps types robustly but explicitly avoids deriving assumptions (e.g. `end_time` remains absent if unobserved directly as such).
 
+### 3.8. Phase 6 (dns.log to DNS ProtocolEvent Adapter)
+Phase 6 implements the conversion of raw Zeek `dns.log` records into canonical M1 `ProtocolEvent` objects containing `DNSData`, mapping them to their parent Flow using an injected dictionary mapping (`flow_index`).
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/adapters/dns.py`: `DNSAdapter` implementation.
+- **Tests**:
+  - `backend/tests/unit/test_dns_adapter.py`: 12 unit tests and 1 E2E integration test.
+- **Key Features & Guarantees**:
+  - **Stateless Correlation**: Joins `zeek_uid` to `flow_id` strictly via an injected `flow_index` dictionary, avoiding the generation of synthetic flow records on missing joins.
+
+### 3.9. Phase 7 (http.log to HTTP ProtocolEvent Adapter)
+Phase 7 implements the conversion of raw Zeek `http.log` records into canonical M1 `ProtocolEvent` objects containing `HTTPData`, strictly focused on observable unencrypted metadata.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/adapters/http.py`: `HTTPAdapter` implementation.
+- **Tests**:
+  - `backend/tests/unit/test_http_adapter.py`: 14 unit tests and 1 E2E integration test.
+- **Key Features & Guarantees**:
+  - **Safe Type Parsing**: Handles Zeek absence markers (`"-"`) correctly mapping them to Python `None` and safely performing type assertions for numeric fields.
+  - **No Artifact/URL Synthesis**: Focuses strictly on observable fields (host, method, uri, user_agent), abstaining from URL reconstruction or artifact generation.
+
+### 3.10. Phase 8 (ssl.log to TLS ProtocolEvent Adapter)
+Phase 8 implements the conversion of raw Zeek `ssl.log` records into canonical M1 `ProtocolEvent` objects containing `TLSData`, maintaining a strict metadata boundary for encrypted traffic.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/adapters/tls.py`: `TLSAdapter` implementation.
+- **Tests**:
+  - `backend/tests/unit/test_tls_adapter.py`: 11 unit tests and 1 E2E integration test checking the boundary constraints.
+- **Key Features & Guarantees**:
+  - **Strict Encryption Boundary**: Preserves SNI, version, cipher, and certificate details but strictly refuses to infer or synthesize HTTP-level details (Method, URI, Body) from encrypted streams.
+
 ## 4. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
 - **Acquisition Engine Tests (Phase 2)**: 25 tests passing
-- **Zeek Runner Tests (Phase 3)**: 10 unit + 2 integration tests passing
-- **Zeek Reader Tests (Phase 4)**: 10 unit + 1 integration tests passing
-- **Flow Adapter Tests (Phase 5)**: 10 unit + 1 integration tests passing
-- **Total M1 Unit Tests**: 135 tests passing
+- **Zeek Runner Tests (Phase 3)**: 12 tests passing
+- **Zeek Reader Tests (Phase 4)**: 11 tests passing
+- **Flow Adapter Tests (Phase 5)**: 11 tests passing
+- **DNS Adapter Tests (Phase 6)**: 13 tests passing
+- **HTTP Adapter Tests (Phase 7)**: 15 tests passing
+- **TLS Adapter Tests (Phase 8)**: 12 tests passing
+- **Total M1 Unit Tests**: 175 tests passing
 
 ## 5. Next Phases (Roadmap)
 
-- **Phases 6-8 (Adapters)**: Converting `dns.log`, `http.log`, and `ssl.log` into M1 models.
-- **Phases 9-10 (Provenance & Package)**: Assembling the final package and preserving source traceability.
+- **Phases 9-10 (Artifact Extraction & Package Assembly)**: Assembling the final package and preserving source traceability.
 
