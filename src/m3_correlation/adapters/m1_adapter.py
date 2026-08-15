@@ -81,10 +81,19 @@ class M1Adapter:
         ctx.add_entity(dst_ent)
         ctx.add_entity(flow_ent)
 
+        ev_id = f"ev-{flow_id}"
+        if not any(e.evidence_id == ev_id for e in ctx.evidence_references):
+            ctx.evidence_references.append(EvidenceReference(
+                evidence_id=ev_id,
+                evidence_type="flow",
+                source_id=flow_id
+            ))
+
     def _map_protocol_event(self, event: Dict[str, Any], ctx: InvestigationContext):
         ts = self._parse_timestamp(event["timestamp"])
         event_id = event["event_id"]
         protocol = event.get("protocol")
+        protocol_data = event.get("protocol_data") or event.get("data", {})
         
         # 1. Create Protocol Event Entity
         evt_ent = Entity(
@@ -95,7 +104,7 @@ class M1Adapter:
             last_seen=ts,
             attributes={
                 "protocol": protocol,
-                "data": event.get("protocol_data"),
+                "data": protocol_data,
                 "provenance": event.get("provenance"),
                 "zeek_uid": event.get("zeek_uid"),
                 "flow_id": event.get("flow_id")
@@ -106,7 +115,7 @@ class M1Adapter:
         evidence_type = "log"
         if protocol == "dns":
             evidence_type = "dns"
-            data = event.get("protocol_data", {})
+            data = protocol_data
             query = data.get("query")
             if query:
                 domain_ent = Entity(
@@ -148,12 +157,13 @@ class M1Adapter:
         ctx.timeline_events.append(tl_event)
         
         # 3. EvidenceReference
-        ev_ref = EvidenceReference(
-            evidence_id=evidence_ref_id,
-            evidence_type=evidence_type,
-            source_id=event_id
-        )
-        ctx.evidence_references.append(ev_ref)
+        if not any(e.evidence_id == evidence_ref_id for e in ctx.evidence_references):
+            ev_ref = EvidenceReference(
+                evidence_id=evidence_ref_id,
+                evidence_type=evidence_type,
+                source_id=event_id
+            )
+            ctx.evidence_references.append(ev_ref)
 
     def _map_artifact(self, artifact: Dict[str, Any], ctx: InvestigationContext):
         art_id = artifact["artifact_id"]
@@ -172,3 +182,11 @@ class M1Adapter:
             }
         )
         ctx.add_entity(ent)
+
+        art_ev_id = f"ev-{art_id}"
+        if not any(e.evidence_id == art_ev_id for e in ctx.evidence_references):
+            ctx.evidence_references.append(EvidenceReference(
+                evidence_id=art_ev_id,
+                evidence_type="artifact",
+                source_id=art_id
+            ))

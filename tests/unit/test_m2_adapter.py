@@ -92,3 +92,28 @@ class TestM2Adapter(unittest.TestCase):
         flow_entities = [e for e in ctx.entities if e.entity_id == "flow:FLOW-001"]
         self.assertEqual(len(flow_entities), 1)
         self.assertEqual(flow_entities[0].attributes["protocol"], "tcp")
+
+    def test_m2_evidence_reference_preservation(self):
+        """Verify M2 evidence reference_id, role, and evidence_type are preserved deterministically."""
+        ctx = self.adapter.adapt(self.scenario_001)
+        ev_refs = ctx.evidence_references
+        self.assertEqual(len(ev_refs), 2)
+        
+        flow_ev = next(e for e in ev_refs if e.evidence_id == "ev-FLOW-001")
+        self.assertEqual(flow_ev.evidence_type, "flow")
+        self.assertEqual(flow_ev.source_id, "FLOW-001")
+
+        event_ev = next(e for e in ev_refs if e.evidence_id == "ev-EVENT-001")
+        self.assertEqual(event_ev.evidence_type, "log") # protocol_event safely mapped to log
+        self.assertEqual(event_ev.source_id, "EVENT-001")
+
+    def test_unsupported_evidence_reference_type_rejected(self):
+        """Verify unsupported evidence reference type raises ValueError during EvidenceReference creation."""
+        bad_payload = json.loads(json.dumps(self.scenario_001))
+        bad_payload["evidence_references"].append({
+            "reference_type": "invalid_type",
+            "reference_id": "BAD-001",
+            "role": "supporting"
+        })
+        with self.assertRaises(ValueError):
+            self.adapter.adapt(bad_payload)
