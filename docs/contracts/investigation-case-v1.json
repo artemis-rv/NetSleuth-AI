@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://netsleuth.ai/schemas/investigation-case-v1.json",
   "title": "NetSleuth AI Investigation Case",
-  "description": "M3 Investigation Engine output contract consumed by M4 Reporting Engine.",
+  "description": "M3 Investigation Engine output contract consumed by M4 Reporting Engine. V1.1 reconciliation.",
   "type": "object",
   "additionalProperties": false,
 
@@ -17,13 +17,14 @@
     "investigator",
     "timeline",
     "entities",
+    "relationships",
     "evidence_references"
   ],
 
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "investigation-case-v1"
+      "const": "investigation-case-v1.1"
     },
 
     "case_id": {
@@ -111,9 +112,17 @@
 
     "entities": {
       "type": "array",
-      "description": "Entities involved in the investigation and their relationships.",
+      "description": "Entities involved in the investigation.",
       "items": {
         "$ref": "#/$defs/InvestigationEntity"
+      }
+    },
+
+    "relationships": {
+      "type": "array",
+      "description": "Deterministic edges correlating entities.",
+      "items": {
+        "$ref": "#/$defs/Relationship"
       }
     },
 
@@ -142,6 +151,63 @@
   },
 
   "$defs": {
+
+    "Relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_id",
+        "source_entity_id",
+        "relationship_type",
+        "target_entity_id",
+        "confidence"
+      ],
+      "properties": {
+        "relationship_id": {
+          "type": "string"
+        },
+        "source_entity_id": {
+          "type": "string"
+        },
+        "relationship_type": {
+          "type": "string"
+        },
+        "target_entity_id": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "first_seen": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "last_seen": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
 
     "Investigator": {
       "type": "object",
@@ -235,6 +301,13 @@
           ]
         },
 
+        "entity_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+
         "finding_ids": {
           "type": "array",
           "items": {
@@ -272,6 +345,7 @@
             "url",
             "session",
             "flow",
+            "protocol_event",
             "ioc",
             "artifact",
             "finding"

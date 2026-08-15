@@ -34,7 +34,7 @@ class TestCaseBuilder(unittest.TestCase):
         doc = self.builder.build(ctx)
         
         # 2. Schema validates successfully (implicitly tested by build() internally calling validate)
-        self.assertEqual(doc["schema_version"], "investigation-case-v1")
+        self.assertEqual(doc["schema_version"], "investigation-case-v1.1")
         
         # 3. acquisition_id preserved -> fallback into case_id
         self.assertEqual(doc["case_id"], "CASE-ACQ-001")
@@ -42,22 +42,29 @@ class TestCaseBuilder(unittest.TestCase):
         # 4. finding_id preserved
         self.assertTrue(any(f["finding_id"] == "FINDING-001" for f in doc["findings"]))
         
-        # 5. entity IDs preserved
+        # 5. entity IDs preserved and protocol_event type is natively supported
         ent_ids = [e["entity_id"] for e in doc["entities"]]
+        ent_types = [e["entity_type"] for e in doc["entities"]]
         self.assertIn("ip:203.0.113.10", ent_ids)
         self.assertIn("flow:FLOW-001", ent_ids)
         self.assertIn("domain:suspicious.example", ent_ids)
         self.assertIn("protocol_event:EVENT-001", ent_ids)
+        self.assertIn("protocol_event", ent_types)
         
-        # 6. Timeline chronologically ordered (correlation engine sorts it)
+        # 6. Timeline chronologically ordered (correlation engine sorts it) and complete entity_ids
         timestamps = [t["timestamp"] for t in doc["timeline"]]
         self.assertTrue(timestamps[0] <= timestamps[-1])
+        t_dns = next(t for t in doc["timeline"] if t["event_id"] == "EVENT-001")
+        self.assertIn("entity_ids", t_dns)
+        self.assertGreaterEqual(len(t_dns["entity_ids"]), 2)
         
         # 7. Evidence references preserved
         ev_ids = [e["evidence_id"] for e in doc["evidence_references"]]
         self.assertIn("ev-EVENT-001", ev_ids)
         
-        # 8. Relationship info is dropped (mapping gap), nothing to assert
+        # 8. Relationships are now explicitly supported and not dropped
+        self.assertGreater(len(doc["relationships"]), 0)
+        self.assertTrue(any(r["relationship_type"] == "queried" for r in doc["relationships"]))
         
         # 9. attack_chain status is none
         self.assertEqual(doc["attack_chain"]["status"], "none")
