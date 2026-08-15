@@ -87,16 +87,29 @@ Phase 3 implements the Docker-based runner execution environment that executes Z
   - **Integrity**: Evidence is mounted read-only (`:ro`); no edits are ever written back to evidence.
   - **Determinism**: Isolated output folder `sample_data/zeek_output/<acquisition_id>/` per run; outputs JSON logs consistently.
 
+### 3.6. Phase 4 (Zeek Reader Implementation)
+Phase 4 implements a streaming JSON log reader that consumes the output of the Zeek runner and yields raw Zeek records. It serves as a parsing boundary without canonical coercion.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/zeek/reader.py`: `ZeekReader` implementation, `RawZeekRecord`, and `RawZeekErrorRecord` dataclasses.
+  - `backend/app/engines/packet_intelligence/zeek/__init__.py`: Package exports for the reader components.
+- **Tests**:
+  - `backend/tests/unit/test_zeek_reader.py`: 10 mock-based unit tests testing boundaries, memory efficiency, and malformed inputs, plus 1 E2E integration test reading real logs.
+- **Key Features & Guarantees**:
+  - **Memory Efficiency**: Incremental reading using generators; avoids loading multi-gigabyte logs into RAM.
+  - **Deterministic Error Handling**: Malformed lines yield `RawZeekErrorRecord` objects cleanly without silently discarding data or crashing the stream.
+  - **Zero Canonical Coercion**: Output fields retain original Zeek types and names, preserving full source data fidelity for downstream adapters.
+
 ## 4. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
 - **Acquisition Engine Tests (Phase 2)**: 25 tests passing
 - **Zeek Runner Tests (Phase 3)**: 10 unit + 2 integration tests passing
-- **Total M1 Unit Tests**: 113 tests passing
+- **Zeek Reader Tests (Phase 4)**: 10 unit + 1 integration tests passing
+- **Total M1 Unit Tests**: 124 tests passing
 
 ## 5. Next Phases (Roadmap)
 
-- **Phase 4 (Zeek Reader)**: Reading JSON logs and handling missing/malformed records.
 - **Phases 5-8 (Adapters)**: Converting `conn.log`, `dns.log`, `http.log`, and `ssl.log` into M1 models.
 - **Phases 9-10 (Provenance & Package)**: Assembling the final package and preserving source traceability.
 
