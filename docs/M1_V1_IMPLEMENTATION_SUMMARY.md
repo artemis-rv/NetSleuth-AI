@@ -143,6 +143,19 @@ Phase 8 implements the conversion of raw Zeek `ssl.log` records into canonical M
 - **Key Features & Guarantees**:
   - **Strict Encryption Boundary**: Preserves SNI, version, cipher, and certificate details but strictly refuses to infer or synthesize HTTP-level details (Method, URI, Body) from encrypted streams.
 
+### 3.11. Phase 9 (Artifact Extraction & Provenance)
+Phase 9 implements the dynamic extraction of canonical `Artifact` models (DOMAIN, IP, USER_AGENT) from normalized `ProtocolEvent` objects, strictly maintaining provenance linking generated artifacts back to their origin events.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/artifacts/extractor.py`: `ArtifactExtractor` implementation.
+  - `backend/app/engines/packet_intelligence/provenance/validator.py`: `ProvenanceValidator` implementation.
+- **Tests**:
+  - `backend/tests/unit/test_artifact_extractor.py`: 8 unit tests.
+  - `backend/tests/unit/test_provenance_validator.py`: 5 unit tests.
+- **Key Features & Guarantees**:
+  - **Immutable Provenance**: Every extracted artifact receives a generated UUIDv4 and retains its source event ID, flow ID, and acquisition context.
+  - **No Inferences**: Abstained from synthesizing URLs, file paths, or certificate identities unless they are directly observed and uniquely identifiable in the protocol data.
+
 ## 4. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
@@ -153,9 +166,9 @@ Phase 8 implements the conversion of raw Zeek `ssl.log` records into canonical M
 - **DNS Adapter Tests (Phase 6)**: 13 tests passing
 - **HTTP Adapter Tests (Phase 7)**: 15 tests passing
 - **TLS Adapter Tests (Phase 8)**: 12 tests passing
-- **Total M1 Unit Tests**: 175 tests passing
+- **Artifact Extractor & Provenance Tests (Phase 9)**: 13 tests passing
+- **Total M1 Unit Tests**: 188 tests passing
 
 ## 5. Next Phases (Roadmap)
 
-- **Phases 9-10 (Artifact Extraction & Package Assembly)**: Assembling the final package and preserving source traceability.
-
+- **Phase 10 (NetworkIntelligencePackage Assembly)**: Assembling the final package from the flows, protocol events, and extracted artifacts.
