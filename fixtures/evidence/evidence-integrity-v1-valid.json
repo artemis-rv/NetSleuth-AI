@@ -1,0 +1,28 @@
+{
+  "schema_version": "evidence-integrity-v1",
+  "evidence_id": "ev-EVIDENCE-SCENARIO-001",
+  "case_id": "CASE-SCENARIO-001",
+  "evidence_type": "pcap",
+  "source_id": "EVIDENCE-SCENARIO-001",
+  "expected_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "calculated_hash": null,
+  "hash_algorithm": "SHA-256",
+  "verification_status": "unverified",
+  "verified_at": null,
+  "collected_at": "2026-08-15T10:00:00Z",
+  "ingested_at": "2026-08-15T10:05:00Z",
+  "provenance": {
+    "collector_id": "COLLECTOR-001",
+    "acquisition_id": "ACQ-SCENARIO-001",
+    "capture_interface": "eth0",
+    "collection_timestamp": "2026-08-15T10:00:00Z"
+  },
+  "chain_of_custody": [
+    {
+      "custodian_id": "CUSTODIAN-001",
+      "action": "ingest",
+      "timestamp": "2026-08-15T10:05:00Z",
+      "signature": null
+    }
+  ]
+}

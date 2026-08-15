@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsleuth.ai/schemas/evidence-integrity-v1.json",
+  "title": "NetSleuth AI Evidence Integrity Contract",
+  "description": "M4 Evidence Integrity and Chain of Custody canonical contract. STATUS: FROZEN.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "case_id",
+    "evidence_type",
+    "verification_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "evidence-integrity-v1"
+    },
+    "evidence_id": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "evidence_type": {
+      "type": "string",
+      "enum": [
+        "pcap",
+        "flow",
+        "session",
+        "dns",
+        "http",
+        "tls",
+        "artifact",
+        "log",
+        "finding"
+      ]
+    },
+    "source_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expected_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "calculated_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "hash_algorithm": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "SHA-256",
+        "SHA-512",
+        "MD5",
+        null
+      ]
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "unverified",
+        "mismatch",
+        "tampered"
+      ]
+    },
+    "verified_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "collected_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "ingested_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "provenance": {
+      "$ref": "#/$defs/EvidenceProvenance"
+    },
+    "chain_of_custody": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CustodyEntry"
+      }
+    }
+  },
+  "$defs": {
+    "EvidenceProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collector_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "acquisition_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capture_interface": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "collection_timestamp": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "CustodyEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "custodian_id",
+        "action",
+        "timestamp"
+      ],
+      "properties": {
+        "custodian_id": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signature": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
