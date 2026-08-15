@@ -74,6 +74,7 @@ class InvestigationCaseBuilder:
                 "event_type": t.event_type if t.event_type in ["network", "dns", "http", "tls", "session", "flow", "artifact", "finding", "alert", "investigation", "evidence"] else "network",
                 "description": t.description
             }
+            # Map all entity references without truncation.
             if t.entity_ids:
                 t_doc["entity_ids"] = t.entity_ids
                 t_doc["source_entity_id"] = t.entity_ids[0]
@@ -88,6 +89,7 @@ class InvestigationCaseBuilder:
         for e in ctx.entities:
             e_doc = {
                 "entity_id": e.entity_id,
+                # Protocol_event is now fully supported.
                 "entity_type": e.entity_type if e.entity_type in valid_types else "artifact"
             }
             if e.first_seen:
@@ -124,6 +126,6 @@ class InvestigationCaseBuilder:
             doc["relationships"].append(r_doc)
         
         # Validate output against schema
-        self.validator.validate("investigation-case-v1.json", doc)
+        self.validator.validate("investigation-case-v1.1.json", doc)
         
         return doc

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://netsleuth.ai/schemas/investigation-case-v1.json",
+  "$id": "https://netsleuth.ai/schemas/investigation-case-v1.1.json",
   "title": "NetSleuth AI Investigation Case",
   "description": "M3 Investigation Engine output contract consumed by M4 Reporting Engine. V1.1 reconciliation.",
   "type": "object",

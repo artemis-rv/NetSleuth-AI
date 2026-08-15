@@ -9,8 +9,16 @@
 
 ## Investigation Case Schema Versioning (V1.1)
 
-**Important Note:** The `investigation-case-v1.json` schema explicitly sets its internal `schema_version` to `"investigation-case-v1.1"`.
+The Investigation Case contract is versioned as `investigation-case-v1.1`.
 
-This filename mismatch is an intentional design decision to preserve backward compatibility. During the M3 → M4 integration phase, critical schema gaps were identified in the original V1 contract that resulted in the loss of deterministic relationship edges and timeline entities. The schema was structurally upgraded to V1.1 to prevent forensic data corruption. 
+Canonical schema:
 
-However, the filename `investigation-case-v1.json` was retained so that existing validation suites, fixture references, and downstream integrations pointing to the original filepath would not immediately break, while still strictly enforcing the upgraded V1.1 internal structure.
+`docs/contracts/investigation-case-v1.1.json`
+
+V1.1 reconciles the M3 → M4 boundary by preserving:
+
+- deterministic correlation relationships
+- `protocol_event` entity types
+- multiple entity references on timeline events
+
+The V1.1 contract is the authoritative M3 → M4 integration boundary.
