@@ -13,7 +13,7 @@ class ContractValidator:
     def _load_schemas(self):
         if not CONTRACTS_DIR.exists():
             return
-        for schema_file in CONTRACTS_DIR.glob("*-v1.json"):
+        for schema_file in CONTRACTS_DIR.glob("*-v*.json"):
             with open(schema_file, 'r', encoding='utf-8') as f:
                 schema = json.load(f)
                 self.schemas[schema_file.name] = schema

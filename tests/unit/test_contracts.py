@@ -83,7 +83,7 @@ class TestContracts(unittest.TestCase):
         with open(fixture_path, 'r', encoding='utf-8') as f:
             valid_case = json.load(f)
         # Should not raise exception
-        self.validator.validate("investigation-case-v1.json", valid_case)
+        self.validator.validate("investigation-case-v1.1.json", valid_case)
 
     def test_invalid_investigation_case_extra_property(self):
         fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "investigations" / "investigation-case-v1-valid.json"
@@ -92,7 +92,7 @@ class TestContracts(unittest.TestCase):
         
         invalid_case["unknown_property"] = "this should fail"
         with self.assertRaises(jsonschema.exceptions.ValidationError):
-            self.validator.validate("investigation-case-v1.json", invalid_case)
+            self.validator.validate("investigation-case-v1.1.json", invalid_case)
 
     def test_invalid_investigation_case_bad_enum(self):
         fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "investigations" / "investigation-case-v1-valid.json"
@@ -101,7 +101,7 @@ class TestContracts(unittest.TestCase):
             
         invalid_case["status"] = "super_closed" # not in enum
         with self.assertRaises(jsonschema.exceptions.ValidationError):
-            self.validator.validate("investigation-case-v1.json", invalid_case)
+            self.validator.validate("investigation-case-v1.1.json", invalid_case)
 
     def test_scenario_001_m1_valid(self):
         fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-scenario-001.json"
@@ -119,6 +119,6 @@ class TestContracts(unittest.TestCase):
         fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "investigations" / "investigation-case-v1-scenario-001-expected.json"
         with open(fixture_path, 'r', encoding='utf-8') as f:
             valid_m3 = json.load(f)
-        self.validator.validate("investigation-case-v1.json", valid_m3)
+        self.validator.validate("investigation-case-v1.1.json", valid_m3)
 
 

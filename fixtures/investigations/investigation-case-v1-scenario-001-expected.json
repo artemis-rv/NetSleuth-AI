@@ -1,5 +1,5 @@
 {
-  "schema_version": "investigation-case-v1",
+  "schema_version": "investigation-case-v1.1",
   "case_id": "CASE-SCENARIO-001",
   "title": "Investigation into Synthetic Beaconing Scenario",
   "description": "Synthetic case generated to validate deterministic relationships between findings, flows, events, and entities.",
@@ -67,6 +67,7 @@
       "role": "related"
     }
   ],
+  "relationships": [],
   "evidence_references": [
     {
       "evidence_id": "ev-FLOW-001",
