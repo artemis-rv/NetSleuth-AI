@@ -72,15 +72,30 @@ Phase 2 establishes a trustworthy, validated identity for evidence files (`.pcap
   - **Performance SLAs**: SHA-256 throughput $\ge 50$ MB/s, 1 MB acquisition execution $\le 200$ ms, validation rejection $\le 5$ ms.
   - **Memory Efficiency**: Memory footprint bounded to 64 KiB regardless of file size.
 
+### 3.5. Phase 3 (Zeek Runner Implementation)
+Phase 3 implements the Docker-based runner execution environment that executes Zeek to generate logs offline.
+
+- **Files**:
+  - `backend/app/engines/packet_intelligence/zeek/__init__.py`: Package exports.
+  - `backend/app/engines/packet_intelligence/zeek/errors.py`: Domain exception `ZeekRunnerError` and `ZeekRunnerErrorCode` enum.
+  - `backend/app/engines/packet_intelligence/zeek/result.py`: `ZeekRunnerResult` (execution status, duration, logs found, exit codes).
+  - `backend/app/engines/packet_intelligence/zeek/runner.py`: `ZeekRunner` orchestrator checking Docker, validating path context, mounting dirs read-only, and invoking `zeek -r ... LogAscii::use_json=T`.
+- **Tests**:
+  - `backend/tests/unit/test_zeek_runner.py`: 10 mock-based unit tests and 2 Docker-integrated E2E tests (PCAP and PCAPNG).
+- **Key Features & Guarantees**:
+  - **Security**: Strict path-traversal validation, only mounts validated evidence/output folders read-only, zero shell subprocess usage (`shell=False`).
+  - **Integrity**: Evidence is mounted read-only (`:ro`); no edits are ever written back to evidence.
+  - **Determinism**: Isolated output folder `sample_data/zeek_output/<acquisition_id>/` per run; outputs JSON logs consistently.
+
 ## 4. Total Test Suite Status
 
 - **Contract Tests (Phase 1)**: 78 tests passing
 - **Acquisition Engine Tests (Phase 2)**: 25 tests passing
-- **Total M1 Unit Tests**: 103 tests passing
+- **Zeek Runner Tests (Phase 3)**: 10 unit + 2 integration tests passing
+- **Total M1 Unit Tests**: 113 tests passing
 
 ## 5. Next Phases (Roadmap)
 
-- **Phase 3 (Zeek Runner)**: Docker-based Zeek execution.
 - **Phase 4 (Zeek Reader)**: Reading JSON logs and handling missing/malformed records.
 - **Phases 5-8 (Adapters)**: Converting `conn.log`, `dns.log`, `http.log`, and `ssl.log` into M1 models.
 - **Phases 9-10 (Provenance & Package)**: Assembling the final package and preserving source traceability.
