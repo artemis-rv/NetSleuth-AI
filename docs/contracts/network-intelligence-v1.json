@@ -15,7 +15,10 @@
           "flow_id": { "type": "string" },
           "zeek_uid": { "type": "string" },
           "acquisition_id": { "type": "string" },
+          "evidence_id": { "type": ["string", "null"] },
           "timestamp": { "type": "string", "format": "date-time" },
+          "start_time": { "type": ["string", "null"], "format": "date-time" },
+          "end_time": { "type": ["string", "null"], "format": "date-time" },
           "source": { 
             "type": "object", 
             "properties": { "ip": { "type": "string" }, "port": { "type": "integer" } },
@@ -38,7 +41,15 @@
           "connection_state": { "type": "string" },
           "provenance": { 
             "type": "object", 
-            "properties": { "source": { "type": "string" }, "source_log": { "type": "string" } },
+            "properties": { 
+              "acquisition_id": { "type": ["string", "null"] },
+              "evidence_id": { "type": ["string", "null"] },
+              "zeek_uid": { "type": ["string", "null"] },
+              "source": { "type": "string" }, 
+              "source_log": { "type": "string" },
+              "processed_at": { "type": ["string", "null"], "format": "date-time" },
+              "processor_version": { "type": ["string", "null"] }
+            },
             "required": ["source", "source_log"],
             "additionalProperties": false
           }
@@ -55,17 +66,27 @@
           "event_id": { "type": "string" },
           "flow_id": { "type": "string" },
           "zeek_uid": { "type": "string" },
+          "acquisition_id": { "type": "string" },
+          "evidence_id": { "type": ["string", "null"] },
           "protocol": { "type": "string" },
           "timestamp": { "type": "string", "format": "date-time" },
-          "data": { "type": "object" },
+          "protocol_data": { "type": "object" },
           "provenance": { 
             "type": "object",
-            "properties": { "acquisition_id": { "type": "string" }, "source": { "type": "string" }, "source_log": { "type": "string" } },
+            "properties": { 
+              "acquisition_id": { "type": "string" }, 
+              "evidence_id": { "type": ["string", "null"] },
+              "zeek_uid": { "type": ["string", "null"] },
+              "source": { "type": "string" }, 
+              "source_log": { "type": "string" },
+              "processed_at": { "type": ["string", "null"], "format": "date-time" },
+              "processor_version": { "type": ["string", "null"] }
+            },
             "required": ["acquisition_id", "source", "source_log"],
             "additionalProperties": false
           }
         },
-        "required": ["event_id", "flow_id", "zeek_uid", "protocol", "timestamp", "data", "provenance"],
+        "required": ["event_id", "flow_id", "zeek_uid", "acquisition_id", "protocol", "timestamp", "protocol_data", "provenance"],
         "additionalProperties": false
       }
     },
@@ -77,21 +98,43 @@
           "artifact_id": { "type": "string" },
           "type": { "type": "string" },
           "value": { "type": "string" },
-          "source_event_id": { "type": "string" },
-          "flow_id": { "type": "string" },
+          "source_event_id": { "type": ["string", "null"] },
+          "flow_id": { "type": ["string", "null"] },
+          "acquisition_id": { "type": "string" },
+          "evidence_id": { "type": ["string", "null"] },
+          "first_seen": { "type": ["string", "null"], "format": "date-time" },
+          "last_seen": { "type": ["string", "null"], "format": "date-time" },
           "provenance": { 
             "type": "object",
-            "properties": { "acquisition_id": { "type": "string" } },
+            "properties": { 
+              "acquisition_id": { "type": "string" },
+              "evidence_id": { "type": ["string", "null"] },
+              "source_event_id": { "type": ["string", "null"] },
+              "derived_from": { "type": ["string", "null"] }
+            },
             "required": ["acquisition_id"],
             "additionalProperties": false
           }
         },
-        "required": ["artifact_id", "type", "value", "source_event_id", "flow_id", "provenance"],
+        "required": ["artifact_id", "type", "value", "acquisition_id", "provenance"],
         "additionalProperties": false
       }
     },
     "packet_references": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "evidence_id": { "type": ["string", "null"] },
+          "acquisition_id": { "type": ["string", "null"] },
+          "packet_start": { "type": ["integer", "null"] },
+          "packet_end": { "type": ["integer", "null"] },
+          "timestamp_start": { "type": ["string", "null"], "format": "date-time" },
+          "timestamp_end": { "type": ["string", "null"], "format": "date-time" },
+          "byte_offset": { "type": ["integer", "null"] }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "required": ["package_id", "contract_version", "acquisition_id", "flows", "protocol_events", "artifacts", "packet_references"],

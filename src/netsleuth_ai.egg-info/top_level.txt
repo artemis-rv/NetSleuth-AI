@@ -1,6 +1,0 @@
-__init__
-m1_packet_intel
-m2_analysis
-m3_correlation
-m4_reporting
-shared

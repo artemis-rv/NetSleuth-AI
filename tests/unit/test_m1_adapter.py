@@ -11,7 +11,7 @@ class TestM1Adapter(unittest.TestCase):
         self.validator = ContractValidator()
         self.adapter = M1Adapter(self.validator)
         
-        fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-scenario-001.json"
+        fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-m1-phase1.json"
         with open(fixture_path, 'r', encoding='utf-8') as f:
             self.scenario_001 = json.load(f)
 
@@ -27,11 +27,11 @@ class TestM1Adapter(unittest.TestCase):
         self.assertIn("ip:10.0.0.10", entity_ids)
         self.assertIn("ip:203.0.113.10", entity_ids)
         self.assertIn("flow:FLOW-001", entity_ids)
-        self.assertIn("protocol_event:EVENT-001", entity_ids)
-        self.assertIn("domain:suspicious.example", entity_ids)
+        self.assertIn("protocol_event:EVT-001", entity_ids)
+        self.assertIn("domain:suspicious.example.com", entity_ids)
         
         # 8. DNS evidence uses evidence_type = dns
-        dns_evidence = next(ev for ev in ctx.evidence_references if ev.source_id == "EVENT-001")
+        dns_evidence = next(ev for ev in ctx.evidence_references if ev.source_id == "EVT-001")
         self.assertEqual(dns_evidence.evidence_type, "dns")
         
         # 9. timestamps timezone aware UTC
@@ -48,9 +48,9 @@ class TestM1Adapter(unittest.TestCase):
         ip_203_entities = [e for e in ctx.entities if e.entity_id == "ip:203.0.113.10"]
         self.assertEqual(len(ip_203_entities), 1)
         
-        # Also verify TimelineEvent presence
-        self.assertEqual(len(ctx.timeline_events), 1)
-        self.assertEqual(ctx.timeline_events[0].event_id, "EVENT-001")
+        # 11. Timeline events created
+        self.assertEqual(len(ctx.timeline_events), 2)
+        self.assertEqual(ctx.timeline_events[0].event_id, "EVT-001")
 
     def test_malformed_timestamp_rejected(self):
         bad_payload = json.loads(json.dumps(self.scenario_001))

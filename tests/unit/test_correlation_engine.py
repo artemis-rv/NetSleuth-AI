@@ -18,7 +18,7 @@ class TestCorrelationEngine(unittest.TestCase):
         self.m2_adapter = M2Adapter(validator)
         self.engine = CorrelationEngine()
         
-        m1_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-scenario-001.json"
+        m1_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-m1-phase1.json"
         with open(m1_path, 'r', encoding='utf-8') as f:
             self.m1_payload = json.load(f)
             
@@ -35,27 +35,27 @@ class TestCorrelationEngine(unittest.TestCase):
         rels = ctx.relationships
         
         # 1. Flow <-> protocol event
-        self.assertTrue(any(r.source_entity_id == "protocol_event:EVENT-001" and 
+        self.assertTrue(any(r.source_entity_id == "protocol_event:EVT-001" and 
                             r.target_entity_id == "flow:FLOW-001" and 
                             r.relationship_type == "observed_in" for r in rels))
                             
         # 2. DNS <-> IP
-        self.assertTrue(any(r.source_entity_id == "protocol_event:EVENT-001" and 
+        self.assertTrue(any(r.source_entity_id == "protocol_event:EVT-001" and 
                             r.target_entity_id == "ip:203.0.113.10" and 
                             r.relationship_type == "resolved_to" for r in rels))
                             
         # 3. DNS <-> Domain
-        self.assertTrue(any(r.source_entity_id == "protocol_event:EVENT-001" and 
-                            r.target_entity_id == "domain:suspicious.example" and 
+        self.assertTrue(any(r.source_entity_id == "protocol_event:EVT-001" and 
+                            r.target_entity_id == "domain:suspicious.example.com" and 
                             r.relationship_type == "queried" for r in rels))
                             
         # 4. Artifact <-> protocol event
-        self.assertTrue(any(r.source_entity_id == "domain:suspicious.example" and 
-                            r.target_entity_id == "protocol_event:EVENT-001" and 
+        self.assertTrue(any(r.source_entity_id == "domain:suspicious.example.com" and 
+                            r.target_entity_id == "protocol_event:EVT-001" and 
                             r.relationship_type == "derived_from" for r in rels))
                             
         # 5. Artifact <-> flow
-        self.assertTrue(any(r.source_entity_id == "domain:suspicious.example" and 
+        self.assertTrue(any(r.source_entity_id == "domain:suspicious.example.com" and 
                             r.target_entity_id == "flow:FLOW-001" and 
                             r.relationship_type == "associated_with" for r in rels))
                             

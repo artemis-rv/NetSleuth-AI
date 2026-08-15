@@ -69,7 +69,7 @@ class TestM2Adapter(unittest.TestCase):
             self.adapter.adapt(bad_payload)
 
     def test_integration_with_m1_context(self):
-        m1_fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-scenario-001.json"
+        m1_fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-m1-phase1.json"
         with open(m1_fixture_path, 'r', encoding='utf-8') as f:
             m1_scenario = json.load(f)
             
@@ -81,9 +81,9 @@ class TestM2Adapter(unittest.TestCase):
         entity_ids = [e.entity_id for e in ctx.entities]
         
         self.assertIn("flow:FLOW-001", entity_ids)
-        self.assertIn("protocol_event:EVENT-001", entity_ids)
+        self.assertIn("protocol_event:EVT-001", entity_ids)
         self.assertIn("ip:203.0.113.10", entity_ids)
-        self.assertIn("domain:suspicious.example", entity_ids)
+        self.assertIn("domain:suspicious.example.com", entity_ids)
         self.assertIn("finding:FINDING-001", entity_ids)
         
         ip_203_entities = [e for e in ctx.entities if e.entity_id == "ip:203.0.113.10"]

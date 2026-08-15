@@ -104,7 +104,7 @@ class TestContracts(unittest.TestCase):
             self.validator.validate("investigation-case-v1.1.json", invalid_case)
 
     def test_scenario_001_m1_valid(self):
-        fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-scenario-001.json"
+        fixture_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-m1-phase1.json"
         with open(fixture_path, 'r', encoding='utf-8') as f:
             valid_m1 = json.load(f)
         self.validator.validate("network-intelligence-v1.json", valid_m1)

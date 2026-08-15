@@ -17,7 +17,7 @@ class TestCaseBuilder(unittest.TestCase):
         self.engine = CorrelationEngine()
         self.builder = InvestigationCaseBuilder(self.validator)
         
-        m1_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-scenario-001.json"
+        m1_path = Path(__file__).resolve().parent.parent.parent / "fixtures" / "network_intelligence" / "network-intelligence-v1-m1-phase1.json"
         with open(m1_path, 'r', encoding='utf-8') as f:
             self.m1_payload = json.load(f)
             
@@ -47,14 +47,14 @@ class TestCaseBuilder(unittest.TestCase):
         ent_types = [e["entity_type"] for e in doc["entities"]]
         self.assertIn("ip:203.0.113.10", ent_ids)
         self.assertIn("flow:FLOW-001", ent_ids)
-        self.assertIn("domain:suspicious.example", ent_ids)
-        self.assertIn("protocol_event:EVENT-001", ent_ids)
+        self.assertIn("domain:suspicious.example.com", ent_ids)
+        self.assertIn("protocol_event:EVT-001", ent_ids)
         self.assertIn("protocol_event", ent_types)
         
         # 6. Timeline chronologically ordered (correlation engine sorts it) and complete entity_ids
         timestamps = [t["timestamp"] for t in doc["timeline"]]
         self.assertTrue(timestamps[0] <= timestamps[-1])
-        t_dns = next(t for t in doc["timeline"] if t["event_id"] == "EVENT-001")
+        t_dns = next(t for t in doc["timeline"] if t["event_id"] == "EVT-001")
         self.assertIn("entity_ids", t_dns)
         self.assertGreaterEqual(len(t_dns["entity_ids"]), 2)
         

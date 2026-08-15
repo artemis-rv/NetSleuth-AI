@@ -95,7 +95,7 @@ class M1Adapter:
             last_seen=ts,
             attributes={
                 "protocol": protocol,
-                "data": event.get("data"),
+                "data": event.get("protocol_data"),
                 "provenance": event.get("provenance"),
                 "zeek_uid": event.get("zeek_uid"),
                 "flow_id": event.get("flow_id")
@@ -106,7 +106,7 @@ class M1Adapter:
         evidence_type = "log"
         if protocol == "dns":
             evidence_type = "dns"
-            data = event.get("data", {})
+            data = event.get("protocol_data", {})
             query = data.get("query")
             if query:
                 domain_ent = Entity(
@@ -157,7 +157,7 @@ class M1Adapter:
 
     def _map_artifact(self, artifact: Dict[str, Any], ctx: InvestigationContext):
         art_id = artifact["artifact_id"]
-        art_type = artifact["type"]
+        art_type = artifact["type"].lower()
         val = artifact["value"]
         
         ent = Entity(
