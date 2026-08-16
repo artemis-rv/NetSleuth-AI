@@ -1,0 +1,127 @@
+﻿# =============================================================================
+# NetSleuth-AI — Local Development Infrastructure
+# docker-compose.yml
+# =============================================================================
+# PURPOSE:
+#   Authoritative single Compose configuration for NetSleuth-AI shared
+#   local development infrastructure.
+#
+# SCOPE:
+#   LOCAL DEVELOPMENT ONLY — not production-ready.
+#
+# SERVICES:
+#   minio       — S3-compatible object storage (MinIO)
+#   minio-init  — One-shot bucket initializer (exits after setup)
+#
+# PORTS:
+#   9000        — MinIO S3 API    (host -> container)
+#   9001        — MinIO Console   (host -> container)
+#
+# VOLUMES:
+#   minio_data  — Persistent named volume for MinIO objects
+#
+# USAGE:
+#   cp .env.example .env          # fill in credentials
+#   docker compose up -d          # start infrastructure
+#   docker compose down           # stop (preserves data)
+#   docker compose down -v        # stop + destroy volumes (WARNING: data loss)
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # MinIO — S3-compatible object storage
+  # ---------------------------------------------------------------------------
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: netsleuth-minio
+    restart: unless-stopped
+
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+    volumes:
+      - minio_data:/data
+
+    networks:
+      - netsleuth-net
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # minio-init — Idempotent bucket initializer
+  # ---------------------------------------------------------------------------
+  minio-init:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: netsleuth-minio-init
+    restart: "no"
+
+    depends_on:
+      minio:
+        condition: service_healthy
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    networks:
+      - netsleuth-net
+
+    entrypoint: >
+      /bin/sh -c "
+        set -e
+
+        echo '[minio-init] Configuring mc alias...'
+        mc alias set netsleuth http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}
+
+        echo '[minio-init] Creating bucket: netsleuth-evidence (versioned + object-lock capable)...'
+        mc mb --ignore-existing --with-lock netsleuth/netsleuth-evidence
+
+        echo '[minio-init] Enabling versioning on netsleuth-evidence...'
+        mc version enable netsleuth/netsleuth-evidence
+
+        echo '[minio-init] Creating bucket: netsleuth-zeek...'
+        mc mb --ignore-existing netsleuth/netsleuth-zeek
+
+        echo '[minio-init] Creating bucket: netsleuth-datasets...'
+        mc mb --ignore-existing netsleuth/netsleuth-datasets
+
+        echo '[minio-init] Creating bucket: netsleuth-models...'
+        mc mb --ignore-existing netsleuth/netsleuth-models
+
+        echo '[minio-init] Creating bucket: netsleuth-reports...'
+        mc mb --ignore-existing netsleuth/netsleuth-reports
+
+        echo '[minio-init] Verifying buckets...'
+        mc ls netsleuth
+
+        echo '[minio-init] Bucket initialization complete.'
+      "
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  netsleuth-net:
+    name: netsleuth-net
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  minio_data:
+    name: netsleuth_minio_data
+    driver: local
