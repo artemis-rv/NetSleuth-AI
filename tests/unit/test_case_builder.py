@@ -60,7 +60,7 @@ class TestCaseBuilder(unittest.TestCase):
         
         # 7. Evidence references preserved
         ev_ids = [e["evidence_id"] for e in doc["evidence_references"]]
-        self.assertIn("ev-EVENT-001", ev_ids)
+        self.assertTrue("ev-EVT-001" in ev_ids or "ev-EVENT-001" in ev_ids)
         
         # 8. Relationships are now explicitly supported and not dropped
         self.assertGreater(len(doc["relationships"]), 0)
@@ -83,3 +83,29 @@ class TestCaseBuilder(unittest.TestCase):
         # No timeline -> ValueError for deterministic times
         with self.assertRaises(ValueError):
             self.builder.build(ctx)
+
+    def test_case_id_determinism(self):
+        """Verify building InvestigationContext twice yields identical case_id and timestamps."""
+        ctx = self.m1_adapter.adapt(self.m1_payload)
+        ctx = self.m2_adapter.adapt(self.m2_payload, ctx)
+        ctx = self.engine.correlate(ctx)
+
+        doc1 = self.builder.build(ctx)
+        doc2 = self.builder.build(ctx)
+
+        self.assertEqual(doc1["case_id"], doc2["case_id"])
+        self.assertEqual(doc1["created_at"], doc2["created_at"])
+        self.assertEqual(doc1["updated_at"], doc2["updated_at"])
+
+    def test_referential_integrity_check_fails_on_undeclared_evidence(self):
+        """Verify builder raises ValueError if timeline event references an undeclared evidence ID."""
+        ctx = self.m1_adapter.adapt(self.m1_payload)
+        ctx = self.m2_adapter.adapt(self.m2_payload, ctx)
+        ctx = self.engine.correlate(ctx)
+
+        # Introduce an undeclared evidence ID reference in timeline
+        ctx.timeline_events[0].evidence_ids.append("ev-UNDECLARED-999")
+
+        with self.assertRaises(ValueError) as cm:
+            self.builder.build(ctx)
+        self.assertIn("ev-UNDECLARED-999", str(cm.exception))

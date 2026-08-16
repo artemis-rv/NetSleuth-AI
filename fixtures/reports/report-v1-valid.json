@@ -1,0 +1,156 @@
+{
+  "schema_version": "report-v1",
+  "report_id": "RPT-CASE-SCENARIO-001",
+  "case_id": "CASE-SCENARIO-001",
+  "generated_at": "2026-08-15T12:00:00Z",
+  "generator_version": "NetSleuth-AI M4 v1.0",
+  "summary": {
+    "case_title": "DNS Exfiltration Investigation Scenario 001",
+    "case_description": "Investigation into potential DNS tunnel exfiltration from internal workstation.",
+    "case_status": "open",
+    "total_findings": 1,
+    "total_timeline_events": 2,
+    "total_evidence_references": 2,
+    "verified_evidence_count": 1,
+    "mismatched_evidence_count": 0,
+    "unverified_evidence_count": 1
+  },
+  "findings": [
+    {
+      "finding_id": "FINDING-DNS-001",
+      "finding_type": "dns_exfiltration",
+      "title": "High-volume DNS Tunneling Detected",
+      "description": "Observed high entropy TXT query volume to suspect domain.",
+      "severity": "high",
+      "confidence": 0.95,
+      "evidence_references": [
+        "ev-FLOW-001"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "event_id": "EVT-001",
+      "timestamp": "2026-08-15T10:00:00Z",
+      "title": "DNS Query Surge Started",
+      "description": "Initial burst of subdomains generated.",
+      "event_type": "network_flow",
+      "entity_ids": [
+        "ent-IP-001"
+      ],
+      "evidence_ids": [
+        "ev-FLOW-001"
+      ]
+    },
+    {
+      "event_id": "EVT-002",
+      "timestamp": "2026-08-15T10:05:00Z",
+      "title": "Suspect Artifact Captured",
+      "description": "Memory dump artifact collected.",
+      "event_type": "artifact_capture",
+      "entity_ids": [
+        "ent-IP-001"
+      ],
+      "evidence_ids": [
+        "ev-art-001"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "ent-IP-001",
+      "entity_type": "ip",
+      "value": "192.168.1.105",
+      "namespace": "ipv4",
+      "confidence": 1.0
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "REL-001",
+      "source_entity_id": "ent-IP-001",
+      "target_entity_id": "ent-DOMAIN-001",
+      "relationship_type": "queried",
+      "evidence_ids": [
+        "ev-FLOW-001"
+      ]
+    }
+  ],
+  "evidence_integrity": [
+    {
+      "schema_version": "evidence-integrity-v1",
+      "evidence_id": "ev-FLOW-001",
+      "case_id": "CASE-SCENARIO-001",
+      "evidence_type": "flow",
+      "source_id": "FLOW-001",
+      "expected_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "calculated_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hash_algorithm": "SHA-256",
+      "verification_status": "verified",
+      "verified_at": "2026-08-15T10:05:00Z",
+      "collected_at": "2026-08-15T10:00:00Z",
+      "ingested_at": "2026-08-15T10:02:00Z",
+      "provenance": {
+        "collector_id": "COLLECTOR-001",
+        "acquisition_id": "ACQ-001",
+        "capture_interface": "eth0",
+        "collection_timestamp": "2026-08-15T10:00:00Z"
+      },
+      "chain_of_custody": [
+        {
+          "custodian_id": "CUSTODIAN-001",
+          "action": "ingest",
+          "timestamp": "2026-08-15T10:02:00Z",
+          "signature": null
+        },
+        {
+          "custodian_id": "CUSTODIAN-001",
+          "action": "verify",
+          "timestamp": "2026-08-15T10:05:00Z",
+          "signature": null
+        }
+      ]
+    },
+    {
+      "schema_version": "evidence-integrity-v1",
+      "evidence_id": "ev-art-001",
+      "case_id": "CASE-SCENARIO-001",
+      "evidence_type": "artifact",
+      "source_id": "ART-001",
+      "expected_hash": null,
+      "calculated_hash": null,
+      "hash_algorithm": null,
+      "verification_status": "unverified",
+      "verified_at": null,
+      "collected_at": "2026-08-15T10:05:00Z",
+      "ingested_at": "2026-08-15T10:06:00Z",
+      "provenance": null,
+      "chain_of_custody": [
+        {
+          "custodian_id": "CUSTODIAN-001",
+          "action": "ingest",
+          "timestamp": "2026-08-15T10:06:00Z",
+          "signature": null
+        }
+      ]
+    }
+  ],
+  "assessment": {
+    "summary": "Confirmed high-confidence DNS tunneling behavior from host 192.168.1.105.",
+    "facts": [
+      {
+        "fact_id": "FACT-001",
+        "statement": "Query volume exceeds baseline by 400%",
+        "confidence": 0.95,
+        "source_ids": [
+          "ev-FLOW-001"
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "acquisition_id": "ACQ-001",
+    "collector_id": "COLLECTOR-001",
+    "created_at": "2026-08-15T10:00:00Z"
+  }
+}

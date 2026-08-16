@@ -125,6 +125,18 @@ class InvestigationCaseBuilder:
                 r_doc["last_seen"] = r.last_seen.isoformat().replace("+00:00", "Z")
             doc["relationships"].append(r_doc)
         
+        # 6. Referential Integrity Check for Evidence References
+        declared_ev_ids = {ev["evidence_id"] for ev in doc["evidence_references"]}
+        for t_event in doc["timeline"]:
+            for ev_id in t_event.get("evidence_ids", []):
+                if ev_id not in declared_ev_ids:
+                    raise ValueError(f"Timeline event '{t_event['event_id']}' references undeclared evidence ID '{ev_id}'.")
+
+        for rel in doc["relationships"]:
+            for ev_id in rel.get("evidence_ids", []):
+                if ev_id not in declared_ev_ids:
+                    raise ValueError(f"Relationship '{rel['relationship_id']}' references undeclared evidence ID '{ev_id}'.")
+
         # Validate output against schema
         self.validator.validate("investigation-case-v1.1.json", doc)
         
