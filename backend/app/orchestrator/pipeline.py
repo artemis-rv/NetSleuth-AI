@@ -91,10 +91,18 @@ class ForensicPipelineOrchestrator:
 
         # --- 3. M3 Correlation Phase ---
         logger.info("Executing M3 Correlation Engine...")
-        ctx = InvestigationContext(case_id=f"CASE-{m1_package.acquisition_id}")
+        
+        # 3a. M3 Canonical Input Assembly
+        from app.engines.correlation.adapters.m3_input_adapter import M3InputAdapter
+        m3_adapter = M3InputAdapter()
+        m3_input = m3_adapter.adapt(m1_package.model_dump(mode="json"), m2_package.model_dump(mode="json"))
+
+        ctx = InvestigationContext(case_id=f"CASE-{m1_package.acquisition_id}", acquisition_id=m1_package.acquisition_id)
         from app.engines.correlation.domain.finding import FindingReference
         from app.engines.correlation.domain.timeline import TimelineEvent
+        from app.engines.correlation.domain.evidence import EvidenceReference as DomainEvidenceReference
         import datetime
+        
         for finding in m2_package.findings:
             ref = FindingReference(
                 finding_id=finding.finding_id,
@@ -110,9 +118,31 @@ class ForensicPipelineOrchestrator:
                 description=f"Finding {finding.finding_id} generated",
                 finding_ids=[finding.finding_id]
             ))
+            
+            # Map evidence references to the context for traceability
+            for ev_ref in finding.evidence_references:
+                for flow_id in ev_ref.flow_ids:
+                    ctx.evidence_references.append(DomainEvidenceReference(evidence_id=flow_id, evidence_type="flow", source_id=flow_id))
+                for event_id in ev_ref.event_ids:
+                    ctx.evidence_references.append(DomainEvidenceReference(evidence_id=event_id, evidence_type="session", source_id=event_id))
+
+        # 3b. M3 Deterministic Correlation
+        from app.engines.correlation.correlation.correlation_engine import CorrelationEngine
+        correlation_engine = CorrelationEngine()
+        ctx = correlation_engine.correlate(ctx)
         
-        # Trigger M3 rules/correlation algorithms if applicable
-        # (Assuming CaseBuilder does this internally or via another orchestrator)
+        # 3c. MITRE Mapping
+        from app.engines.correlation.mitre.repository import MitreKnowledgeRepository
+        from app.engines.correlation.mitre.mapper import MitreMapper
+        repo = MitreKnowledgeRepository()
+        mapper = MitreMapper(repo)
+        
+        ctx.mitre_mappings = []
+        for finding in m2_package.findings:
+            mappings = mapper.map_finding(m3_input, finding.finding_id)
+            ctx.mitre_mappings.extend(mappings)
+        
+        # 3d. Investigation Case Builder (Attack Chain & Formatting)
         m3_case_dict = self.m3_builder.build(ctx)
         case_id = m3_case_dict["case_id"]
         
