@@ -223,6 +223,11 @@ class ClassificationResult(BaseModel):
 
     model_config = {"frozen": True, "extra": "forbid"}
 
+    @property
+    def predicted_activity(self) -> ActivityClass:
+        """Alias for activity_class."""
+        return self.activity_class
+
     @field_validator("confidence")
     @classmethod
     def _confidence_finite(cls, v: float) -> float:
@@ -338,6 +343,24 @@ class Finding(BaseModel):
     classification_result: Optional[ClassificationResult] = Field(
         None, description="Full classification result if available"
     )
+    decision_state: Optional[str] = Field(
+        None, description="M2 Phase 7 decision state string"
+    )
+    feature_schema_version: Optional[str] = Field(
+        None, description="Feature schema version"
+    )
+    anomaly_model_version: Optional[str] = Field(
+        None, description="Anomaly model version"
+    )
+    classifier_model_version: Optional[str] = Field(
+        None, description="Classifier model version"
+    )
+    observation_start: Optional[datetime] = Field(
+        None, description="Start UTC timestamp of observation window"
+    )
+    observation_end: Optional[datetime] = Field(
+        None, description="End UTC timestamp of observation window"
+    )
     model_version: str = Field(
         ..., description="M2 analysis engine version that produced this finding"
     )
@@ -392,6 +415,15 @@ class FindingsPackage(BaseModel):
     )
     analysis_engine_version: str = Field(
         ..., description="M2 engine version string"
+    )
+    feature_schema_version: Optional[str] = Field(
+        None, description="Feature schema version"
+    )
+    anomaly_model_version: Optional[str] = Field(
+        None, description="Anomaly model version"
+    )
+    classifier_model_version: Optional[str] = Field(
+        None, description="Classifier model version"
     )
     analysed_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
