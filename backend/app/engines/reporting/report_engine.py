@@ -71,7 +71,8 @@ class ReportEngine:
     def generate_report(
         self,
         investigation_case: Dict[str, Any],
-        evidence_integrity_records: Union[List[Dict[str, Any]], Any]
+        evidence_integrity_records: Union[List[Dict[str, Any]], Any],
+        llm_enrichment: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Generates a contract-compliant Report V1 dictionary from InvestigationCase and EvidenceIntegrity input.
@@ -94,8 +95,8 @@ class ReportEngine:
             out_schema_file = "report-v1.json"
         elif schema_version == "investigation-case-v1.2":
             case_schema_file = "investigation-case-v1.2.json"
-            out_schema_version = "report-v1.1"
-            out_schema_file = "report-v1.1.json"
+            out_schema_version = "report-v1.2"
+            out_schema_file = "report-v1.2.json"
         else:
             raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
 
@@ -202,6 +203,10 @@ class ReportEngine:
                 report_payload["mitre_provenance"] = self._project_mitre_provenance(case_data["mitre_provenance"])
             if "attack_chain" in case_data and case_data["attack_chain"] is not None:
                 report_payload["attack_chain"] = self._project_attack_chain(case_data["attack_chain"])
+            
+            # 9.5 Add LLM Enrichment
+            if llm_enrichment is not None:
+                report_payload["llm_enrichment"] = deepcopy(llm_enrichment)
 
         # 10. Validate generated report payload against corresponding schema contract
         self.validator.validate(out_schema_file, report_payload)

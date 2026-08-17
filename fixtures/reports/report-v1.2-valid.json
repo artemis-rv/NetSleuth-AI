@@ -1,0 +1,86 @@
+{
+  "schema_version": "report-v1.2",
+  "report_id": "RPT-123",
+  "case_id": "CASE-123",
+  "generated_at": "2026-08-17T12:00:00Z",
+  "generator_version": "1.0",
+  "summary": {
+    "case_title": "Test Case",
+    "case_status": "OPEN",
+    "total_findings": 1,
+    "total_timeline_events": 1,
+    "total_evidence_references": 1
+  },
+  "findings": [
+    {
+      "finding_id": "F-1",
+      "title": "Suspicious Web Traffic",
+      "severity": "high",
+      "confidence": 0.9,
+      "evidence_references": [
+        "E-1"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "event_id": "TE-1",
+      "timestamp": "2026-08-17T11:00:00Z",
+      "title": "Event started"
+    }
+  ],
+  "evidence_integrity": [
+    {
+      "evidence_id": "E-1",
+      "case_id": "CASE-123",
+      "evidence_type": "flow",
+      "verification_status": "verified"
+    }
+  ],
+  "attack_chain": {
+    "status": "potential",
+    "stages": [
+      {
+        "stage_id": "STG-1",
+        "name": "Command and Control"
+      }
+    ]
+  },
+  "mitre_provenance": {
+    "framework": "MITRE ATT&CK",
+    "domain": "enterprise",
+    "version": "14.1",
+    "knowledge_profile_id": "KP-1"
+  },
+  "mitre_mappings": [
+    {
+      "technique_id": "T1071.001",
+      "technique_name": "Web Traffic"
+    }
+  ],
+  "llm_enrichment": {
+    "status": "SUCCESS",
+    "request_id": "REQ-123",
+    "case_id": "CASE-123",
+    "summary": "This is an AI summary of the case.",
+    "mitre_explanations": [
+      {
+        "technique_id": "T1071.001",
+        "technique_name": "Web Traffic",
+        "mapping_status": "POTENTIAL",
+        "mapping_confidence": 0.8,
+        "evidence_ids": [
+          "E-1"
+        ],
+        "explanation": "The traffic maps to C2 Web Traffic."
+      }
+    ],
+    "investigator_answers": {
+      "Is this C2?": "Yes, it appears to be C2."
+    },
+    "limitations": "LLM may hallucinate.",
+    "provenance": {
+      "model": "qwen"
+    }
+  }
+}

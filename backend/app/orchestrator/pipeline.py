@@ -239,7 +239,8 @@ class ForensicPipelineOrchestrator:
 
         # --- 4. M4 Reporting Phase ---
         logger.info("Executing M4 Evidence & Reporting Engine...")
-        m4_report = self.m4_engine.generate_report(m3_case_dict, [])
+        llm_dict = llm_enrichment.model_dump(mode="json") if llm_enrichment else None
+        m4_report = self.m4_engine.generate_report(m3_case_dict, [], llm_enrichment=llm_dict)
         
         # NOTE: M4 persistence service is mocked or not injected here yet,
         # but in a real flow we would call self.m4_persistence.persist_report(m4_report)
