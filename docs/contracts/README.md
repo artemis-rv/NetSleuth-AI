@@ -6,6 +6,8 @@
 | Finding | M2 | M3 | V1 |
 | InvestigationCase | M3 | M4 | V1.1 |
 | EvidenceReference | M3/M4 boundary | M4 | V1 |
+| EvidenceIntegrity | M4 | M4 boundary | V1 (FROZEN) |
+| Report | M4 Report Engine | Consumers (UI/CLI/Exporter) | V1 (FROZEN) |
 
 ## Investigation Case Schema Versioning (V1.1)
 
