@@ -3,16 +3,16 @@ from datetime import datetime, timezone
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..", "backend")))
 
-from backend.app.engines.correlation.investigation.case_builder import InvestigationCaseBuilder
-from backend.app.engines.correlation.domain.investigation import InvestigationContext
-from backend.app.engines.correlation.domain.finding import FindingReference
-from backend.app.engines.correlation.domain.evidence import EvidenceReference as DomainEvidenceReference
-from backend.app.engines.correlation.domain.timeline import TimelineEvent
-from backend.app.engines.correlation.domain.entity import Entity
-from backend.app.engines.correlation.mitre.models import MitreMapping, MappingStatus
-from backend.app.shared.contract_validation import ContractValidator
+from app.engines.correlation.investigation.case_builder import InvestigationCaseBuilder
+from app.engines.correlation.domain.investigation import InvestigationContext
+from app.engines.correlation.domain.finding import FindingReference
+from app.engines.correlation.domain.evidence import EvidenceReference as DomainEvidenceReference
+from app.engines.correlation.domain.timeline import TimelineEvent
+from app.engines.correlation.domain.entity import Entity
+from app.engines.correlation.mitre.models import MitreMapping, MappingStatus
+from app.shared.contract_validation import ContractValidator
 
 class TestAttackChainConstruction(unittest.TestCase):
     def setUp(self):
@@ -64,7 +64,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         self.assertEqual(doc["attack_chain"]["status"], "potential")
@@ -80,7 +85,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.004",
             technique_name="DNS",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="DNS_ANOMALY_TUNNELING",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         self.assertEqual(doc["attack_chain"]["status"], "potential")
@@ -96,7 +106,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1041",
             technique_name="Exfiltration Over C2 Channel",
             mapping_status=MappingStatus.POTENTIAL,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="POSSIBLE_EXFILTRATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         self.assertEqual(doc["attack_chain"]["status"], "potential")
@@ -110,7 +125,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.INSUFFICIENT_EVIDENCE,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         self.assertEqual(doc["attack_chain"]["status"], "none")
@@ -125,7 +145,13 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1041",
             technique_name="Exfil",
             mapping_status=MappingStatus.SUPPORTED,
-            first_seen=t2
+            first_seen=t2,
+            behavior_id="POSSIBLE_EXFILTRATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2",
+            evidence_ids=["EVID-1"]
         ))
         ctx.mitre_mappings.append(MitreMapping(
             mapping_id="M-2",
@@ -133,7 +159,13 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="C2",
             mapping_status=MappingStatus.SUPPORTED,
-            first_seen=t1
+            first_seen=t1,
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2",
+            evidence_ids=["EVID-1"]
         ))
         doc = self.builder.build(ctx)
         self.assertEqual(doc["attack_chain"]["status"], "potential")
@@ -150,7 +182,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         stage = doc["attack_chain"]["stages"][0]
@@ -165,7 +202,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         stage = doc["attack_chain"]["stages"][0]
@@ -180,9 +222,13 @@ class TestAttackChainConstruction(unittest.TestCase):
             finding_id="FND-1",
             technique_id="T1071.001",
             technique_name="Web Protocols",
-            mapping_status=MappingStatus.SUPPORTED,
-            mapping_confidence=0.8,
-            evidence_ids=["EVID-1"]
+            mapping_status=MappingStatus.POTENTIAL,
+            mapping_confidence=0.75,
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         stage = doc["attack_chain"]["stages"][0]
@@ -197,7 +243,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1041",
             technique_name="Exfil",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="POSSIBLE_EXFILTRATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         # Should only have T1041. Should NOT invent Initial Access or C2.
@@ -214,7 +265,12 @@ class TestAttackChainConstruction(unittest.TestCase):
                 technique_id="T1071.001",
                 technique_name="Web Protocols",
                 mapping_status=MappingStatus.SUPPORTED,
-                evidence_ids=["EVID-1"]
+                evidence_ids=["EVID-1"],
+                behavior_id="C2_MALWARE_COMMUNICATION",
+                mapping_confidence=0.9,
+                rationale="Test",
+                knowledge_profile_id="mitre-v1",
+                mitre_version="19.2"
             ))
         doc1 = self.builder.build(ctx1)
         doc2 = self.builder.build(ctx2)
@@ -228,7 +284,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         # Verify the stage is mapped exactly to its finding
@@ -243,7 +304,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.INSUFFICIENT_EVIDENCE,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         self.assertEqual(doc["attack_chain"]["status"], "none")
@@ -254,11 +320,13 @@ class TestAttackChainConstruction(unittest.TestCase):
         ctx.mitre_mappings.extend([
             MitreMapping(
                 mapping_id="M-1", finding_id="FND-1", technique_id="T1071.001",
-                technique_name="C2", mapping_status=MappingStatus.POTENTIAL, evidence_ids=["EVID-1"]
+                technique_name="C2", mapping_status=MappingStatus.POTENTIAL, evidence_ids=["EVID-1"],
+                behavior_id="C2", mapping_confidence=0.9, rationale="Test", knowledge_profile_id="mitre-v1", mitre_version="19.2"
             ),
             MitreMapping(
                 mapping_id="M-2", finding_id="FND-1", technique_id="T1041",
-                technique_name="Exfil", mapping_status=MappingStatus.POTENTIAL, evidence_ids=["EVID-1"]
+                technique_name="Exfil", mapping_status=MappingStatus.POTENTIAL, evidence_ids=["EVID-1"],
+                behavior_id="Exfil", mapping_confidence=0.9, rationale="Test", knowledge_profile_id="mitre-v1", mitre_version="19.2"
             )
         ])
         doc = self.builder.build(ctx)
@@ -272,7 +340,12 @@ class TestAttackChainConstruction(unittest.TestCase):
             technique_id="T1071.001",
             technique_name="Web Protocols",
             mapping_status=MappingStatus.SUPPORTED,
-            evidence_ids=["EVID-1"]
+            evidence_ids=["EVID-1"],
+            behavior_id="C2_MALWARE_COMMUNICATION",
+            mapping_confidence=0.9,
+            rationale="Test",
+            knowledge_profile_id="mitre-v1",
+            mitre_version="19.2"
         ))
         doc = self.builder.build(ctx)
         # It successfully builds and is validated by `self.validator.validate(...)` inside build()

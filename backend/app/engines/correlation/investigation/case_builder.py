@@ -93,7 +93,8 @@ class InvestigationCaseBuilder:
         sev_map = {4: "critical", 3: "high", 2: "medium", 1: "low"}
         severity = sev_map[max_sev]
         
-        # Build document
+
+
         doc = {
             "schema_version": "investigation-case-v1.2",
             "case_id": case_id,
@@ -154,8 +155,6 @@ class InvestigationCaseBuilder:
                 "entity_id": e.entity_id,
                 "entity_type": e.entity_type if e.entity_type in valid_types else "artifact"
             }
-            if hasattr(e, "value") and e.value:
-                e_doc["value"] = e.value
             if hasattr(e, "attributes") and e.attributes:
                 e_doc["attributes"] = e.attributes
             if e.first_seen:
