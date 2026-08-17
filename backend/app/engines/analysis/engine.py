@@ -13,15 +13,15 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from backend.app.contracts.analysis import FindingsPackage
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.engines.analysis.decision.engine import AnalysisDecisionEngine
-from backend.app.engines.analysis.evaluation.model_registry import ModelRegistry
-from backend.app.engines.analysis.features.extractor import extract_all_features
-from backend.app.engines.analysis.features.pipeline import FeatureEngineeringPipeline
-from backend.app.engines.analysis.findings.generator import FindingsGenerator
-from backend.app.engines.analysis.models.anomaly.predictor import AnomalyPredictor
-from backend.app.engines.analysis.models.classification.predictor import ActivityClassifier
+from app.contracts.analysis import FindingsPackage
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.engines.analysis.decision.engine import AnalysisDecisionEngine
+from app.engines.analysis.evaluation.model_registry import ModelRegistry
+from app.engines.analysis.features.extractor import extract_all_features
+from app.engines.analysis.features.pipeline import FeatureEngineeringPipeline
+from app.engines.analysis.findings.generator import FindingsGenerator
+from app.engines.analysis.models.anomaly.predictor import AnomalyPredictor
+from app.engines.analysis.models.classification.predictor import ActivityClassifier
 
 logger = logging.getLogger(__name__)
 

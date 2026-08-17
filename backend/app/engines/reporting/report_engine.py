@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Union
-from backend.app.shared.contract_validation import ContractValidator
+from app.shared.contract_validation import ContractValidator
 
 class ReportEngine:
     """

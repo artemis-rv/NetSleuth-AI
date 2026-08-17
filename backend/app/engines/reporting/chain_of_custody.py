@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
-from backend.app.shared.contract_validation import ContractValidator
+from app.shared.contract_validation import ContractValidator
 
 ALLOWED_CUSTODY_ACTIONS = {"ingest", "verify", "export", "transfer", "inspect", "archive"}
 

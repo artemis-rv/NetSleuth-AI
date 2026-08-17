@@ -4,8 +4,8 @@ M2 Phase 9 — Evaluation, Threshold Tuning, Model Versioning, and Production Va
 Exposes evaluation metrics, threshold optimizer, model registry, evaluator engine, and report generator.
 """
 
-from backend.app.engines.analysis.evaluation.evaluator import M2Evaluator
-from backend.app.engines.analysis.evaluation.metrics import (
+from app.engines.analysis.evaluation.evaluator import M2Evaluator
+from app.engines.analysis.evaluation.metrics import (
     PerformanceMetrics,
     ScoreDistributionQuantiles,
     SupervisedEvaluationMetrics,
@@ -13,15 +13,15 @@ from backend.app.engines.analysis.evaluation.metrics import (
     compute_supervised_metrics,
     compute_unsupervised_metrics,
 )
-from backend.app.engines.analysis.evaluation.model_registry import (
+from app.engines.analysis.evaluation.model_registry import (
     ModelRegistry,
     RegistryArtifactEntry,
 )
-from backend.app.engines.analysis.evaluation.reports import (
+from app.engines.analysis.evaluation.reports import (
     M2EvaluationReport,
     generate_m2_evaluation_report,
 )
-from backend.app.engines.analysis.evaluation.threshold_optimizer import (
+from app.engines.analysis.evaluation.threshold_optimizer import (
     ThresholdConfig,
     ThresholdOptimizer,
 )

@@ -2,8 +2,8 @@ from typing import List
 import ipaddress
 from dataclasses import replace
 
-from backend.app.engines.correlation.domain.investigation import InvestigationContext
-from backend.app.engines.correlation.domain.relationship import Relationship
+from app.engines.correlation.domain.investigation import InvestigationContext
+from app.engines.correlation.domain.relationship import Relationship
 
 def apply_rules(ctx: InvestigationContext) -> None:
     new_rels = []

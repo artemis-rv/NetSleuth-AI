@@ -15,17 +15,17 @@ from typing import Any, Optional
 
 import numpy as np
 
-from backend.app.contracts.analysis import AnomalyResult, FeatureVector
-from backend.app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.features.transformer import FeatureTransformer, _SCALER_STRATEGY
-from backend.app.engines.analysis.features.validation import run_all_validations
-from backend.app.engines.analysis.models.anomaly.errors import (
+from app.contracts.analysis import AnomalyResult, FeatureVector
+from app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
+from app.engines.analysis.features.transformer import FeatureTransformer, _SCALER_STRATEGY
+from app.engines.analysis.features.validation import run_all_validations
+from app.engines.analysis.models.anomaly.errors import (
     MissingFeatureError,
     ModelNotFittedError,
     SchemaVersionMismatchError,
 )
-from backend.app.engines.analysis.models.anomaly.isolation_forest import IsolationForestAnomalyModel
-from backend.app.engines.analysis.models.anomaly.model_artifact import AnomalyModelArtifact
+from app.engines.analysis.models.anomaly.isolation_forest import IsolationForestAnomalyModel
+from app.engines.analysis.models.anomaly.model_artifact import AnomalyModelArtifact
 
 
 class AnomalyPrediction:

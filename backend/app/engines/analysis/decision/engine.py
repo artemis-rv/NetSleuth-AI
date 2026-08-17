@@ -13,16 +13,16 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from backend.app.contracts.analysis import ActivityClass, FeatureVector
-from backend.app.engines.analysis.decision.confidence import calculate_confidence
-from backend.app.engines.analysis.decision.result import (
+from app.contracts.analysis import ActivityClass, FeatureVector
+from app.engines.analysis.decision.confidence import calculate_confidence
+from app.engines.analysis.decision.result import (
     ENGINE_VERSION,
     AnalysisDecisionResult,
     DecisionState,
 )
-from backend.app.engines.analysis.decision.risk import calculate_risk_score
-from backend.app.engines.analysis.models.anomaly.predictor import AnomalyPredictor
-from backend.app.engines.analysis.models.classification.predictor import ActivityClassifier
+from app.engines.analysis.decision.risk import calculate_risk_score
+from app.engines.analysis.models.anomaly.predictor import AnomalyPredictor
+from app.engines.analysis.models.classification.predictor import ActivityClassifier
 
 logger = logging.getLogger(__name__)
 

@@ -10,9 +10,9 @@ import json
 import statistics
 from collections import Counter
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage, TLSData
-from backend.app.contracts.analysis import FeatureValue
-from backend.app.contracts.feature_schema import FeatureName
+from app.contracts.network_intelligence import NetworkIntelligencePackage, TLSData
+from app.contracts.analysis import FeatureValue
+from app.contracts.feature_schema import FeatureName
 
 
 def extract_tls_features(package: NetworkIntelligencePackage) -> list[FeatureValue]:

@@ -13,7 +13,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator
 
-from backend.app.contracts.analysis import (
+from app.contracts.analysis import (
     ActivityClass,
     AnomalyResult,
     ClassificationResult,

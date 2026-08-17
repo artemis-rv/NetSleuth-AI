@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
-from backend.app.shared.contract_validation import ContractValidator
-from backend.app.engines.reporting.evidence_model import (
+from app.shared.contract_validation import ContractValidator
+from app.engines.reporting.evidence_model import (
     M4EvidenceReference,
     M4EvidenceLinkage,
     M4CaseEvidencePackage

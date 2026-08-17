@@ -10,8 +10,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from backend.app.contracts.network_intelligence import Endpoint, Flow, FlowProvenance
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekRecord
+from app.contracts.network_intelligence import Endpoint, Flow, FlowProvenance
+from app.engines.packet_intelligence.zeek.reader import RawZeekRecord
 
 from .errors import AdapterError, AdapterErrorCode
 

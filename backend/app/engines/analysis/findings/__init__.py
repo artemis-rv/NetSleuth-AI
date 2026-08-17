@@ -5,14 +5,14 @@ Exposes production components for converting decision results into evidence-back
 FindingsPackage objects consumable by M3.
 """
 
-from backend.app.engines.analysis.findings.attribution import FeatureAttributor
-from backend.app.engines.analysis.findings.builder import FindingBuilder
-from backend.app.engines.analysis.findings.errors import (
+from app.engines.analysis.findings.attribution import FeatureAttributor
+from app.engines.analysis.findings.builder import FindingBuilder
+from app.engines.analysis.findings.errors import (
     FabricatedEvidenceError,
     FindingsGenerationError,
     MissingSourcePackageError,
 )
-from backend.app.engines.analysis.findings.generator import FindingsGenerator
+from app.engines.analysis.findings.generator import FindingsGenerator
 
 __all__ = [
     "FindingsGenerator",

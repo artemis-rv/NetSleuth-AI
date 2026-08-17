@@ -1,7 +1,7 @@
 import html
 from copy import deepcopy
 from typing import Dict, Any, Optional, List
-from backend.app.shared.contract_validation import ContractValidator
+from app.shared.contract_validation import ContractValidator
 
 class HTMLReportRenderer:
     """

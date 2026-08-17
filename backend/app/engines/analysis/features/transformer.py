@@ -24,13 +24,13 @@ from __future__ import annotations
 import json
 from typing import Optional
 
-from backend.app.contracts.analysis import FeatureVector
-from backend.app.contracts.feature_schema import FeatureName, FEATURE_SCHEMA, FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.features.normalization import (
+from app.contracts.analysis import FeatureVector
+from app.contracts.feature_schema import FeatureName, FEATURE_SCHEMA, FEATURE_SCHEMA_VERSION
+from app.engines.analysis.features.normalization import (
     MinMaxScaler, StandardScaler, LogScaler, load_scaler
 )
-from backend.app.engines.analysis.features.encoding import encode_categorical_feature
-from backend.app.engines.analysis.features.validation import validate_no_identifier_leakage
+from app.engines.analysis.features.encoding import encode_categorical_feature
+from app.engines.analysis.features.validation import validate_no_identifier_leakage
 
 # ---------------------------------------------------------------------------
 # SCALING STRATEGY MAP

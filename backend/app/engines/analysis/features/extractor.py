@@ -12,14 +12,14 @@ from __future__ import annotations
 import logging
 from uuid import uuid4
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.contracts.analysis import FeatureVector, FeatureValue
-from backend.app.engines.analysis.features.flow_features import extract_flow_features
-from backend.app.engines.analysis.features.dns_features import extract_dns_features
-from backend.app.engines.analysis.features.http_features import extract_http_features
-from backend.app.engines.analysis.features.tls_features import extract_tls_features
-from backend.app.engines.analysis.features.temporal_features import extract_temporal_features
-from backend.app.engines.analysis.features.distribution_features import extract_distribution_features
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.contracts.analysis import FeatureVector, FeatureValue
+from app.engines.analysis.features.flow_features import extract_flow_features
+from app.engines.analysis.features.dns_features import extract_dns_features
+from app.engines.analysis.features.http_features import extract_http_features
+from app.engines.analysis.features.tls_features import extract_tls_features
+from app.engines.analysis.features.temporal_features import extract_temporal_features
+from app.engines.analysis.features.distribution_features import extract_distribution_features
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-﻿# NetSleuth-AI
+# NetSleuth-AI
 
 A forensic network investigation system that ingests raw packet captures (PCAP/PCAPNG), runs them through automated analysis and correlation engines, and produces structured investigation findings and reports.
 
@@ -19,7 +19,7 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 | Module | Role | Status |
 |--------|------|--------|
 | **M1** — Input + Packet Intelligence | PCAP ingestion, Zeek runner, protocol adapters, artifact extraction | ✅ Complete |
-| **M2** — Analysis Engine | Anomaly detection, behaviour extraction, findings production | 🔧 In progress |
+| **M2** — Analysis Engine | Anomaly detection, behaviour extraction, findings production | ✅ Complete |
 | **M3** — Correlation + Investigation | Context assembly, MITRE mapping, attack chain construction | 🔧 In progress |
 | **M4** — Evidence + Reporting | Evidence packaging, report generation, export | 🔲 Not started |
 
@@ -31,7 +31,7 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 |-------|-----------|
 | Language | Python 3.10+ |
 | Packet analysis | [Zeek](https://zeek.org/) |
-| Structured database | PostgreSQL *(infrastructure phase — not yet wired)* |
+| Structured database | PostgreSQL + asyncpg + SQLAlchemy — **running locally via Docker** |
 | Object storage | MinIO (S3-compatible) — **running locally via Docker** |
 | Container runtime | Docker + Docker Compose |
 
@@ -48,8 +48,15 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 - Provenance validator — enforces SHA-256 integrity across the pipeline
 - M1 Orchestrator — wires all stages into a single `NetworkIntelligencePackage`
 
+### M2 — Analysis Engine (Complete)
+- Feature extraction pipeline — evaluates flows/events for statistical anomalies
+- ML Models — isolated prediction layer mapping behaviors
+- Findings package generator — structures discoveries into standard contracts
+- M2 Persistence Service — transparent async persistence boundary for PostgreSQL
+
 ### Shared Infrastructure (Complete)
 - MinIO object storage — running in Docker, all buckets provisioned
+- PostgreSQL DB — running in Docker, Alembic migrations defined and wired
 - Backend configuration contract — `backend/app/config.py`
 - Environment variable convention — `.env` / `.env.example`
 
@@ -57,11 +64,8 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 
 ## What Is Left
 
-- **M2** analysis engine (anomaly detection, findings production)
 - **M3** correlation engine (MITRE mapping, attack chains, investigation)
 - **M4** evidence and reporting engine
-- PostgreSQL setup and persistence layer
-- MinIO upload integration (M1 → `netsleuth-evidence` bucket)
 - API layer / frontend (not planned yet)
 
 ---
@@ -146,6 +150,7 @@ Buckets are created automatically when you run `docker compose up`. You do not n
 |------|---------|
 | `9000` | MinIO S3 API |
 | `9001` | MinIO web console |
+| `15432`| PostgreSQL Database |
 
 ---
 

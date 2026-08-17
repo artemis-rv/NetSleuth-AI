@@ -27,9 +27,9 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from backend.app.contracts.analysis import ActivityClass
-from backend.app.engines.analysis.dataset.labels import UNMAPPED
-from backend.app.engines.analysis.models.classification.label_map import (
+from app.contracts.analysis import ActivityClass
+from app.engines.analysis.dataset.labels import UNMAPPED
+from app.engines.analysis.models.classification.label_map import (
     ALL_ACTIVITY_CLASSES,
     map_cicids_label,
 )

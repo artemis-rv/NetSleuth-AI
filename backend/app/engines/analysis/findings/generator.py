@@ -14,16 +14,16 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from backend.app.contracts.analysis import (
+from app.contracts.analysis import (
     M2_CONTRACT_VERSION,
     Finding,
     FindingsPackage,
 )
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.contracts.analysis import FeatureVector
-from backend.app.engines.analysis.decision.result import AnalysisDecisionResult, DecisionState
-from backend.app.engines.analysis.findings.builder import FindingBuilder, M2_ENGINE_VERSION
-from backend.app.engines.analysis.findings.errors import MissingSourcePackageError
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.contracts.analysis import FeatureVector
+from app.engines.analysis.decision.result import AnalysisDecisionResult, DecisionState
+from app.engines.analysis.findings.builder import FindingBuilder, M2_ENGINE_VERSION
+from app.engines.analysis.findings.errors import MissingSourcePackageError
 
 logger = logging.getLogger(__name__)
 

@@ -7,21 +7,21 @@ Orchestrates M1 Packet Intelligence extraction pipeline to assemble the NetworkI
 import uuid
 from typing import Any
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     AcquisitionReference,
     Artifact,
     Flow,
     NetworkIntelligencePackage,
     ProtocolEvent,
 )
-from backend.app.engines.packet_intelligence.adapters.conn import ConnAdapter
-from backend.app.engines.packet_intelligence.adapters.dns import DNSAdapter
-from backend.app.engines.packet_intelligence.adapters.http import HTTPAdapter
-from backend.app.engines.packet_intelligence.adapters.tls import TLSAdapter
-from backend.app.engines.packet_intelligence.artifacts.extractor import ArtifactExtractor
-from backend.app.engines.packet_intelligence.provenance.validator import ProvenanceValidator
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekErrorRecord, ZeekReader
-from backend.app.engines.packet_intelligence.zeek.runner import ZeekRunner
+from app.engines.packet_intelligence.adapters.conn import ConnAdapter
+from app.engines.packet_intelligence.adapters.dns import DNSAdapter
+from app.engines.packet_intelligence.adapters.http import HTTPAdapter
+from app.engines.packet_intelligence.adapters.tls import TLSAdapter
+from app.engines.packet_intelligence.artifacts.extractor import ArtifactExtractor
+from app.engines.packet_intelligence.provenance.validator import ProvenanceValidator
+from app.engines.packet_intelligence.zeek.reader import RawZeekErrorRecord, ZeekReader
+from app.engines.packet_intelligence.zeek.runner import ZeekRunner
 
 from .errors import PackageAssemblyError, PackageAssemblyErrorCode
 

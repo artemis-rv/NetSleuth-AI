@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-from backend.app.engines.correlation.domain.investigation import InvestigationContext
-from backend.app.engines.correlation.domain.entity import Entity
-from backend.app.engines.correlation.domain.timeline import TimelineEvent
-from backend.app.engines.correlation.domain.evidence import EvidenceReference
-from backend.app.shared.contract_validation import ContractValidator
+from app.engines.correlation.domain.investigation import InvestigationContext
+from app.engines.correlation.domain.entity import Entity
+from app.engines.correlation.domain.timeline import TimelineEvent
+from app.engines.correlation.domain.evidence import EvidenceReference
+from app.shared.contract_validation import ContractValidator
 
 class M1Adapter:
     def __init__(self, validator: ContractValidator):

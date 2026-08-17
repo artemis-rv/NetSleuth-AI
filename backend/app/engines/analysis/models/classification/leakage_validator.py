@@ -13,9 +13,9 @@ Provides safety checks for:
 from __future__ import annotations
 
 from typing import Any
-from backend.app.contracts.analysis import FeatureVector
-from backend.app.engines.analysis.dataset.loader import determine_split
-from backend.app.engines.analysis.features.validation import _FORBIDDEN_DIMENSION_NAMES, FeatureValidationError
+from app.contracts.analysis import FeatureVector
+from app.engines.analysis.dataset.loader import determine_split
+from app.engines.analysis.features.validation import _FORBIDDEN_DIMENSION_NAMES, FeatureValidationError
 
 # Label attributes that MUST NEVER be present inside FeatureVector or transformer feature inputs
 _LABEL_LEAK_ATTRIBUTES = frozenset({

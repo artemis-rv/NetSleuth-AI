@@ -13,10 +13,10 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from backend.app.contracts.analysis import ActivityClass, EvidenceReference, FeatureVector
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.engines.analysis.decision.result import AnalysisDecisionResult
-from backend.app.engines.analysis.findings.errors import FabricatedEvidenceError
+from app.contracts.analysis import ActivityClass, EvidenceReference, FeatureVector
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.engines.analysis.decision.result import AnalysisDecisionResult
+from app.engines.analysis.findings.errors import FabricatedEvidenceError
 
 logger = logging.getLogger(__name__)
 

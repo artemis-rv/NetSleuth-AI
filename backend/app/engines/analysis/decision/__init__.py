@@ -5,14 +5,14 @@ Exposes decision state structures, risk scoring, confidence evaluation, and the
 AnalysisDecisionEngine orchestrator.
 """
 
-from backend.app.engines.analysis.decision.confidence import calculate_confidence
-from backend.app.engines.analysis.decision.engine import AnalysisDecisionEngine
-from backend.app.engines.analysis.decision.result import (
+from app.engines.analysis.decision.confidence import calculate_confidence
+from app.engines.analysis.decision.engine import AnalysisDecisionEngine
+from app.engines.analysis.decision.result import (
     ENGINE_VERSION,
     AnalysisDecisionResult,
     DecisionState,
 )
-from backend.app.engines.analysis.decision.risk import (
+from app.engines.analysis.decision.risk import (
     ACTIVITY_SEVERITY_WEIGHTS,
     calculate_risk_score,
 )

@@ -19,13 +19,13 @@ import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
-from backend.app.contracts.analysis import ActivityClass
-from backend.app.engines.analysis.dataset.labels import UNMAPPED
-from backend.app.engines.analysis.models.classification.errors import (
+from app.contracts.analysis import ActivityClass
+from app.engines.analysis.dataset.labels import UNMAPPED
+from app.engines.analysis.models.classification.errors import (
     InsufficientClassSamplesError,
     ModelNotFittedError,
 )
-from backend.app.engines.analysis.models.classification.label_map import (
+from app.engines.analysis.models.classification.label_map import (
     ALL_ACTIVITY_CLASSES,
     map_cicids_label,
     validate_activity_class,

@@ -9,9 +9,9 @@ from __future__ import annotations
 import statistics
 from typing import Optional
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage, Flow
-from backend.app.contracts.analysis import FeatureValue
-from backend.app.contracts.feature_schema import FeatureName
+from app.contracts.network_intelligence import NetworkIntelligencePackage, Flow
+from app.contracts.analysis import FeatureValue
+from app.contracts.feature_schema import FeatureName
 
 
 def extract_flow_features(package: NetworkIntelligencePackage) -> list[FeatureValue]:

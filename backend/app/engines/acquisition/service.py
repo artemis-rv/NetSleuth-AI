@@ -36,7 +36,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import AcquisitionReference, Provenance
+from app.contracts.network_intelligence import AcquisitionReference, Provenance
 from .errors import AcquisitionError, AcquisitionErrorCode
 from .hasher import compute_sha256
 from .validator import validate

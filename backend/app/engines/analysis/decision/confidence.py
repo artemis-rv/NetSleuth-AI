@@ -12,7 +12,7 @@ from __future__ import annotations
 import math
 from typing import Optional
 
-from backend.app.contracts.analysis import AnomalyResult, ClassificationResult
+from app.contracts.analysis import AnomalyResult, ClassificationResult
 
 
 def calculate_confidence(

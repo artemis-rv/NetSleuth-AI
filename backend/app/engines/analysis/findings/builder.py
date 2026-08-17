@@ -14,10 +14,10 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from backend.app.contracts.analysis import Finding
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.engines.analysis.decision.result import AnalysisDecisionResult
-from backend.app.engines.analysis.findings.attribution import FeatureAttributor
+from app.contracts.analysis import Finding
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.engines.analysis.decision.result import AnalysisDecisionResult
+from app.engines.analysis.findings.attribution import FeatureAttributor
 
 logger = logging.getLogger(__name__)
 

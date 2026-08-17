@@ -8,7 +8,7 @@ import ipaddress
 import uuid
 from typing import Any
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     Artifact,
     ArtifactProvenance,
     ArtifactType,

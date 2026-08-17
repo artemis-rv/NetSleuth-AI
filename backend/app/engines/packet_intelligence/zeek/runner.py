@@ -15,7 +15,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import AcquisitionReference
+from app.contracts.network_intelligence import AcquisitionReference
 from .errors import ZeekRunnerError, ZeekRunnerErrorCode
 from .result import ZeekRunnerResult, ZeekRunnerStatus
 

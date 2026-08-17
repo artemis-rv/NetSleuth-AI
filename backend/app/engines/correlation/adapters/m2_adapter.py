@@ -1,12 +1,12 @@
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-from backend.app.engines.correlation.domain.investigation import InvestigationContext
-from backend.app.engines.correlation.domain.entity import Entity
-from backend.app.engines.correlation.domain.finding import FindingReference
-from backend.app.engines.correlation.domain.relationship import Relationship
-from backend.app.engines.correlation.domain.evidence import EvidenceReference
-from backend.app.shared.contract_validation import ContractValidator
+from app.engines.correlation.domain.investigation import InvestigationContext
+from app.engines.correlation.domain.entity import Entity
+from app.engines.correlation.domain.finding import FindingReference
+from app.engines.correlation.domain.relationship import Relationship
+from app.engines.correlation.domain.evidence import EvidenceReference
+from app.shared.contract_validation import ContractValidator
 
 class M2Adapter:
     def __init__(self, validator: ContractValidator):

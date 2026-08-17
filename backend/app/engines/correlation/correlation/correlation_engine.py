@@ -1,4 +1,4 @@
-from backend.app.engines.correlation.domain.investigation import InvestigationContext
+from app.engines.correlation.domain.investigation import InvestigationContext
 from .rules import apply_rules
 
 class CorrelationEngine:

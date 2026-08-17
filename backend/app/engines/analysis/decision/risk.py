@@ -14,7 +14,7 @@ from __future__ import annotations
 import math
 from typing import Optional
 
-from backend.app.contracts.analysis import ActivityClass, FeatureVector
+from app.contracts.analysis import ActivityClass, FeatureVector
 
 # ---------------------------------------------------------------------------
 # ACTIVITY SEVERITY WEIGHTS

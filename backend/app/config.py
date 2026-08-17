@@ -7,7 +7,7 @@ Loads configuration from environment variables.
 Uses os.environ for portability without requiring additional dependencies.
 
 Usage:
-    from backend.app.config import settings
+    from app.config import settings
 
     endpoint = settings.minio_endpoint
     bucket   = settings.minio_bucket_evidence

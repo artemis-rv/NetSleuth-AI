@@ -12,7 +12,7 @@ from __future__ import annotations
 import math
 from typing import Any, Optional
 
-from backend.app.engines.analysis.dataset.errors import DatasetCleaningError
+from app.engines.analysis.dataset.errors import DatasetCleaningError
 
 
 def clean_row(raw_row: dict[str, str]) -> tuple[dict[str, float], str, str]:

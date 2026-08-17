@@ -17,12 +17,12 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from backend.app.engines.analysis.evaluation.metrics import (
+from app.engines.analysis.evaluation.metrics import (
     PerformanceMetrics,
     SupervisedEvaluationMetrics,
     UnsupervisedEvaluationMetrics,
 )
-from backend.app.engines.analysis.evaluation.threshold_optimizer import ThresholdConfig
+from app.engines.analysis.evaluation.threshold_optimizer import ThresholdConfig
 
 logger = logging.getLogger(__name__)
 

@@ -16,17 +16,17 @@ from typing import Any, Optional
 
 import numpy as np
 
-from backend.app.contracts.analysis import ActivityClass, FeatureVector
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.engines.analysis.evaluation.metrics import (
+from app.contracts.analysis import ActivityClass, FeatureVector
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.engines.analysis.evaluation.metrics import (
     PerformanceMetrics,
     SupervisedEvaluationMetrics,
     UnsupervisedEvaluationMetrics,
     compute_supervised_metrics,
     compute_unsupervised_metrics,
 )
-from backend.app.engines.analysis.models.anomaly.predictor import AnomalyPredictor
-from backend.app.engines.analysis.models.classification.predictor import ActivityClassifier
+from app.engines.analysis.models.anomaly.predictor import AnomalyPredictor
+from app.engines.analysis.models.classification.predictor import ActivityClassifier
 
 logger = logging.getLogger(__name__)
 

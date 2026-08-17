@@ -9,8 +9,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from backend.app.contracts.network_intelligence import DNSData, EventProvenance, ProtocolEvent
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekRecord
+from app.contracts.network_intelligence import DNSData, EventProvenance, ProtocolEvent
+from app.engines.packet_intelligence.zeek.reader import RawZeekRecord
 
 from .errors import AdapterError, AdapterErrorCode
 

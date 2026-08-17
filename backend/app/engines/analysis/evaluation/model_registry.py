@@ -21,11 +21,11 @@ from uuid import uuid4
 import joblib
 from pydantic import BaseModel, Field
 
-from backend.app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.evaluation.threshold_optimizer import ThresholdConfig
-from backend.app.engines.analysis.models.anomaly.model_artifact import AnomalyModelArtifact
-from backend.app.engines.analysis.models.classification.label_map import LABEL_MAPPING_VERSION
-from backend.app.engines.analysis.models.classification.model_artifact import ClassificationModelArtifact
+from app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
+from app.engines.analysis.evaluation.threshold_optimizer import ThresholdConfig
+from app.engines.analysis.models.anomaly.model_artifact import AnomalyModelArtifact
+from app.engines.analysis.models.classification.label_map import LABEL_MAPPING_VERSION
+from app.engines.analysis.models.classification.model_artifact import ClassificationModelArtifact
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ This document is the **canonical logical model** for the NetSleuth-AI database. 
 |:---|:---|
 | `acquisition` | `acquisitions`, `evidence`, `case_acquisition_links` |
 | `intelligence` | `flows`, `protocol_events`, `artifacts` |
-| `analytics` | `findings`, `model_runs`, `case_finding_links`, `finding_flow_links`, `finding_event_links`, `finding_artifact_links` |
+| `analytics` | `findings`, `findings_packages`, `model_registry`, `case_finding_links`, `finding_flow_links`, `finding_event_links`, `finding_artifact_links` |
 | `investigation` | `investigation_cases`, `entities`, `relationships`, `behaviors`, `timeline_events`, `mitre_mappings`, `attack_chains`, `relationship_finding_links`, `entity_artifact_links`, `behavior_finding_links`, `mitre_finding_links` |
 | `custody` | `evidence_items`, `custody_events`, `reports` |
 | `audit` | `audit_events` |
@@ -165,22 +165,40 @@ After reviewing `network-intelligence-v1.json` and `network-intelligence-v1-m1-p
 
 ### Schema: `analytics`
 
-#### `ModelRun` — Table: `analytics.model_runs`
+#### `ModelRegistry` — Table: `analytics.model_registry`
 
 | Column | Type | Nullable | Default | Notes |
 |:---|:---|:---|:---|:---|
-| `run_id` | TEXT | NO | — | **PK** |
+| `model_id` | TEXT | NO | — | **PK** |
 | `model_name` | TEXT | NO | — | Model name (e.g. `dns_exfil_detector`) |
-| `model_version` | TEXT | NO | — | Version string |
-| `model_artifact_key` | TEXT | YES | — | MinIO key for serialized model artifact |
-| `started_at` | TIMESTAMPTZ | NO | — | Run start time |
-| `completed_at` | TIMESTAMPTZ | YES | — | Run completion time |
-| `status` | TEXT | NO | — | `running`, `complete`, `failed` |
-| `input_acquisition_id` | TEXT | YES | — | Acquisition this run processed (soft reference) |
-| `parameters` | JSONB | YES | — | Model hyperparameters |
-| `metrics` | JSONB | YES | — | Summary metrics (recall, precision, F1) |
+| `model_type` | TEXT | NO | — | e.g. `isolation_forest`, `random_forest` |
+| `version` | TEXT | NO | — | Version string |
+| `feature_schema_version` | TEXT | YES | — | Bound feature schema |
+| `training_dataset_version`| TEXT | YES | — | Dataset used for training |
+| `artifact_object_key` | TEXT | YES | — | MinIO key for serialized model artifact (`.pkl`) |
+| `artifact_sha256` | TEXT | YES | — | Hash of the `.pkl` artifact |
+| `metrics` | JSONB | YES | — | Summary training metrics |
+| `created_at` | TIMESTAMPTZ | NO | `now()` | Registry entry time |
 
-**PK:** `(run_id)` | **Lifecycle:** Immutable after `complete`. Long-term audit retention.
+**PK:** `(model_id)` | **Lifecycle:** Immutable. Long-term audit retention.
+
+---
+
+#### `FindingsPackage` — Table: `analytics.findings_packages`
+
+| Column | Type | Nullable | Default | Notes |
+|:---|:---|:---|:---|:---|
+| `package_id` | TEXT | NO | — | **PK** |
+| `acquisition_id` | TEXT | NO | — | **FK** → `acquisition.acquisitions` |
+| `source_package_id` | TEXT | NO | — | M1 NetworkIntelligencePackage ID |
+| `analysis_engine_version` | TEXT | NO | — | Version of the M2 engine |
+| `feature_schema_version` | TEXT | YES | — | Version of features used |
+| `anomaly_model_version` | TEXT | YES | — | Anomaly model tracking |
+| `classifier_model_version`| TEXT | YES | — | Classifier model tracking |
+| `findings_count` | INTEGER | NO | `0` | Number of findings |
+| `created_at` | TIMESTAMPTZ | NO | `now()` | When analysis completed |
+
+**PK:** `(package_id)` | **FK:** `acquisition_id` ON DELETE RESTRICT | **Lifecycle:** Immutable. Long-term audit retention.
 
 ---
 
@@ -189,22 +207,29 @@ After reviewing `network-intelligence-v1.json` and `network-intelligence-v1-m1-p
 | Column | Type | Nullable | Default | Notes |
 |:---|:---|:---|:---|:---|
 | `finding_id` | TEXT | NO | — | **PK** |
-| `run_id` | TEXT | NO | — | **FK** → `analytics.model_runs` |
+| `package_id` | TEXT | NO | — | **FK** → `analytics.findings_packages` |
 | `acquisition_id` | TEXT | NO | — | **FK** → `acquisition.acquisitions` |
-| `finding_type` | TEXT | NO | — | Detection class (`dns_exfiltration`, `port_scan`, `c2_beacon`) |
-| `detection_method` | TEXT | NO | — | `anomaly`, `supervised_ml`, `signature`, `ioc`, `behavioral`, `rule` |
+| `activity` | TEXT | NO | — | Detection class (`SUSPICIOUS_WEB_ACTIVITY`, etc.) |
+| `decision_state` | TEXT | NO | — | `BENIGN`, `ANOMALOUS`, `SUSPICIOUS_ACTIVITY`, `HIGH_CONFIDENCE_ACTIVITY` |
+| `risk_score` | FLOAT | YES | — | Normalized 0.0–1.0. Incorporates severity/confidence/anomaly |
+| `confidence` | FLOAT | YES | — | Classification confidence 0.0–1.0 |
+| `anomaly_score` | FLOAT | YES | — | Unsupervised anomaly magnitude 0.0–1.0 |
+| `anomaly_detected` | BOOLEAN | NO | `FALSE` | Flagged by anomaly model |
 | `severity` | TEXT | NO | — | `low`, `medium`, `high`, `critical` |
-| `risk_score` | FLOAT | YES | — | Normalized 0.0–1.0 |
-| `confidence` | FLOAT | YES | — | Normalized 0.0–1.0 |
-| `model_id` | TEXT | YES | — | Specific model ID if ML-produced |
-| `description` | TEXT | YES | — | Human-readable description |
-| `raw_output` | JSONB | YES | — | Raw model output for auditability |
-| `feature_snapshot` | JSONB | YES | — | Feature vector snapshot for reproducibility |
+| `risk_policy_version` | TEXT | YES | — | Tracks the severity weights used for `risk_score` |
+| `classification_probabilities` | JSONB | YES | — | 6-class probability distribution |
+| `feature_attribution` | JSONB | YES | — | Explicit feature contributions and evidence links |
+| `rationale` | TEXT | YES | — | Human-readable explanation of features |
+| `model_version` | TEXT | YES | — | specific version of the engine |
+| `feature_schema_version` | TEXT | YES | — | version of features |
+| `detection_method` | TEXT | NO | — | `anomaly`, `supervised_ml`, `signature`, `ioc`, `behavioral`, `rule` |
 | `version` | INTEGER | NO | `1` | Finding version number |
 | `supersedes_id` | TEXT | YES | — | **Soft FK** → prior `finding_id` |
+| `first_seen` | TIMESTAMPTZ | YES | — | First observation within flow |
+| `last_seen` | TIMESTAMPTZ | YES | — | Last observation within flow |
 | `detected_at` | TIMESTAMPTZ | NO | `now()` | Detection timestamp |
 
-**PK:** `(finding_id)` | **FK:** `run_id`, `acquisition_id` ON DELETE RESTRICT | **Lifecycle:** Append-only versioning. Old rows never deleted.
+**PK:** `(finding_id)` | **FK:** `package_id`, `acquisition_id` ON DELETE RESTRICT | **Lifecycle:** Append-only versioning. Old rows never deleted.
 
 ---
 
@@ -495,7 +520,8 @@ Each link table has a composite PK that also enforces uniqueness. All FK columns
 | `intelligence.artifacts.flow_id` | `intelligence.flows.flow_id` | YES | HARD FK |
 | `intelligence.artifacts.acquisition_id` | `acquisition.acquisitions.acquisition_id` | NO | HARD FK |
 | `intelligence.artifacts.evidence_id` | `acquisition.evidence.evidence_id` | YES | HARD FK |
-| `analytics.findings.run_id` | `analytics.model_runs.run_id` | NO | HARD FK |
+| `analytics.findings.package_id` | `analytics.findings_packages.package_id` | NO | HARD FK |
+| `analytics.findings_packages.acquisition_id` | `acquisition.acquisitions.acquisition_id` | NO | HARD FK |
 | `analytics.findings.acquisition_id` | `acquisition.acquisitions.acquisition_id` | NO | HARD FK |
 | `analytics.case_finding_links.case_id` | `investigation.investigation_cases.case_id` | NO | HARD FK |
 | `analytics.case_finding_links.finding_id` | `analytics.findings.finding_id` | NO | HARD FK |
@@ -602,22 +628,34 @@ erDiagram
     TEXT acquisition_id FK
     TIMESTAMPTZ first_seen
   }
-  model_runs {
-    TEXT run_id PK
+  model_registry {
+    TEXT model_id PK
     TEXT model_name
-    TEXT model_version
-    TIMESTAMPTZ started_at
-    TEXT status
+    TEXT model_type
+    TEXT version
+    TEXT artifact_object_key
+  }
+  findings_packages {
+    TEXT package_id PK
+    TEXT acquisition_id FK
+    TEXT source_package_id
+    INTEGER findings_count
+    TIMESTAMPTZ created_at
   }
   findings {
     TEXT finding_id PK
-    TEXT run_id FK
+    TEXT package_id FK
     TEXT acquisition_id FK
-    TEXT finding_type
+    TEXT activity
+    TEXT decision_state
     TEXT detection_method
     TEXT severity
     FLOAT risk_score
     FLOAT confidence
+    FLOAT anomaly_score
+    BOOLEAN anomaly_detected
+    JSONB classification_probabilities
+    JSONB feature_attribution
     INTEGER version
     TEXT supersedes_id
     TIMESTAMPTZ detected_at
@@ -774,7 +812,7 @@ erDiagram
   protocol_events ||--o{ finding_event_links : "cited by"
   artifacts ||--o{ finding_artifact_links : "cited by"
   artifacts ||--o{ entity_artifact_links : "mapped from"
-  model_runs ||--o{ findings : "produces"
+  findings_packages ||--o{ findings : "contains"
   findings ||--o{ finding_flow_links : "references"
   findings ||--o{ finding_event_links : "references"
   findings ||--o{ finding_artifact_links : "references"
@@ -928,7 +966,7 @@ DB-12 M4 / Evidence Persistence
 | Decision | Status |
 |:---|:---|
 | All PostgreSQL schema names (7 schemas) | ✅ |
-| All table names (22 entity tables + 9 link tables = 31 tables) | ✅ |
+| All table names (20 entity tables + 10 link tables = 30 tables) | ✅ |
 | All column names, types, nullability, defaults | ✅ |
 | All primary keys | ✅ |
 | All hard FK constraints with direction and nullability | ✅ |

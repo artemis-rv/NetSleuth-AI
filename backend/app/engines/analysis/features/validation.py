@@ -15,8 +15,8 @@ from __future__ import annotations
 import math
 from typing import Optional
 
-from backend.app.contracts.analysis import FeatureVector
-from backend.app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
+from app.contracts.analysis import FeatureVector
+from app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
 
 
 class FeatureValidationError(Exception):

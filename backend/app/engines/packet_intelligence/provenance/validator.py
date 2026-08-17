@@ -4,7 +4,7 @@ backend/app/engines/packet_intelligence/provenance/validator.py
 Validates the provenance chain of generated canonical objects.
 """
 
-from backend.app.contracts.network_intelligence import Artifact, ProtocolEvent
+from app.contracts.network_intelligence import Artifact, ProtocolEvent
 
 from .errors import ProvenanceError, ProvenanceErrorCode
 

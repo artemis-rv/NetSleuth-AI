@@ -16,14 +16,14 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from backend.app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.features.transformer import FeatureTransformer
-from backend.app.engines.analysis.models.anomaly.isolation_forest import (
+from app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
+from app.engines.analysis.features.transformer import FeatureTransformer
+from app.engines.analysis.models.anomaly.isolation_forest import (
     IsolationForestAnomalyModel,
     MODEL_TYPE,
     MODEL_VERSION,
 )
-from backend.app.engines.analysis.models.anomaly.threshold import ThresholdSelection
+from app.engines.analysis.models.anomaly.threshold import ThresholdSelection
 
 TRAINING_DATASET_VERSION = "CICIDS2017-v1-train-benign-mon-tue-wed"
 TRANSFORMER_VERSION = FEATURE_SCHEMA_VERSION

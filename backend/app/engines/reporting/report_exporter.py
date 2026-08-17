@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 from typing import Dict, Any
-from backend.app.shared.contract_validation import ContractValidator
+from app.shared.contract_validation import ContractValidator
 
 class ReportExporter:
     """

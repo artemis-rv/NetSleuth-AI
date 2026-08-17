@@ -9,7 +9,7 @@ Public surface:
     AcquisitionService     — orchestrator (primary entry point)
 
 Usage:
-    from backend.app.engines.acquisition import AcquisitionService, AcquisitionError, AcquisitionErrorCode
+    from app.engines.acquisition import AcquisitionService, AcquisitionError, AcquisitionErrorCode
 
     service = AcquisitionService()
     try:

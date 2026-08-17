@@ -13,9 +13,9 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from backend.app.contracts.analysis import ActivityClass
-from backend.app.engines.analysis.dataset.labels import UNMAPPED
-from backend.app.engines.analysis.models.classification.errors import LabelMappingError
+from app.contracts.analysis import ActivityClass
+from app.engines.analysis.dataset.labels import UNMAPPED
+from app.engines.analysis.models.classification.errors import LabelMappingError
 
 logger = logging.getLogger(__name__)
 

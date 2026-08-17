@@ -10,9 +10,9 @@ import math
 from collections import Counter
 from typing import Sequence
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage, DNSData
-from backend.app.contracts.analysis import FeatureValue
-from backend.app.contracts.feature_schema import FeatureName
+from app.contracts.network_intelligence import NetworkIntelligencePackage, DNSData
+from app.contracts.analysis import FeatureValue
+from app.contracts.feature_schema import FeatureName
 
 
 def _calculate_shannon_entropy(counts: Counter) -> float:

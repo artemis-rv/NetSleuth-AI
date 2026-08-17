@@ -16,10 +16,10 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from backend.app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.features.transformer import FeatureTransformer
-from backend.app.engines.analysis.models.classification.label_map import LABEL_MAPPING_VERSION
-from backend.app.engines.analysis.models.classification.random_forest import (
+from app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
+from app.engines.analysis.features.transformer import FeatureTransformer
+from app.engines.analysis.models.classification.label_map import LABEL_MAPPING_VERSION
+from app.engines.analysis.models.classification.random_forest import (
     MODEL_TYPE,
     MODEL_VERSION,
     RandomForestActivityModel,

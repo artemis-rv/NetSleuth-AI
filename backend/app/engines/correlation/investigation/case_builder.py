@@ -1,8 +1,8 @@
 from typing import Dict, Any
 from datetime import datetime, timezone
 
-from backend.app.engines.correlation.domain.investigation import InvestigationContext
-from backend.app.shared.contract_validation import ContractValidator
+from app.engines.correlation.domain.investigation import InvestigationContext
+from app.shared.contract_validation import ContractValidator
 
 class InvestigationCaseBuilder:
     def __init__(self, validator: ContractValidator):

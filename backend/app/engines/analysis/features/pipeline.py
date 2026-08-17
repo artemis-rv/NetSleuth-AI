@@ -30,12 +30,12 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.contracts.analysis import FeatureVector
-from backend.app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.features.extractor import extract_all_features
-from backend.app.engines.analysis.features.transformer import FeatureTransformer
-from backend.app.engines.analysis.features.validation import run_all_validations
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.contracts.analysis import FeatureVector
+from app.contracts.feature_schema import FEATURE_SCHEMA_VERSION
+from app.engines.analysis.features.extractor import extract_all_features
+from app.engines.analysis.features.transformer import FeatureTransformer
+from app.engines.analysis.features.validation import run_all_validations
 
 
 # ---------------------------------------------------------------------------

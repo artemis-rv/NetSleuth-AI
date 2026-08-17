@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from backend.app.shared.contract_validation import ContractValidator
+from app.shared.contract_validation import ContractValidator
 
 SUPPORTED_HASH_ALGORITHMS = {"SHA-256", "SHA-512", "MD5"}
 CANONICAL_EVIDENCE_TYPES = {

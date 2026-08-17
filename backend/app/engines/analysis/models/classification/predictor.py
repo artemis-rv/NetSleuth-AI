@@ -14,16 +14,16 @@ from typing import Optional
 
 import numpy as np
 
-from backend.app.contracts.analysis import ClassificationResult, FeatureVector
-from backend.app.engines.analysis.features.transformer import FeatureTransformer, _SCALER_STRATEGY
-from backend.app.engines.analysis.features.validation import run_all_validations
-from backend.app.engines.analysis.models.classification.errors import (
+from app.contracts.analysis import ClassificationResult, FeatureVector
+from app.engines.analysis.features.transformer import FeatureTransformer, _SCALER_STRATEGY
+from app.engines.analysis.features.validation import run_all_validations
+from app.engines.analysis.models.classification.errors import (
     MissingFeatureError,
     ModelNotFittedError,
     SchemaVersionMismatchError,
 )
-from backend.app.engines.analysis.models.classification.model_artifact import ClassificationModelArtifact
-from backend.app.engines.analysis.models.classification.random_forest import RandomForestActivityModel
+from app.engines.analysis.models.classification.model_artifact import ClassificationModelArtifact
+from app.engines.analysis.models.classification.random_forest import RandomForestActivityModel
 
 
 class ClassificationPrediction:

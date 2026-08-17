@@ -15,10 +15,10 @@ from pathlib import Path
 from uuid import uuid4
 from collections import Counter
 
-from backend.app.contracts.analysis import FeatureVector, FeatureValue
-from backend.app.engines.analysis.dataset.errors import DatasetFileNotFoundError, DatasetCleaningError
-from backend.app.engines.analysis.dataset.labels import normalize_label, UNMAPPED
-from backend.app.engines.analysis.dataset.schema import (
+from app.contracts.analysis import FeatureVector, FeatureValue
+from app.engines.analysis.dataset.errors import DatasetFileNotFoundError, DatasetCleaningError
+from app.engines.analysis.dataset.labels import normalize_label, UNMAPPED
+from app.engines.analysis.dataset.schema import (
     DatasetBatch,
     DatasetRecord,
     NormalizedLabel,
@@ -76,7 +76,7 @@ def load_dataset_file(filepath: Path | str, acquisition_id: str = "CICIDS2017") 
     class_counts = Counter()
     source_label_counts = Counter()
     
-    from backend.app.engines.analysis.dataset.cleaner import clean_row
+    from app.engines.analysis.dataset.cleaner import clean_row
     
     # Using errors='replace' to handle potential unicode encoding issues in CICIDS
     with open(path, "r", encoding="utf-8", errors="replace") as f:

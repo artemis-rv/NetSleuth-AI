@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import statistics
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage, DNSData
-from backend.app.contracts.analysis import FeatureValue
-from backend.app.contracts.feature_schema import FeatureName
+from app.contracts.network_intelligence import NetworkIntelligencePackage, DNSData
+from app.contracts.analysis import FeatureValue
+from app.contracts.feature_schema import FeatureName
 
 
 def extract_dns_features(package: NetworkIntelligencePackage) -> list[FeatureValue]:

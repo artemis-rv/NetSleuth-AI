@@ -13,9 +13,9 @@ from __future__ import annotations
 from typing import Any, Optional
 from pydantic import BaseModel, Field
 
-from backend.app.contracts.analysis import ActivityClass, FeatureVector, FeatureValue
-from backend.app.contracts.feature_schema import FeatureName
-from backend.app.engines.analysis.dataset.labels import UNMAPPED
+from app.contracts.analysis import ActivityClass, FeatureVector, FeatureValue
+from app.contracts.feature_schema import FeatureName
+from app.engines.analysis.dataset.labels import UNMAPPED
 
 # ---------------------------------------------------------------------------
 # FEATURE MAPPING

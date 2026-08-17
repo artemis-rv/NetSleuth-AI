@@ -13,6 +13,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Testing and cache
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
 # Infrastructure — never commit local secrets or generated data
 # .env.example is intentionally NOT ignored (it contains only placeholders)
 # docker-compose.yml is intentionally NOT ignored (it is infrastructure-as-code)

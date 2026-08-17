@@ -9,7 +9,7 @@ Labels that cannot be safely mapped are assigned to UNMAPPED.
 
 from __future__ import annotations
 
-from backend.app.contracts.analysis import ActivityClass
+from app.contracts.analysis import ActivityClass
 
 # Special constant for labels that do not map to the M2 taxonomy.
 UNMAPPED = "UNMAPPED"
