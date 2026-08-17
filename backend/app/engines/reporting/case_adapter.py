@@ -8,7 +8,7 @@ from app.engines.reporting.evidence_model import (
 
 class M3ToM4EvidenceAdapter:
     """
-    Forensic adapter that ingests a frozen M3 InvestigationCase V1.1 JSON payload,
+    Forensic adapter that ingests a frozen M3 InvestigationCase (V1.1 or V1.2) JSON payload,
     validates contract compliance, and extracts/preserves all evidence references
     and linkages without altering, inventing, or inferring evidence.
     """
@@ -20,11 +20,17 @@ class M3ToM4EvidenceAdapter:
         """
         Adapts an InvestigationCase V1.1 object into an M4-owned evidence package.
 
-        :param investigation_case_payload: Dict containing InvestigationCase V1.1 data.
+        :param investigation_case_payload: Dict containing InvestigationCase data.
         :return: M4CaseEvidencePackage with exact preserved evidence references and linkages.
         """
-        # 1. Contract Validation
-        self.validator.validate("investigation-case-v1.1.json", investigation_case_payload)
+        # 1. Contract Validation & Version Negotiation
+        schema_version = investigation_case_payload.get("schema_version")
+        if schema_version == "investigation-case-v1.1":
+            self.validator.validate("investigation-case-v1.1.json", investigation_case_payload)
+        elif schema_version == "investigation-case-v1.2":
+            self.validator.validate("investigation-case-v1.2.json", investigation_case_payload)
+        else:
+            raise ValueError(f"Unsupported or missing schema_version: {schema_version}")
 
         # 2. Extract Case Metadata
         case_id = investigation_case_payload["case_id"]

@@ -6,7 +6,7 @@ from app.shared.contract_validation import ContractValidator
 class ReportEngine:
     """
     M4 Report Engine foundation.
-    Assembles InvestigationCase V1.1 and EvidenceIntegrity V1 packages into contract-compliant Report V1 objects.
+    Assembles InvestigationCase (V1.1 or V1.2) and EvidenceIntegrity V1 packages into contract-compliant Report V1 objects.
     Projects M3 domain components into strict Report V1 view representations.
     Does NOT perform correlation, threat intelligence lookup, or AI inference.
     """
@@ -76,7 +76,7 @@ class ReportEngine:
         """
         Generates a contract-compliant Report V1 dictionary from InvestigationCase and EvidenceIntegrity input.
 
-        :param investigation_case: Dict representing InvestigationCase V1.1 payload.
+        :param investigation_case: Dict representing InvestigationCase payload (V1.1 or V1.2).
         :param evidence_integrity_records: List of EvidenceIntegrity V1 dicts or an M4EvidencePackage instance.
         :return: Dict adhering strictly to docs/contracts/report-v1.json
         """
@@ -86,8 +86,14 @@ class ReportEngine:
         # 1. Input immutability
         case_data = deepcopy(investigation_case)
 
-        # Validate upstream InvestigationCase V1.1 schema
-        self.validator.validate("investigation-case-v1.1.json", case_data)
+        # Validate upstream InvestigationCase schema based on schema_version
+        schema_version = case_data.get("schema_version")
+        if schema_version == "investigation-case-v1.1":
+            self.validator.validate("investigation-case-v1.1.json", case_data)
+        elif schema_version == "investigation-case-v1.2":
+            self.validator.validate("investigation-case-v1.2.json", case_data)
+        else:
+            raise ValueError(f"Unsupported or missing schema_version: {schema_version}")
 
         case_id = case_data["case_id"]
 

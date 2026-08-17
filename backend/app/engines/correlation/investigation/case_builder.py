@@ -8,6 +8,64 @@ class InvestigationCaseBuilder:
     def __init__(self, validator: ContractValidator):
         self.validator = validator
         
+    def _build_attack_chain(self, ctx: InvestigationContext) -> Dict[str, Any]:
+        qualifying_mappings = []
+        if hasattr(ctx, "mitre_mappings") and ctx.mitre_mappings:
+            for m in ctx.mitre_mappings:
+                status_str = m.mapping_status.value if hasattr(m.mapping_status, "value") else str(m.mapping_status)
+                if status_str in ("SUPPORTED", "PARTIAL", "POTENTIAL"):
+                    qualifying_mappings.append(m)
+
+        if not qualifying_mappings:
+            return {"status": "none"}
+            
+        # Reserved for future explicit deterministic chain-confirmation rule.
+        # Until then, any qualifying stage makes the chain 'potential' at most.
+        status = "potential"
+        
+        # Sort mappings deterministically: first_seen, last_seen, technique_id
+        def sort_key(m):
+            t1 = m.first_seen.isoformat() if getattr(m, "first_seen", None) else "9999-99-99T99:99:99Z"
+            t2 = m.last_seen.isoformat() if getattr(m, "last_seen", None) else "9999-99-99T99:99:99Z"
+            return (t1, t2, m.technique_id)
+            
+        qualifying_mappings.sort(key=sort_key)
+        
+        stages = []
+        for m in qualifying_mappings:
+            stage_doc = {
+                "stage_id": f"stage-{m.technique_id}",
+                "name": m.technique_name
+            }
+            if getattr(m, "first_seen", None):
+                stage_doc["timestamp"] = m.first_seen.isoformat().replace("+00:00", "Z")
+            if getattr(m, "finding_id", None):
+                stage_doc["finding_ids"] = [m.finding_id]
+                
+            # Cross-reference timeline events that have matching evidence IDs
+            if getattr(m, "evidence_ids", None):
+                stage_event_ids = []
+                for t in getattr(ctx, "timeline_events", []):
+                    if getattr(t, "evidence_ids", None):
+                        if set(m.evidence_ids).intersection(set(t.evidence_ids)):
+                            stage_event_ids.append(t.event_id)
+                if stage_event_ids:
+                    # Deduplicate while preserving order
+                    seen = set()
+                    unique_event_ids = []
+                    for eid in stage_event_ids:
+                        if eid not in seen:
+                            seen.add(eid)
+                            unique_event_ids.append(eid)
+                    stage_doc["event_ids"] = unique_event_ids
+                    
+            stages.append(stage_doc)
+            
+        return {
+            "status": status,
+            "stages": stages
+        }
+
     def build(self, ctx: InvestigationContext) -> Dict[str, Any]:
         case_id = getattr(ctx, 'case_id', None)
         if not case_id:
@@ -37,7 +95,7 @@ class InvestigationCaseBuilder:
         
         # Build document
         doc = {
-            "schema_version": "investigation-case-v1.1",
+            "schema_version": "investigation-case-v1.2",
             "case_id": case_id,
             "title": f"Investigation Case {case_id}",
             "description": "Automatically assembled investigation case.",
@@ -54,9 +112,14 @@ class InvestigationCaseBuilder:
             "entities": [],
             "relationships": [],
             "evidence_references": [],
-            "attack_chain": {
-                "status": "none"
-            }
+            "attack_chain": self._build_attack_chain(ctx),
+            "mitre_provenance": {
+                "framework": "MITRE ATT&CK",
+                "domain": "enterprise",
+                "version": "19.2",
+                "knowledge_profile_id": "netsleuth-network-evidence-v1"
+            },
+            "mitre_mappings": []
         }
         
         # 1. Findings
@@ -140,7 +203,50 @@ class InvestigationCaseBuilder:
                 if ev_id not in declared_ev_ids:
                     raise ValueError(f"Relationship '{rel['relationship_id']}' references undeclared evidence ID '{ev_id}'.")
 
+        # 7. MITRE Mappings
+        if hasattr(ctx, "mitre_mappings") and ctx.mitre_mappings:
+            for m in ctx.mitre_mappings:
+                m_doc = {
+                    "technique_id": m.technique_id,
+                    "technique_name": m.technique_name
+                }
+                if m.tactic_id:
+                    m_doc["tactic_id"] = m.tactic_id
+                if m.tactic_name:
+                    m_doc["tactic_name"] = m.tactic_name
+                if m.behavior_id:
+                    m_doc["behavior_id"] = m.behavior_id
+                if m.mapping_status:
+                    # Enum conversion to string
+                    m_doc["mapping_status"] = m.mapping_status.value if hasattr(m.mapping_status, "value") else str(m.mapping_status)
+                if m.mapping_confidence is not None:
+                    m_doc["mapping_confidence"] = float(m.mapping_confidence)
+                if m.rationale:
+                    m_doc["rationale"] = m.rationale
+                if m.finding_id:
+                    m_doc["source_finding_ids"] = [m.finding_id]
+                
+                # Check for evidence_ids which is technically defined as a list in MitreMapping
+                if getattr(m, "evidence_ids", None):
+                    m_doc["evidence_ids"] = list(m.evidence_ids)
+                    
+                if getattr(m, "first_seen", None):
+                    m_doc["first_seen"] = m.first_seen.isoformat().replace("+00:00", "Z")
+                if getattr(m, "last_seen", None):
+                    m_doc["last_seen"] = m.last_seen.isoformat().replace("+00:00", "Z")
+                    
+                if getattr(m, "detection_strategy_ids", None):
+                    m_doc["detection_strategy_ids"] = list(m.detection_strategy_ids)
+                if getattr(m, "analytic_ids", None):
+                    m_doc["analytic_ids"] = list(m.analytic_ids)
+                if getattr(m, "data_component_ids", None):
+                    m_doc["data_component_ids"] = list(m.data_component_ids)
+                if getattr(m, "channels", None):
+                    m_doc["channels"] = list(m.channels)
+                    
+                doc["mitre_mappings"].append(m_doc)
+
         # Validate output against schema
-        self.validator.validate("investigation-case-v1.1.json", doc)
+        self.validator.validate("investigation-case-v1.2.json", doc)
         
         return doc
