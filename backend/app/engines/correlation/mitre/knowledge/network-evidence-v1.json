@@ -1,0 +1,719 @@
+{
+  "profile_id": "netsleuth-network-evidence-v1",
+  "attack_domain": "enterprise",
+  "mitre_source": "MITRE ATT&CK Enterprise STIX",
+  "mitre_version": "19.2",
+  "stix_version": "2.1",
+  "source_file": "enterprise-attack.json",
+  "source_sha256": "c0c463e0c303f62bd7442a80c8ee2f9ea5f19c8268c50f9dcfd36d78a8d18985",
+  "retrieved_at": "2026-08-17T15:36:25.236372+00:00",
+  "curated_at": "2026-08-17T15:36:25.236462+00:00",
+  "network_evidence_scope": {
+    "available_data_components": [
+      "DC0078",
+      "DC0085"
+    ],
+    "local_channels": [
+      "conn.log",
+      "dns.log",
+      "http.log",
+      "ssl.log"
+    ],
+    "unavailable_telemetry": [
+      "process creation",
+      "file access",
+      "auditd",
+      "EDR",
+      "Sysmon",
+      "websocket.log",
+      "x509.log"
+    ]
+  },
+  "behaviors": [
+    "C2_MALWARE_COMMUNICATION",
+    "DNS_ANOMALY_TUNNELING",
+    "SCANNING_RECONNAISSANCE",
+    "POSSIBLE_EXFILTRATION",
+    "SUSPICIOUS_WEB_ACTIVITY"
+  ],
+  "tactics": [
+    {
+      "external_id": "TA0010",
+      "stix_id": "x-mitre-tactic--9a4e74ab-5008-408c-84bf-a10dfbc53462",
+      "name": "Exfiltration",
+      "description": "The adversary is trying to steal data.\n\nExfiltration consists of techniques that adversaries may use to steal data from your network. Once they\u2019ve collected data, adversaries often package it to avoid detection while removing it. This can include compression and encryption. Techniques for getting data out of a target network typically include transferring it over their command and control channel or an alternate channel and may also include putting size limits on the transmission.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "TA0007",
+      "stix_id": "x-mitre-tactic--c17c5845-175e-4421-9713-829d0573dbc9",
+      "name": "Discovery",
+      "description": "The adversary is trying to figure out your environment.\n\nDiscovery consists of techniques an adversary may use to gain knowledge about the system and internal network. These techniques help adversaries observe the environment and orient themselves before deciding how to act. They also allow adversaries to explore what they can control and what\u2019s around their entry point in order to discover how it could benefit their current objective. Native operating system tools are often used toward this pos...",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "TA0011",
+      "stix_id": "x-mitre-tactic--f72804c5-f15a-449e-a5da-2eecd181f813",
+      "name": "Command and Control",
+      "description": "The adversary is trying to communicate with compromised systems to control them.\n\nCommand and Control consists of techniques that adversaries may use to communicate with systems under their control within a victim network. Adversaries commonly attempt to mimic normal, expected traffic to avoid detection. There are many ways an adversary can establish command and control with various levels of stealth depending on the victim\u2019s network structure and defenses.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    }
+  ],
+  "techniques": [
+    {
+      "external_id": "T1071.004",
+      "stix_id": "attack-pattern--1996eef1-ced3-4d7f-bf94-33298cabbf72",
+      "name": "DNS",
+      "description": "Adversaries may communicate using the Domain Name System (DNS) application layer protocol to avoid detection/network filtering by blending in with existing traffic. Commands to the remote system, and often the results of those commands, will be embedded within the protocol traffic between the client and server. \n\nThe DNS protocol serves an administrative function in computer networking and thus may be very common in environments. DNS traffic may also be allowed even before network authentication...",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.4"
+    },
+    {
+      "external_id": "T1041",
+      "stix_id": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "name": "Exfiltration Over C2 Channel",
+      "description": "Adversaries may steal data by exfiltrating it over an existing command and control channel. Stolen data is encoded into the normal communications channel using the same protocol as command and control communications.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "2.3"
+    },
+    {
+      "external_id": "T1095",
+      "stix_id": "attack-pattern--c21d5a77-d422-4a69-acd7-2c53c1faa34b",
+      "name": "Non-Application Layer Protocol",
+      "description": "Adversaries may use an OSI non-application layer protocol for communication between host and C2 server or among infected hosts within a network. The list of possible protocols is extensive.(Citation: Wikipedia OSI) Specific examples include use of network layer protocols, such as the Internet Control Message Protocol (ICMP), transport layer protocols, such as the User Datagram Protocol (UDP), session layer protocols, such as Socket Secure (SOCKS), as well as redirected/tunneled protocols, such a...",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "2.4"
+    },
+    {
+      "external_id": "T1071.001",
+      "stix_id": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "name": "Web Protocols",
+      "description": "Adversaries may communicate using application layer protocols associated with web traffic to avoid detection/network filtering by blending in with existing traffic. Commands to the remote system, and often the results of those commands, will be embedded within the protocol traffic between the client and server. \n\nProtocols such as HTTP/S(Citation: CrowdStrike Putter Panda) and WebSocket(Citation: Brazking-Websockets) that carry web traffic may be very common in environments. HTTP/S packets have ...",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.5"
+    },
+    {
+      "external_id": "T1046",
+      "stix_id": "attack-pattern--e3a12395-188d-4051-9a16-ea8e14d07b88",
+      "name": "Network Service Discovery",
+      "description": "Adversaries may attempt to get a listing of services running on remote hosts and local network infrastructure devices, including those that may be vulnerable to remote software exploitation. Common methods to acquire this information include port, vulnerability, and/or wordlist scans using tools that are brought onto a system.(Citation: CISA AR21-126A FIVEHANDS May 2021)   \n\nWithin cloud environments, adversaries may attempt to discover services running on other cloud hosts. Additionally, if the...",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "3.2"
+    }
+  ],
+  "detection_strategies": [
+    {
+      "external_id": "DET0457",
+      "stix_id": "x-mitre-detection-strategy--2cb544af-ef54-4376-9608-b399ad67d3d6",
+      "name": "Detection of Non-Application Layer Protocols for C2",
+      "description": "",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "DET0376",
+      "stix_id": "x-mitre-detection-strategy--82e20b1f-300e-43cc-9259-1d506ef5d1f8",
+      "name": "Behavioral Detection Strategy for Network Service Discovery Across Platforms",
+      "description": "",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "DET0348",
+      "stix_id": "x-mitre-detection-strategy--beb3a98c-f1a4-434a-81e7-29d178b14db2",
+      "name": "Detection Strategy for Exfiltration Over C2 Channel",
+      "description": "",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "DET0400",
+      "stix_id": "x-mitre-detection-strategy--c2721658-fa76-4b6f-9f84-50618de81ae0",
+      "name": "Behavioral Detection of DNS Tunneling and Application Layer Abuse",
+      "description": "",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "DET0027",
+      "stix_id": "x-mitre-detection-strategy--e6496b9b-2458-4616-9712-a7c0da7fd3bc",
+      "name": "Detection of Web Protocol-Based C2 Over HTTP, HTTPS, or WebSockets",
+      "description": "",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    }
+  ],
+  "analytics": [
+    {
+      "external_id": "AN0075",
+      "stix_id": "x-mitre-analytic--04fe83c3-d8d3-4c96-91a4-9167fa8f405a",
+      "name": "Analytic 0075",
+      "description": "Detects unexpected or high-volume HTTP/S/WebSocket communication from suspicious processes (e.g., PowerShell, rundll32) using uncommon user agents or mimicking browser traffic to unusual domains or IPs.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1125",
+      "stix_id": "x-mitre-analytic--11d8dd9d-e8f3-40cd-b9fe-cc82b6c2e790",
+      "name": "Analytic 1125",
+      "description": "Detects unusual outbound DNS traffic from ESXi hosts, often from shell scripts, custom daemons, or malicious VIBs interacting with external DNS infrastructure outside the management plane.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0079",
+      "stix_id": "x-mitre-analytic--1f1ed319-a6f9-4f30-9254-e0b1927a6bd9",
+      "name": "Analytic 0079",
+      "description": "Detects Web protocol misuse such as encoded HTTP headers, WebSocket upgrade requests with abnormal payloads, or TLS handshake anomalies suggesting embedded C2 channels.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1058",
+      "stix_id": "x-mitre-analytic--287661d0-714e-4bb4-a9f7-c272ad0018b1",
+      "name": "Analytic 1058",
+      "description": "Detects use of network scanning utilities or scripts performing rapid connections to multiple services or hosts using auditd and netflow/pcap telemetry.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0988",
+      "stix_id": "x-mitre-analytic--28c16139-9ce1-4dd7-b26a-e257f37e246c",
+      "name": "Analytic 0988",
+      "description": "Identifies suspicious outbound traffic volume mismatches from processes that typically do not generate network activity, particularly over C2 protocols like HTTPS, DNS, or custom TCP/UDP ports, following file or data access.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1059",
+      "stix_id": "x-mitre-analytic--28fbe1b0-9663-4997-9d4e-ef43803be114",
+      "name": "Analytic 1059",
+      "description": "Detects Bonjour-based mDNS enumeration or use of system tools (e.g., dns-sd, nmap) to find active services via multicast probing or targeted scans.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0078",
+      "stix_id": "x-mitre-analytic--38205f16-18da-4d04-ae54-f5143b75c938",
+      "name": "Analytic 0078",
+      "description": "Detects HTTP or HTTPS communication initiated by shell-based scripts or management daemons, especially those reaching public IPs over ports 80/443 using embedded curl or wget.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1121",
+      "stix_id": "x-mitre-analytic--407bb9c9-0c31-4172-8dd3-bdd0547f2d1e",
+      "name": "Analytic 1121",
+      "description": "Detects high-frequency or anomalous DNS queries initiated by non-browser, non-system processes (e.g., PowerShell, rundll32, python.exe) used to establish command and control via DNS tunneling.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1123",
+      "stix_id": "x-mitre-analytic--42a8c7a7-2773-4892-b647-40d3542ae4d2",
+      "name": "Analytic 1123",
+      "description": "Detects scripting environments (AppleScript, osascript, curl) or non-native tools performing DNS queries with encoded subdomains, often used for data exfiltration or beaconing.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1254",
+      "stix_id": "x-mitre-analytic--4412fb07-9a44-49de-80af-8746b0be3865",
+      "name": "Analytic 1254",
+      "description": "Anomalous use of ICMP or UDP by non-network service processes for data exfiltration or remote control, especially if traffic bypasses proxy infrastructure or shows unusual flow patterns.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1256",
+      "stix_id": "x-mitre-analytic--4742e058-a301-47e1-b594-8daa8eabfc79",
+      "name": "Analytic 1256",
+      "description": "Unsigned binaries or interpreted scripts initiating non-standard protocols (ICMP, UDP, SOCKS) outside of baseline network behavior.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1060",
+      "stix_id": "x-mitre-analytic--5d7b1be3-1c8a-40bf-a4d2-85e26dd82d76",
+      "name": "Analytic 1060",
+      "description": "Detects lateral discovery or container breakout attempts using netcat, curl, or custom binaries probing other services within the same namespace or VPC subnet.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0077",
+      "stix_id": "x-mitre-analytic--5ff3ae40-d326-4eae-9bc5-c77ddcb6cb6e",
+      "name": "Analytic 0077",
+      "description": "Detects applications such as Automator, AppleScript, or LaunchDaemons invoking HTTP/S traffic to non-standard domains or using suspicious headers (e.g., Base64 in URIs or cookie fields).",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1258",
+      "stix_id": "x-mitre-analytic--688ed638-d3ba-47dc-baa7-16b16a9fe9c8",
+      "name": "Analytic 1258",
+      "description": "Non-standard port/protocol pairings or low-entropy ICMP traffic resembling tunneling patterns (e.g., fixed-size pings with delays).",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0989",
+      "stix_id": "x-mitre-analytic--6914dd62-46a6-4de4-9c0b-afe1cb5b075d",
+      "name": "Analytic 0989",
+      "description": "Monitors for processes reading sensitive files then immediately initiating unusual outbound connections or bulk transfer sessions over persistent sockets, particularly with encrypted or binary payloads.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1255",
+      "stix_id": "x-mitre-analytic--7d0a3871-8cee-47bd-8829-637e132c98f7",
+      "name": "Analytic 1255",
+      "description": "ICMP or raw socket traffic generated by user-mode processes like bash, Python, or nc, typically using `ping`, `hping3`, or crafted packets via libpcap or scapy.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1057",
+      "stix_id": "x-mitre-analytic--84299e85-2a7e-4f78-9767-3d29aa58857a",
+      "name": "Analytic 1057",
+      "description": "Detects processes performing network enumeration (e.g., port scans, service probing) by correlating process creation, socket connections, and sequential destination IP probing within a time window.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1257",
+      "stix_id": "x-mitre-analytic--cae917e6-7542-41d0-8b03-ad2b7ab1eb01",
+      "name": "Analytic 1257",
+      "description": "VMCI (Virtual Machine Communication Interface) traffic between guest and host, or between VMs, originating from non-management tools or unauthorized binaries.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0076",
+      "stix_id": "x-mitre-analytic--cba23232-7fae-47df-bd83-0ca5a5066373",
+      "name": "Analytic 0076",
+      "description": "Detects curl, wget, Python requests, or custom HTTP clients communicating over non-standard ports, with repetitive or beacon-like patterns or POST-heavy behavior to rare domains.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1122",
+      "stix_id": "x-mitre-analytic--cc8183e1-9de4-469a-9117-79bf2e986e31",
+      "name": "Analytic 1122",
+      "description": "Detects local daemons or scripts generating outbound DNS queries with long or frequent subdomains, indicative of DNS tunneling via tools like `iodine`, `dnscat2`, or `dig` from cronjobs or reverse shells.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0990",
+      "stix_id": "x-mitre-analytic--deb57305-6324-404d-a9d0-00aa0c285920",
+      "name": "Analytic 0990",
+      "description": "Detects unauthorized applications or scripts accessing sensitive data followed by establishing encrypted outbound communication to rare external destinations or with abnormal byte ratios.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN0991",
+      "stix_id": "x-mitre-analytic--f8998263-e55f-428f-b8d0-46d9e31277d2",
+      "name": "Analytic 0991",
+      "description": "Detects VMs sending outbound traffic through non-standard services or to unknown destinations. Exfiltration over reverse shells tunneled via VMkernel or custom payloads routed via hostd/vpxa.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    },
+    {
+      "external_id": "AN1124",
+      "stix_id": "x-mitre-analytic--fe648823-66c8-4cc3-8a8e-38616194464c",
+      "name": "Analytic 1124",
+      "description": "Detects clients issuing DNS queries with high volume, long subdomain lengths, encoded payload patterns, or to known malicious infrastructure; indicative of DNS-based C2 channels.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "1.0"
+    }
+  ],
+  "data_components": [
+    {
+      "external_id": "DC0085",
+      "stix_id": "x-mitre-data-component--3772e279-27d6-477a-9fe3-c6beb363594c",
+      "name": "Network Traffic Content",
+      "description": "The full packet capture (PCAP) or session data that logs both protocol headers and payload content. This allows analysts to inspect command and control (C2) traffic, exfiltration, and other suspicious activity within network communications. Unlike metadata-based logs, full content analysis enables deeper protocol inspection, payload decoding, and forensic investigations.\n\n*Data Collection Measures:*\n\n- Network Packet Capture (Full Content Logging)\n    - Wireshark / tcpdump / tshark\n        - Ful...",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "2.1"
+    },
+    {
+      "external_id": "DC0078",
+      "stix_id": "x-mitre-data-component--a7f22107-02e5-4982-9067-6625d4a1765a",
+      "name": "Network Traffic Flow",
+      "description": "Summarized network packet data that captures session-level details such as source/destination IPs, ports, protocol types, timestamps, and data volume, without storing full packet payloads. This is commonly used for traffic analysis, anomaly detection, and network performance monitoring.",
+      "revoked": false,
+      "deprecated": false,
+      "mitre_version": "2.1"
+    }
+  ],
+  "native_relationships": [
+    {
+      "stix_id": "relationship--d0253b71-3eef-4c9a-bc0a-b936fbec1ea7",
+      "source_ref": "x-mitre-detection-strategy--c2721658-fa76-4b6f-9f84-50618de81ae0",
+      "target_ref": "attack-pattern--1996eef1-ced3-4d7f-bf94-33298cabbf72",
+      "relationship_type": "detects"
+    },
+    {
+      "stix_id": "relationship--f8b1efaf-2f13-4844-a3f1-862619b88795",
+      "source_ref": "x-mitre-detection-strategy--beb3a98c-f1a4-434a-81e7-29d178b14db2",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "relationship_type": "detects"
+    },
+    {
+      "stix_id": "relationship--b49312bd-f37c-4b0f-a6c8-4ab38f14db65",
+      "source_ref": "x-mitre-detection-strategy--2cb544af-ef54-4376-9608-b399ad67d3d6",
+      "target_ref": "attack-pattern--c21d5a77-d422-4a69-acd7-2c53c1faa34b",
+      "relationship_type": "detects"
+    },
+    {
+      "stix_id": "relationship--c392a03d-b4d0-4b2c-aeaa-1b010d916922",
+      "source_ref": "x-mitre-detection-strategy--e6496b9b-2458-4616-9712-a7c0da7fd3bc",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "relationship_type": "detects"
+    },
+    {
+      "stix_id": "relationship--56e3bbc8-0ff7-4877-836c-f081261d3a35",
+      "source_ref": "x-mitre-detection-strategy--82e20b1f-300e-43cc-9259-1d506ef5d1f8",
+      "target_ref": "attack-pattern--e3a12395-188d-4051-9a16-ea8e14d07b88",
+      "relationship_type": "detects"
+    }
+  ],
+  "netsleuth_curated_mappings": [
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "behavior_id": "C2_MALWARE_COMMUNICATION",
+      "name": "C2 / Malware Communication",
+      "candidate_techniques": [
+        {
+          "id": "T1071.001",
+          "support_level": "FULL",
+          "required_telemetry": [
+            "DC0085"
+          ],
+          "local_channels": [
+            "http.log",
+            "ssl.log"
+          ],
+          "rationale": "Web protocol evidence"
+        },
+        {
+          "id": "T1071.004",
+          "support_level": "FULL",
+          "required_telemetry": [
+            "DC0085"
+          ],
+          "local_channels": [
+            "dns.log"
+          ],
+          "rationale": "DNS evidence"
+        },
+        {
+          "id": "T1095",
+          "support_level": "FULL",
+          "required_telemetry": [
+            "DC0085",
+            "DC0078"
+          ],
+          "local_channels": [
+            "conn.log"
+          ],
+          "rationale": "Non-application-layer evidence"
+        }
+      ]
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "behavior_id": "DNS_ANOMALY_TUNNELING",
+      "name": "DNS Anomaly / Tunneling",
+      "candidate_techniques": [
+        {
+          "id": "T1071.004",
+          "support_level": "FULL",
+          "required_telemetry": [
+            "DC0085"
+          ],
+          "local_channels": [
+            "dns.log"
+          ],
+          "rationale": "DNS evidence required"
+        }
+      ]
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "behavior_id": "SCANNING_RECONNAISSANCE",
+      "name": "Scanning / Reconnaissance",
+      "candidate_techniques": [
+        {
+          "id": "T1046",
+          "support_level": "PARTIAL",
+          "required_telemetry": [
+            "DC0078",
+            "auditd"
+          ],
+          "local_channels": [
+            "conn.log"
+          ],
+          "unavailable_telemetry": [
+            "auditd"
+          ],
+          "rationale": "Network flow evidence available, but endpoint/auditd requirements unavailable in current M1"
+        }
+      ]
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "behavior_id": "POSSIBLE_EXFILTRATION",
+      "name": "Possible Exfiltration",
+      "candidate_techniques": [
+        {
+          "id": "T1041",
+          "support_level": "PARTIAL",
+          "required_telemetry": [
+            "DC0078",
+            "file access",
+            "process creation"
+          ],
+          "local_channels": [
+            "conn.log"
+          ],
+          "unavailable_telemetry": [
+            "file access",
+            "process creation"
+          ],
+          "rationale": "Network evidence can support candidate behavior but file/process evidence unavailable"
+        }
+      ]
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "behavior_id": "SUSPICIOUS_WEB_ACTIVITY",
+      "name": "Suspicious Web Activity / Unusual HTTP",
+      "candidate_techniques": [
+        {
+          "id": "T1071.001",
+          "mapping_condition": "CONDITIONAL",
+          "required_telemetry": [
+            "DC0085"
+          ],
+          "local_channels": [
+            "http.log"
+          ],
+          "rationale": "Unusual HTTP alone is insufficient. Runtime mapper evaluates correlated C2 evidence."
+        }
+      ]
+    }
+  ],
+  "netsleuth_curated_relationships": [
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0457",
+      "target": "AN1254"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0457",
+      "target": "AN1255"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0457",
+      "target": "AN1256"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0457",
+      "target": "AN1257"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0457",
+      "target": "AN1258"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0376",
+      "target": "AN1057"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0376",
+      "target": "AN1058"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0376",
+      "target": "AN1059"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0376",
+      "target": "AN1060"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0348",
+      "target": "AN0988"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0348",
+      "target": "AN0989"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0348",
+      "target": "AN0990"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0348",
+      "target": "AN0991"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0400",
+      "target": "AN1121"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0400",
+      "target": "AN1122"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0400",
+      "target": "AN1123"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0400",
+      "target": "AN1124"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0400",
+      "target": "AN1125"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0027",
+      "target": "AN0075"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0027",
+      "target": "AN0076"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0027",
+      "target": "AN0077"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0027",
+      "target": "AN0078"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Detection_to_Analytic",
+      "source": "DET0027",
+      "target": "AN0079"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Technique_to_Detection",
+      "source": "T1071.001",
+      "target": "DET0027"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Technique_to_Detection",
+      "source": "T1071.004",
+      "target": "DET0400"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Technique_to_Detection",
+      "source": "T1041",
+      "target": "DET0348"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Technique_to_Detection",
+      "source": "T1046",
+      "target": "DET0376"
+    },
+    {
+      "provenance": "NETSLEUTH_CURATED",
+      "type": "Technique_to_Detection",
+      "source": "T1095",
+      "target": "DET0457"
+    }
+  ]
+}

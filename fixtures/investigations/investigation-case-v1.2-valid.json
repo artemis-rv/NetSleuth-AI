@@ -1,0 +1,119 @@
+{
+  "schema_version": "investigation-case-v1.2",
+  "case_id": "CASE-12345",
+  "title": "Suspicious Exfiltration Activity",
+  "description": "Investigating potential data exfiltration from an internal host to an unknown external IP.",
+  "status": "investigating",
+  "severity": "high",
+  "created_at": "2026-08-15T10:00:00Z",
+  "updated_at": "2026-08-15T11:30:00Z",
+  "investigator": {
+    "investigator_id": "INV-001",
+    "name": "Alice Smith"
+  },
+  "tags": [
+    "exfiltration",
+    "apt"
+  ],
+  "mitre_provenance": {
+    "framework": "MITRE ATT&CK",
+    "domain": "enterprise",
+    "version": "19.2",
+    "knowledge_profile_id": "netsleuth-network-evidence-v1"
+  },
+  "findings": [
+    {
+      "finding_id": "finding-001",
+      "role": "primary"
+    }
+  ],
+  "timeline": [
+    {
+      "event_id": "evt-001",
+      "timestamp": "2026-08-15T09:45:00Z",
+      "event_type": "network",
+      "description": "Large outbound transfer detected.",
+      "source_entity_id": "ent-host-1",
+      "target_entity_id": "ent-ip-1",
+      "finding_ids": [
+        "finding-001"
+      ],
+      "evidence_ids": [
+        "ev-001"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "ent-host-1",
+      "entity_type": "host",
+      "label": "Internal Server 1",
+      "role": "primary",
+      "first_seen": "2026-08-15T09:40:00Z",
+      "last_seen": "2026-08-15T11:00:00Z"
+    },
+    {
+      "entity_id": "ent-ip-1",
+      "entity_type": "ip",
+      "label": "203.0.113.10",
+      "role": "related",
+      "first_seen": "2026-08-15T09:45:00Z",
+      "last_seen": "2026-08-15T09:50:00Z"
+    }
+  ],
+  "relationships": [],
+  "evidence_references": [
+    {
+      "evidence_id": "ev-001",
+      "evidence_type": "flow",
+      "source_id": "flow-001",
+      "hash": null,
+      "hash_algorithm": null
+    }
+  ],
+  "assessment": {
+    "facts": [
+      {
+        "statement": "Host transferred 850MB to 203.0.113.10.",
+        "source_ids": [
+          "ev-001"
+        ]
+      }
+    ]
+  },
+  "attack_chain": {
+    "status": "none"
+  },
+  "mitre_mappings": [
+    {
+      "tactic_id": "TA0010",
+      "tactic_name": "Exfiltration",
+      "technique_id": "T1041",
+      "technique_name": "Exfiltration Over C2 Channel",
+      "behavior_id": "POSSIBLE_EXFILTRATION",
+      "mapping_status": "POTENTIAL",
+      "mapping_confidence": 0.8,
+      "rationale": "Large anomalous data transfer detected via outbound flows.",
+      "source_finding_ids": [
+        "finding-001"
+      ],
+      "evidence_ids": [
+        "ev-001"
+      ],
+      "first_seen": "2026-08-15T09:45:00Z",
+      "last_seen": "2026-08-15T11:00:00Z",
+      "detection_strategy_ids": [
+        "DET0100"
+      ],
+      "analytic_ids": [
+        "AN0123"
+      ],
+      "data_component_ids": [
+        "DC0085"
+      ],
+      "channels": [
+        "conn.log"
+      ]
+    }
+  ]
+}
