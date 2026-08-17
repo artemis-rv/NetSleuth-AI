@@ -44,3 +44,6 @@ sample_data/evidence/*.pcapng
 # Zeek dynamic outputs — never commit runtime outputs
 sample_data/zeek_output/
 
+
+test_output.log
+debug_finding.txt

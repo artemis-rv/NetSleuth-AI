@@ -50,14 +50,22 @@ class M2PersistenceService:
             artifact_links_data = []
 
             for finding in package.findings:
-                f_uuid = uuid.uuid4()
+                f_uuid = uuid.uuid5(uuid.NAMESPACE_OID, finding.finding_id)
+                with open('debug_finding.txt', 'a') as f: f.write(f"M2 PERSISTENCE: finding_id={finding.finding_id}, f_uuid={f_uuid}\n")
                 
                 # Determine classification and anomaly extraction
                 class_probs = None
                 if finding.classification_result:
                     class_probs = finding.classification_result.class_probabilities
                 
-                # We use 'low' for severity as 'UNSCORED' is forbidden by DB constraint
+                # CRITICAL M2 SEVERITY BRIDGE DOCUMENTATION
+                # ---------------------------------------------------------------------------------
+                # M2 (Analysis Engine) does NOT determine true investigation severity. 
+                # Severity mapping is exclusively owned by M3 (Correlation & Investigation).
+                # We hardcode `severity="low"` here SOLELY to satisfy the PostgreSQL DB-6 
+                # `analytics.findings` check constraint which requires a non-null severity value.
+                # This is a persistence-layer bridge only; it is NOT an analytical conclusion.
+                # ---------------------------------------------------------------------------------
                 severity = "low"
                 
                 # Determine detection method
