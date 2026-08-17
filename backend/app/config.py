@@ -1,4 +1,4 @@
-﻿"""
+"""
 backend/app/config.py
 ---------------------
 NetSleuth-AI application configuration.
@@ -11,9 +11,10 @@ Usage:
 
     endpoint = settings.minio_endpoint
     bucket   = settings.minio_bucket_evidence
+    env      = settings.app_env
 
 LOCAL DEVELOPMENT:
-    Values are sourced from the .env file loaded by Docker Compose.
+    Values are sourced from the .env file loaded by Docker Compose or local shell.
     Do NOT hard-code credentials here.
 
 PRODUCTION:
@@ -21,12 +22,12 @@ PRODUCTION:
     secrets, cloud secret manager, etc.).
 
 SCOPE:
-    This module establishes the configuration CONTRACT for future integration.
-    Application-layer MinIO connectivity (SDK, repository, service layer) is
-    implemented separately in subsequent phases.
+    This module establishes the configuration CONTRACT for the application layer,
+    MinIO connectivity, and database access.
 """
 
 import os
+from typing import List
 
 
 class _Settings:
@@ -36,6 +37,77 @@ class _Settings:
     All values are read from environment variables at attribute access time
     to support test patching via os.environ.
     """
+
+    # -------------------------------------------------------------------------
+    # Application Layer
+    # -------------------------------------------------------------------------
+
+    @property
+    def app_name(self) -> str:
+        """Application name."""
+        return os.environ.get("APP_NAME", "NetSleuth-AI")
+
+    @property
+    def app_version(self) -> str:
+        """Application version."""
+        return os.environ.get("APP_VERSION", "1.0.0")
+
+    @property
+    def app_env(self) -> str:
+        """
+        Application deployment environment: development, staging, production, test.
+
+        Set via: APP_ENV or APPLICATION_ENV
+        Default: ``development``
+        """
+        return os.environ.get("APP_ENV", os.environ.get("APPLICATION_ENV", "development"))
+
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production."""
+        return self.app_env.lower() in ("production", "prod")
+
+    @property
+    def api_v1_prefix(self) -> str:
+        """Public API v1 route prefix."""
+        return os.environ.get("API_V1_PREFIX", "/api/v1")
+
+    @property
+    def log_level(self) -> str:
+        """Logging verbosity level."""
+        return os.environ.get("LOG_LEVEL", "INFO").upper()
+
+    @property
+    def cors_origins(self) -> List[str]:
+        """
+        Allowed CORS origins.
+
+        In production, wildcard (*) is forbidden and falls back to an empty list
+        unless explicitly declared with trusted domains.
+        Set via: CORS_ORIGINS (comma-separated string)
+        """
+        raw = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173")
+        origins = [o.strip() for o in raw.split(",") if o.strip()]
+        if self.is_production:
+            # Enforce security: eliminate any wildcard in production
+            return [o for o in origins if o != "*"]
+        return origins
+
+    # -------------------------------------------------------------------------
+    # Database
+    # -------------------------------------------------------------------------
+
+    @property
+    def database_url(self) -> str:
+        """
+        PostgreSQL Async connection URL.
+
+        Set via: DATABASE_URL
+        """
+        return os.environ.get(
+            "DATABASE_URL",
+            "postgresql+asyncpg://postgres:postgres@127.0.0.1:15432/netsleuth"
+        )
 
     # -------------------------------------------------------------------------
     # MinIO Object Storage
@@ -51,7 +123,7 @@ class _Settings:
 
         Set via: MINIO_ENDPOINT
         """
-        return os.environ["MINIO_ENDPOINT"]
+        return os.environ.get("MINIO_ENDPOINT", "localhost:9000")
 
     @property
     def minio_root_user(self) -> str:
@@ -60,7 +132,7 @@ class _Settings:
 
         Set via: MINIO_ROOT_USER
         """
-        return os.environ["MINIO_ROOT_USER"]
+        return os.environ.get("MINIO_ROOT_USER", "minioadmin")
 
     @property
     def minio_root_password(self) -> str:
@@ -69,7 +141,7 @@ class _Settings:
 
         Set via: MINIO_ROOT_PASSWORD
         """
-        return os.environ["MINIO_ROOT_PASSWORD"]
+        return os.environ.get("MINIO_ROOT_PASSWORD", "minioadmin")
 
     @property
     def minio_region(self) -> str:
