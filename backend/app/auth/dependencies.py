@@ -79,6 +79,41 @@ class RequireRole:
             )
         return current_user
 
+async def verify_case_access_direct(
+    case_id: UUID,
+    current_user: UserModel,
+    db: AsyncSession,
+    request: Request = None
+) -> UUID:
+    """Core logic for verifying case access."""
+    if current_user.role == "administrator":
+        return case_id
+        
+    repo = CaseAccessRepository(db)
+    access = await repo.get_by_user_and_case(current_user.user_id, case_id)
+    
+    if not access:
+        if request:
+            await log_audit_event(
+                db=db,
+                action="case_access_denied",
+                target_entity_type="investigation_case",
+                target_entity_id=str(case_id),
+                result="denied",
+                actor_id=current_user.user_id,
+                actor_name=current_user.username,
+                source_ip=get_client_ip(request),
+                metadata={"reason": "case_not_assigned"}
+            )
+            await db.commit()
+        
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access to this case is forbidden"
+        )
+        
+    return case_id
+
 async def verify_case_access(
     request: Request,
     case_id: UUID = Path(...),
@@ -89,29 +124,4 @@ async def verify_case_access(
     Dependency to verify that the current user has access to the specified case.
     Administrators have implicit access to all cases.
     """
-    if current_user.role == "administrator":
-        return case_id
-        
-    repo = CaseAccessRepository(db)
-    access = await repo.get_by_user_and_case(current_user.user_id, case_id)
-    
-    if not access:
-        await log_audit_event(
-            db=db,
-            action="case_access_denied",
-            target_entity_type="investigation_case",
-            target_entity_id=str(case_id),
-            result="denied",
-            actor_id=current_user.user_id,
-            actor_name=current_user.username,
-            source_ip=get_client_ip(request),
-            metadata={"reason": "case_not_assigned"}
-        )
-        await db.commit()
-        
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access to this case is forbidden"
-        )
-        
-    return case_id
+    return await verify_case_access_direct(case_id, current_user, db, request)

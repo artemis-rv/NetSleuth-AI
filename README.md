@@ -82,13 +82,14 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 - **APP-0 (Application Foundation)**: FastAPI application core structure, SQLAlchemy async database initialization, and API router routing (`/api/v1`).
 - **APP-1 (Authentication & RBAC)**: JWT authentication, password hashing (`passlib`/`bcrypt`), Role-Based Access Control (`administrator`, `investigator`, `analyst`), case-level access policies, and standard security auditing (`audit.audit_events`).
 - **APP-2 (Case Management APIs)**: Investigation case management endpoints (`POST /cases`, `GET /cases`, `GET /cases/{case_id}`, `PATCH /cases/{case_id}`), Pydantic contracts, strict pagination, safe filter/sort options, and status transition workflows.
+- **APP-3 (Acquisition & Evidence APIs)**: MinIO integration for original PCAP storage, explicit transactional coordination with PostgreSQL, streaming integrity checks (SHA-256), orchestration with M1 Acquisition Engine, orphaned object handling, and case-scoped authorization endpoints (`/api/v1/cases/{case_id}/acquisitions`, `/api/v1/evidence/{evidence_id}`).
 
 ---
 
 ## Integration Status & Next Steps
 
 - **Pipeline Orchestration**: Unified M1 -> M2 -> M3 -> M4 pipeline operational.
-- **Application Layer**: APP-0, APP-1, and APP-2 completed with full integration test coverage.
+- **Application Layer**: APP-0, APP-1, APP-2, and APP-3 completed with full integration test coverage.
 - **Next Steps**: FE-0 — Frontend App Shell + Design System + Authenticated Routing.
 
 ---
