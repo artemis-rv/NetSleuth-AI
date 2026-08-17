@@ -12,12 +12,11 @@ class UserModel(Base):
     user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
-    password_hash = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
     role = Column(String, nullable=False, default="analyst")
     is_active = Column(Boolean, nullable=False, default=True)
     last_login_at = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
-    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
 
 class CaseAccessModel(Base):
     __tablename__ = "case_access"

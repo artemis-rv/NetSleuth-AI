@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # NetSleuth-AI — Local Development Infrastructure
 # docker-compose.yml
 # =============================================================================
@@ -10,14 +10,17 @@
 #   LOCAL DEVELOPMENT ONLY — not production-ready.
 #
 # SERVICES:
+#   postgres    — PostgreSQL relational database
 #   minio       — S3-compatible object storage (MinIO)
 #   minio-init  — One-shot bucket initializer (exits after setup)
 #
 # PORTS:
+#   15432       — PostgreSQL      (host -> container)
 #   9000        — MinIO S3 API    (host -> container)
 #   9001        — MinIO Console   (host -> container)
 #
 # VOLUMES:
+#   pg_data     — Persistent named volume for PostgreSQL
 #   minio_data  — Persistent named volume for MinIO objects
 #
 # USAGE:
@@ -28,6 +31,30 @@
 # =============================================================================
 
 services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Relational Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: netsleuth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: netsleuth
+    ports:
+      - "15432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - netsleuth-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   # ---------------------------------------------------------------------------
   # MinIO — S3-compatible object storage
@@ -122,6 +149,9 @@ networks:
 # Volumes
 # =============================================================================
 volumes:
+  pg_data:
+    name: netsleuth_pg_data
+    driver: local
   minio_data:
     name: netsleuth_minio_data
     driver: local

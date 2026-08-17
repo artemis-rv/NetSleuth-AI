@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, text, ForeignKey
+from sqlalchemy import Column, String, Integer, text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP, JSONB
 from sqlalchemy.orm import relationship
 
@@ -9,29 +9,30 @@ class EvidenceItemModel(Base):
     __tablename__ = "evidence_items"
     __table_args__ = {"schema": "custody"}
 
-    item_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    evidence_item_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
-    acquisition_id = Column(UUID(as_uuid=True), ForeignKey("acquisition.acquisitions.acquisition_id", ondelete="RESTRICT"), nullable=True)
-    finding_id = Column(UUID(as_uuid=True), ForeignKey("analytics.findings.finding_id", ondelete="RESTRICT"), nullable=True)
-    artifact_id = Column(UUID(as_uuid=True), ForeignKey("intelligence.artifacts.artifact_id", ondelete="RESTRICT"), nullable=True)
-    description = Column(String, nullable=False)
-    collected_by = Column(UUID(as_uuid=True), ForeignKey("identity.users.user_id", ondelete="RESTRICT"), nullable=False)
-    collected_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
-    hash_sha256 = Column(String(64), nullable=True)
-    status = Column(String, nullable=False, default="collected")
-    attributes = Column(JSONB, nullable=True)
+    evidence_id = Column(UUID(as_uuid=True), ForeignKey("acquisition.evidence.evidence_id", ondelete="RESTRICT"), nullable=True)
+    label = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    evidence_type = Column(String, nullable=False)
+    minio_bucket = Column(String, nullable=True)
+    object_key = Column(String, nullable=True)
+    sha256 = Column(String(64), nullable=True)
+    registered_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    registered_by = Column(UUID(as_uuid=True), nullable=True)
 
 class CustodyEventModel(Base):
     __tablename__ = "custody_events"
     __table_args__ = {"schema": "custody"}
 
-    event_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    item_id = Column(UUID(as_uuid=True), ForeignKey("custody.evidence_items.item_id", ondelete="RESTRICT"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("identity.users.user_id", ondelete="RESTRICT"), nullable=False)
+    custody_event_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    evidence_item_id = Column(UUID(as_uuid=True), ForeignKey("custody.evidence_items.evidence_item_id", ondelete="RESTRICT"), nullable=False)
     action = Column(String, nullable=False)
-    reason = Column(String, nullable=True)
-    timestamp = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
-    signature = Column(String, nullable=True)
+    actor_id = Column(UUID(as_uuid=True), nullable=True)
+    actor_name = Column(String, nullable=True)
+    occurred_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    notes = Column(String, nullable=True)
+    event_metadata = Column("metadata", JSONB, nullable=True)
 
 class ReportModel(Base):
     __tablename__ = "reports"
@@ -39,9 +40,12 @@ class ReportModel(Base):
 
     report_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
-    generated_by = Column(UUID(as_uuid=True), ForeignKey("identity.users.user_id", ondelete="RESTRICT"), nullable=False)
-    title = Column(String, nullable=False)
+    report_type = Column(String, nullable=False)
+    version = Column(Integer, nullable=False, default=1)
+    title = Column(String, nullable=True)
+    minio_bucket = Column(String, nullable=False)
+    object_key = Column(String, nullable=False, unique=True)
+    sha256 = Column(String(64), nullable=False)
     format = Column(String, nullable=False)
-    content_uri = Column(String, nullable=False)
-    hash_sha256 = Column(String(64), nullable=False)
     generated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    generated_by = Column(UUID(as_uuid=True), nullable=True)

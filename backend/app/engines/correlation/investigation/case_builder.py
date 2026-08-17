@@ -89,9 +89,12 @@ class InvestigationCaseBuilder:
         for e in ctx.entities:
             e_doc = {
                 "entity_id": e.entity_id,
-                # Protocol_event is now fully supported.
                 "entity_type": e.entity_type if e.entity_type in valid_types else "artifact"
             }
+            if hasattr(e, "value") and e.value:
+                e_doc["value"] = e.value
+            if hasattr(e, "attributes") and e.attributes:
+                e_doc["attributes"] = e.attributes
             if e.first_seen:
                 e_doc["first_seen"] = e.first_seen.isoformat().replace("+00:00", "Z")
             if e.last_seen:

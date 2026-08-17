@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Float, text, ForeignKey, Table, JSON
+from sqlalchemy import Column, String, Float, text, ForeignKey, Table, JSON, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP, JSONB, ARRAY
 from sqlalchemy.orm import relationship
 
@@ -46,7 +46,7 @@ class EntityModel(Base):
 
 class RelationshipModel(Base):
     __tablename__ = "relationships"
-    __table_args__ = {"schema": "investigation"}
+    __tablename__ = "relationships"
 
     relationship_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
@@ -55,8 +55,15 @@ class RelationshipModel(Base):
     relationship_type = Column(String, nullable=False)
     strength = Column(Float, nullable=True)
     attributes = Column(JSONB, nullable=True)
+    first_seen = Column(TIMESTAMP(timezone=True), nullable=True)
+    last_seen = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
+    __table_args__ = (
+        CheckConstraint("last_seen >= first_seen", name="ck_rel__time"),
+        {"schema": "investigation"}
+    )
 
 class BehaviorModel(Base):
     __tablename__ = "behaviors"
