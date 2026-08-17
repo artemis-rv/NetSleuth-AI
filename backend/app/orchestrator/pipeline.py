@@ -8,6 +8,12 @@ from app.contracts.network_intelligence import NetworkIntelligencePackage
 from app.contracts.analysis import FindingsPackage
 from app.engines.reporting.evidence_package import M4EvidencePackage
 
+# LLM Integration
+from app.engines.llm_assistant.service import LLMAssistantService
+from app.engines.llm_assistant.models import LLMInvestigationResponse, LLMResponseStatus
+from app.engines.llm_assistant.context_assembler import ContextAssembler
+import copy
+
 # M1
 from app.engines.packet_intelligence.persistence_service import M1PersistenceService
 from app.contracts.network_intelligence import AcquisitionReference
@@ -40,18 +46,91 @@ class ForensicPipelineOrchestrator:
         m2_engine: M2AnalysisEngine,
         m3_builder: InvestigationCaseBuilder,
         m4_engine: ReportEngine,
-        m1_persistence: M1PersistenceService = None # type: ignore
+        m1_persistence: M1PersistenceService = None, # type: ignore
+        llm_service: Optional[LLMAssistantService] = None
     ):
         self.uow = uow
         self.m2_engine = m2_engine
         self.m3_builder = m3_builder
         self.m4_engine = m4_engine
+        self.llm_service = llm_service
         
         # Persistence Services
         self.m1_persistence = m1_persistence
         self.m2_persistence = M2PersistenceService()
         self.m3_persistence = M3PersistenceService(uow)
         self.m4_persistence = M4PersistenceService(uow)
+
+    def _get_llm_context(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any]):
+        if not self.llm_service:
+            return None
+        assembler = ContextAssembler()
+        return assembler.assemble(case_dict, evidence_map)
+
+    def generate_llm_summary(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any] = None) -> Optional[LLMInvestigationResponse]:
+        if not self.llm_service:
+            return None
+        try:
+            # Take a validated snapshot to guarantee immutability of original data
+            case_snapshot = copy.deepcopy(case_dict)
+            ctx = self._get_llm_context(case_snapshot, evidence_map or {})
+            return self.llm_service.generate_summary(ctx)
+        except Exception as e:
+            logger.error(f"Optional LLM Summary generation failed: {e}")
+            return LLMInvestigationResponse(
+                request_id=str(uuid.uuid4()),
+                case_id=case_dict.get("case_id", "unknown"),
+                status=LLMResponseStatus.LLM_INVALID_RESPONSE,
+                provenance={}
+            )
+
+    def generate_llm_mitre_explanation(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any], technique_id: str) -> Optional[LLMInvestigationResponse]:
+        if not self.llm_service:
+            return None
+        try:
+            case_snapshot = copy.deepcopy(case_dict)
+            
+            # Requested technique must already exist
+            mappings = case_snapshot.get("mitre_mappings", [])
+            exists = any(m.get("technique_id") == technique_id for m in mappings)
+            if not exists:
+                return LLMInvestigationResponse(
+                    request_id=str(uuid.uuid4()),
+                    case_id=case_dict.get("case_id", "unknown"),
+                    status=LLMResponseStatus.LLM_INVALID_RESPONSE,
+                    provenance={}
+                )
+
+            ctx = self._get_llm_context(case_snapshot, evidence_map or {})
+            return self.llm_service.generate_mitre_explanation(ctx, technique_id)
+        except Exception as e:
+            logger.error(f"Optional LLM MITRE explanation generation failed: {e}")
+            return LLMInvestigationResponse(
+                request_id=str(uuid.uuid4()),
+                case_id=case_dict.get("case_id", "unknown"),
+                status=LLMResponseStatus.LLM_INVALID_RESPONSE,
+                provenance={}
+            )
+
+    def generate_llm_qa(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any], question: str) -> Optional[LLMInvestigationResponse]:
+        if not self.llm_service:
+            return None
+        try:
+            case_snapshot = copy.deepcopy(case_dict)
+            ctx = self._get_llm_context(case_snapshot, evidence_map or {})
+            
+            # Q&A specific handling for unsupported narrative
+            # Our service layer uses GroundingError for unsupported claims
+            resp = self.llm_service.generate_qa(ctx, question)
+            return resp
+        except Exception as e:
+            logger.error(f"Optional LLM Q&A generation failed: {e}")
+            return LLMInvestigationResponse(
+                request_id=str(uuid.uuid4()),
+                case_id=case_dict.get("case_id", "unknown"),
+                status=LLMResponseStatus.LLM_INVALID_RESPONSE,
+                provenance={}
+            )
 
     async def run_pipeline_from_m1(self, m1_package: NetworkIntelligencePackage) -> Dict[str, Any]:
         """
@@ -152,6 +231,12 @@ class ForensicPipelineOrchestrator:
             await self.m3_persistence.persist_investigation_case(m3_case_dict, acquisition_id=m1_package.acquisition_id)
         logger.info("M3 Persistence Complete.")
 
+        # --- 3.5. Optional LLM Assistant Phase ---
+        logger.info("Executing Optional LLM Assistant Phase...")
+        llm_enrichment = None
+        if self.llm_service:
+            llm_enrichment = self.generate_llm_summary(m3_case_dict, {})
+
         # --- 4. M4 Reporting Phase ---
         logger.info("Executing M4 Evidence & Reporting Engine...")
         m4_report = self.m4_engine.generate_report(m3_case_dict, [])
@@ -166,5 +251,6 @@ class ForensicPipelineOrchestrator:
             "acquisition_id": m1_package.acquisition_id,
             "case_id": case_id,
             "findings_count": len(m2_package.findings),
-            "m4_report": m4_report
+            "m4_report": m4_report,
+            "llm_enrichment": llm_enrichment.model_dump() if llm_enrichment else None
         }
