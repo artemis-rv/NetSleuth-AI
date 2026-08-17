@@ -24,7 +24,11 @@ class M3ToM4EvidenceAdapter:
         :return: M4CaseEvidencePackage with exact preserved evidence references and linkages.
         """
         # 1. Contract Validation
-        self.validator.validate("investigation-case-v1.1.json", investigation_case_payload)
+        schema_version = investigation_case_payload.get("schema_version", "investigation-case-v1.1")
+        if schema_version == "investigation-case-v1.2":
+            self.validator.validate("investigation-case-v1.2.json", investigation_case_payload)
+        else:
+            self.validator.validate("investigation-case-v1.1.json", investigation_case_payload)
 
         # 2. Extract Case Metadata
         case_id = investigation_case_payload["case_id"]

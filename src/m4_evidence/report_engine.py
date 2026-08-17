@@ -86,12 +86,25 @@ class ReportEngine:
         # 1. Input immutability
         case_data = deepcopy(investigation_case)
 
-        # Validate upstream InvestigationCase V1.1 schema
-        self.validator.validate("investigation-case-v1.1.json", case_data)
+        # 2. Schema version detection
+        schema_version = case_data.get("schema_version")
+        if schema_version == "investigation-case-v1.1":
+            case_schema_file = "investigation-case-v1.1.json"
+            out_schema_version = "report-v1"
+            out_schema_file = "report-v1.json"
+        elif schema_version == "investigation-case-v1.2":
+            case_schema_file = "investigation-case-v1.2.json"
+            out_schema_version = "report-v1.1"
+            out_schema_file = "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
+
+        # Validate upstream InvestigationCase schema
+        self.validator.validate(case_schema_file, case_data)
 
         case_id = case_data["case_id"]
 
-        # 2. Extract and validate evidence_integrity records
+        # 3. Extract and validate evidence_integrity records
         if hasattr(evidence_integrity_records, "get_all_evidence_records"):
             raw_records = evidence_integrity_records.get_all_evidence_records()
         elif isinstance(evidence_integrity_records, list):
@@ -101,7 +114,7 @@ class ReportEngine:
 
         records_data = deepcopy(raw_records)
 
-        # 3. Deduplicate evidence integrity records by unique evidence_id
+        # 4. Deduplicate evidence integrity records by unique evidence_id
         unique_records_map: Dict[str, Dict[str, Any]] = {}
         for rec in records_data:
             if not isinstance(rec, dict):
@@ -121,7 +134,7 @@ class ReportEngine:
 
         unique_records = list(unique_records_map.values())
 
-        # 4. Derived summary evidence counters over UNIQUE evidence IDs
+        # 5. Derived summary evidence counters over UNIQUE evidence IDs
         verified_count = 0
         mismatched_count = 0
         unverified_count = 0
@@ -141,19 +154,19 @@ class ReportEngine:
         if verified_count + mismatched_count + unverified_count != total_unique_references:
             raise ValueError("Summary evidence counter invariant violation.")
 
-        # 5. Deterministic report_id and generated_at timestamp
+        # 6. Deterministic report_id and generated_at timestamp
         report_id = f"RPT-{case_id}"
         generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-        # 6. Project components into contract-compliant Report V1 definitions
+        # 7. Project components into contract-compliant Report definitions
         projected_findings = [self._project_finding(f) for f in case_data.get("findings", [])]
         projected_timeline = [self._project_timeline_event(te) for te in case_data.get("timeline", [])]
         projected_entities = [self._project_entity(e) for e in case_data.get("entities", [])]
         projected_relationships = [self._project_relationship(r) for r in case_data.get("relationships", [])]
 
-        # 7. Assemble Report V1 payload
+        # 8. Assemble Report payload
         report_payload: Dict[str, Any] = {
-            "schema_version": "report-v1",
+            "schema_version": out_schema_version,
             "report_id": report_id,
             "case_id": case_id,
             "generated_at": generated_at,
@@ -181,7 +194,57 @@ class ReportEngine:
         if case_data.get("provenance") is not None:
             report_payload["provenance"] = case_data["provenance"]
 
-        # 8. Validate generated report payload against frozen report-v1.json schema
-        self.validator.validate("report-v1.json", report_payload)
+        # 9. Project V1.1 MITRE intelligence for V1.2 cases
+        if schema_version == "investigation-case-v1.2":
+            if "mitre_mappings" in case_data and case_data["mitre_mappings"] is not None:
+                report_payload["mitre_mappings"] = [self._project_mitre_mapping(m) for m in case_data["mitre_mappings"]]
+            if "mitre_provenance" in case_data and case_data["mitre_provenance"] is not None:
+                report_payload["mitre_provenance"] = self._project_mitre_provenance(case_data["mitre_provenance"])
+            if "attack_chain" in case_data and case_data["attack_chain"] is not None:
+                report_payload["attack_chain"] = self._project_attack_chain(case_data["attack_chain"])
+
+        # 10. Validate generated report payload against corresponding schema contract
+        self.validator.validate(out_schema_file, report_payload)
 
         return report_payload
+
+    def _project_mitre_mapping(self, m: Dict[str, Any]) -> Dict[str, Any]:
+        pm: Dict[str, Any] = {
+            "technique_id": m["technique_id"],
+            "technique_name": m["technique_name"]
+        }
+        for k in (
+            "tactic_id", "tactic_name", "behavior_id", "mapping_status",
+            "mapping_confidence", "rationale", "source_finding_ids", "evidence_ids",
+            "first_seen", "last_seen", "detection_strategy_ids", "analytic_ids",
+            "data_component_ids", "channels"
+        ):
+            if k in m:
+                pm[k] = m[k]
+        return pm
+
+    def _project_mitre_provenance(self, p: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "framework": p["framework"],
+            "domain": p["domain"],
+            "version": p["version"],
+            "knowledge_profile_id": p["knowledge_profile_id"]
+        }
+
+    def _project_attack_chain(self, ac: Dict[str, Any]) -> Dict[str, Any]:
+        pac: Dict[str, Any] = {
+            "status": ac.get("status", "none")
+        }
+        if "stages" in ac and ac["stages"] is not None:
+            projected_stages = []
+            for st in ac["stages"]:
+                pst: Dict[str, Any] = {
+                    "stage_id": st["stage_id"],
+                    "name": st["name"]
+                }
+                for k in ("timestamp", "event_ids", "finding_ids"):
+                    if k in st:
+                        pst[k] = st[k]
+                projected_stages.append(pst)
+            pac["stages"] = projected_stages
+        return pac
