@@ -36,8 +36,16 @@ class PDFReportRenderer:
         # 1. Input immutability
         report_data = deepcopy(report)
 
-        # 2. Validate input payload against frozen report-v1.json schema
-        self.validator.validate("report-v1.json", report_data)
+        # 2. Version-aware contract validation
+        schema_version = report_data.get("schema_version")
+        if schema_version == "report-v1":
+            schema_file = "report-v1.json"
+        elif schema_version == "report-v1.1":
+            schema_file = "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
+
+        self.validator.validate(schema_file, report_data)
 
         # Build PDF text lines
         lines: List[str] = []
@@ -54,6 +62,9 @@ class PDFReportRenderer:
         evidence_integrity = report_data.get("evidence_integrity", [])
         assessment = report_data.get("assessment")
         provenance = report_data.get("provenance")
+        mitre_mappings = report_data.get("mitre_mappings")
+        mitre_provenance = report_data.get("mitre_provenance")
+        attack_chain = report_data.get("attack_chain")
 
         lines.append("NetSleuth-AI Forensic Investigation Report")
         lines.append("=" * 60)
@@ -169,6 +180,55 @@ class PDFReportRenderer:
             lines.append(f"Acquisition ID: {self._pdf_escape(provenance.get('acquisition_id'))}")
             lines.append(f"Collector ID:   {self._pdf_escape(provenance.get('collector_id'))}")
             lines.append(f"Created At:     {self._pdf_escape(provenance.get('created_at'))}")
+            lines.append("")
+
+        if mitre_mappings is not None:
+            lines.append("--- MITRE ATT&CK MAPPINGS ---")
+            if mitre_mappings:
+                for m in mitre_mappings:
+                    lines.append(
+                        f"[{self._pdf_escape(m.get('technique_id'))}] {self._pdf_escape(m.get('technique_name'))} "
+                        f"(Tactic: {self._pdf_escape(m.get('tactic_id'))} / {self._pdf_escape(m.get('tactic_name'))}, "
+                        f"Status: {self._pdf_escape(m.get('mapping_status'))}, Confidence: {self._pdf_escape(m.get('mapping_confidence'))})"
+                    )
+                    if m.get("behavior_id"):
+                        lines.append(f"  Behavior ID: {self._pdf_escape(m.get('behavior_id'))}")
+                    if m.get("rationale"):
+                        lines.append(f"  Rationale:   {self._pdf_escape(m.get('rationale'))}")
+                    if m.get("source_finding_ids"):
+                        sf_str = ", ".join([self._pdf_escape(sf) for sf in m.get("source_finding_ids")])
+                        lines.append(f"  Findings:    {sf_str}")
+                    if m.get("evidence_ids"):
+                        ev_str = ", ".join([self._pdf_escape(ev) for ev in m.get("evidence_ids")])
+                        lines.append(f"  Evidence:    {ev_str}")
+            else:
+                lines.append("No MITRE ATT&CK mappings recorded.")
+            lines.append("")
+
+        if mitre_provenance is not None:
+            lines.append("--- MITRE PROVENANCE ---")
+            lines.append(f"Framework:            {self._pdf_escape(mitre_provenance.get('framework'))}")
+            lines.append(f"Domain:               {self._pdf_escape(mitre_provenance.get('domain'))}")
+            lines.append(f"Version:              {self._pdf_escape(mitre_provenance.get('version'))}")
+            lines.append(f"Knowledge Profile ID: {self._pdf_escape(mitre_provenance.get('knowledge_profile_id'))}")
+            lines.append("")
+
+        if attack_chain is not None:
+            lines.append("--- ATTACK CHAIN ---")
+            lines.append(f"Status: {self._pdf_escape(attack_chain.get('status'))}")
+            stages = attack_chain.get("stages", [])
+            if stages:
+                for stg in stages:
+                    lines.append(
+                        f"  Stage [{self._pdf_escape(stg.get('stage_id'))}]: {self._pdf_escape(stg.get('name'))} "
+                        f"({self._pdf_escape(stg.get('timestamp'))})"
+                    )
+                    f_str = ", ".join([self._pdf_escape(fid) for fid in stg.get("finding_ids", [])]) or "-"
+                    e_str = ", ".join([self._pdf_escape(eid) for eid in stg.get("event_ids", [])]) or "-"
+                    lines.append(f"    Findings: {f_str}")
+                    lines.append(f"    Events:   {e_str}")
+            else:
+                lines.append("No attack chain stages recorded.")
             lines.append("")
 
         # Format stream commands for PDF object

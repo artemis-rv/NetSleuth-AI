@@ -15,9 +15,9 @@ class ReportExporter:
 
     def export_json(self, report: Dict[str, Any], indent: int = 2) -> str:
         """
-        Exports a validated Report V1 dictionary as a deterministic, formatted JSON string.
+        Exports a validated Report V1 or Report V1.1 dictionary as a deterministic, formatted JSON string.
 
-        :param report: Dict adhering to docs/contracts/report-v1.json
+        :param report: Dict adhering to docs/contracts/report-v1.json or docs/contracts/report-v1.1.json
         :param indent: Integer indentation level for JSON formatting (default: 2)
         :return: Formatted UTF-8 JSON string representation.
         """
@@ -27,8 +27,16 @@ class ReportExporter:
         # 1. Input immutability
         report_copy = deepcopy(report)
 
-        # 2. Validate input payload against frozen report-v1.json schema
-        self.validator.validate("report-v1.json", report_copy)
+        # 2. Version-aware contract validation
+        schema_version = report_copy.get("schema_version")
+        if schema_version == "report-v1":
+            schema_file = "report-v1.json"
+        elif schema_version == "report-v1.1":
+            schema_file = "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
+
+        self.validator.validate(schema_file, report_copy)
 
         # 3. Deterministic JSON serialization with sorted keys and UTF-8 string support
         return json.dumps(report_copy, indent=indent, sort_keys=True, ensure_ascii=False)

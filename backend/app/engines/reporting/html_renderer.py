@@ -26,8 +26,16 @@ class HTMLReportRenderer:
         # 1. Input immutability
         report_data = deepcopy(report)
 
-        # 2. Validate input payload against frozen report-v1.json schema
-        self.validator.validate("report-v1.json", report_data)
+        # 2. Version-aware contract validation
+        schema_version = report_data.get("schema_version")
+        if schema_version == "report-v1":
+            schema_file = "report-v1.json"
+        elif schema_version == "report-v1.1":
+            schema_file = "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
+
+        self.validator.validate(schema_file, report_data)
 
         # Helper for HTML escaping
         def e(val: Any) -> str:
@@ -45,6 +53,9 @@ class HTMLReportRenderer:
         evidence_integrity = report_data.get("evidence_integrity", [])
         assessment = report_data.get("assessment")
         provenance = report_data.get("provenance")
+        mitre_mappings = report_data.get("mitre_mappings")
+        mitre_provenance = report_data.get("mitre_provenance")
+        attack_chain = report_data.get("attack_chain")
 
         # HTML Head and Stylesheet
         css_style = """
@@ -415,6 +426,93 @@ class HTMLReportRenderer:
                 f'<p><strong>Created At:</strong> {e(provenance.get("created_at"))}</p>',
                 '</section>'
             ])
+
+        # V1.1 MITRE ATT&CK Section (if present)
+        if mitre_mappings is not None:
+            html_out.extend([
+                '<section>',
+                '<h2>MITRE ATT&CK Findings</h2>'
+            ])
+            if mitre_mappings:
+                html_out.extend([
+                    '<table>',
+                    '<thead><tr><th>Technique ID</th><th>Technique Name</th><th>Tactic ID</th><th>Tactic Name</th><th>Behavior ID</th><th>Status</th><th>Confidence</th><th>Rationale</th><th>Source Findings</th><th>Evidence IDs</th><th>First Seen</th><th>Last Seen</th><th>Detection Strategies</th><th>Analytics</th><th>Data Components</th><th>Channels</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for m in mitre_mappings:
+                    src_f = ", ".join([e(sf) for sf in m.get("source_finding_ids", [])]) or "-"
+                    ev_ids = ", ".join([e(ev) for ev in m.get("evidence_ids", [])]) or "-"
+                    ds_ids = ", ".join([e(ds) for ds in m.get("detection_strategy_ids", [])]) or "-"
+                    an_ids = ", ".join([e(an) for an in m.get("analytic_ids", [])]) or "-"
+                    dc_ids = ", ".join([e(dc) for dc in m.get("data_component_ids", [])]) or "-"
+                    ch_ids = ", ".join([e(ch) for ch in m.get("channels", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(m.get("technique_id"))}</span></td>'
+                        f'<td>{e(m.get("technique_name"))}</td>'
+                        f'<td>{e(m.get("tactic_id"))}</td>'
+                        f'<td>{e(m.get("tactic_name"))}</td>'
+                        f'<td>{e(m.get("behavior_id"))}</td>'
+                        f'<td>{e(m.get("mapping_status"))}</td>'
+                        f'<td>{e(m.get("mapping_confidence"))}</td>'
+                        f'<td>{e(m.get("rationale"))}</td>'
+                        f'<td>{src_f}</td>'
+                        f'<td>{ev_ids}</td>'
+                        f'<td>{e(m.get("first_seen"))}</td>'
+                        f'<td>{e(m.get("last_seen"))}</td>'
+                        f'<td>{ds_ids}</td>'
+                        f'<td>{an_ids}</td>'
+                        f'<td>{dc_ids}</td>'
+                        f'<td>{ch_ids}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+            else:
+                html_out.append('<p>No MITRE ATT&CK mappings recorded.</p>')
+            html_out.append('</section>')
+
+        # V1.1 MITRE Provenance Section (if present)
+        if mitre_provenance is not None:
+            html_out.extend([
+                '<section>',
+                '<h2>MITRE Provenance</h2>',
+                f'<p><strong>Framework:</strong> {e(mitre_provenance.get("framework"))}</p>',
+                f'<p><strong>Domain:</strong> {e(mitre_provenance.get("domain"))}</p>',
+                f'<p><strong>Version:</strong> {e(mitre_provenance.get("version"))}</p>',
+                f'<p><strong>Knowledge Profile ID:</strong> {e(mitre_provenance.get("knowledge_profile_id"))}</p>',
+                '</section>'
+            ])
+
+        # V1.1 Attack Chain Section (if present)
+        if attack_chain is not None:
+            html_out.extend([
+                '<section>',
+                '<h2>Attack Chain</h2>',
+                f'<p><strong>Status:</strong> <span class="badge badge-informational">{e(attack_chain.get("status"))}</span></p>'
+            ])
+            stages = attack_chain.get("stages", [])
+            if stages:
+                html_out.extend([
+                    '<table>',
+                    '<thead><tr><th>Stage ID</th><th>Stage Name</th><th>Timestamp</th><th>Finding IDs</th><th>Event IDs</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for stg in stages:
+                    f_ids = ", ".join([e(fid) for fid in stg.get("finding_ids", [])]) or "-"
+                    e_ids = ", ".join([e(eid) for eid in stg.get("event_ids", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(stg.get("stage_id"))}</span></td>'
+                        f'<td>{e(stg.get("name"))}</td>'
+                        f'<td>{e(stg.get("timestamp"))}</td>'
+                        f'<td>{f_ids}</td>'
+                        f'<td>{e_ids}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+            else:
+                html_out.append('<p>No attack chain stages recorded.</p>')
+            html_out.append('</section>')
 
         # Closing container & body
         html_out.extend([
