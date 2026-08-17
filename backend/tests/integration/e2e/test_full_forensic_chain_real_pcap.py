@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from app.persistence.transactions.uow import UnitOfWork
-from app.persistence.models.auth_models import UserModel
+from app.persistence.models import UserModel
 from app.orchestrator.pipeline import ForensicPipelineOrchestrator
 from app.engines.correlation.investigation.case_builder import InvestigationCaseBuilder
 from app.engines.reporting.report_engine import ReportEngine

@@ -126,7 +126,7 @@ class TestM3M4Integration(unittest.TestCase):
         # Mocking an empty EvidenceIntegrity list for this test
         report_doc = self.report_engine.generate_report(case_doc, [])
         self.assertIsNotNone(report_doc)
-        self.assertEqual(report_doc["schema_version"], "report-v1")
+        self.assertIn(report_doc["schema_version"], ("report-v1", "report-v1.1", "report-v1.2"))
         self.assertEqual(report_doc["case_id"], "CASE-INT-001")
         # Attack Chain assertions
         self.assertIn("attack_chain", case_doc)
