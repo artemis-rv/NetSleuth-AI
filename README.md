@@ -78,12 +78,18 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 
 ---
 
+### Application Layer (Complete)
+- **APP-0 (Application Foundation)**: FastAPI application core structure, SQLAlchemy async database initialization, and API router routing (`/api/v1`).
+- **APP-1 (Authentication & RBAC)**: JWT authentication, password hashing (`passlib`/`bcrypt`), Role-Based Access Control (`administrator`, `investigator`, `analyst`), case-level access policies, and standard security auditing (`audit.audit_events`).
+- **APP-2 (Case Management APIs)**: Investigation case management endpoints (`POST /cases`, `GET /cases`, `GET /cases/{case_id}`, `PATCH /cases/{case_id}`), Pydantic contracts, strict pagination, safe filter/sort options, and status transition workflows.
+
+---
+
 ## Integration Status & Next Steps
 
 - **Pipeline Orchestration**: Unified M1 -> M2 -> M3 -> M4 pipeline operational.
-- **MITRE ATT&CK Mapping**: Repository, Knowledge Base, and `MitreMapper` implemented; pending direct injection into `ForensicPipelineOrchestrator`.
-- **M4 Persistence**: Persistence service ready; pending re-enabling inside `ForensicPipelineOrchestrator`.
-- **API Layer**: Next phase.
+- **Application Layer**: APP-0, APP-1, and APP-2 completed with full integration test coverage.
+- **Next Steps**: FE-0 — Frontend App Shell + Design System + Authenticated Routing.
 
 ---
 
@@ -217,6 +223,7 @@ NetSleuth-AI/
 
 ## Documentation
 
+- [`docs/api/CASES_API_V1.md`](docs/api/CASES_API_V1.md) — Case Management API V1 contracts and authorization rules
 - [`docs/infrastructure/minio.md`](docs/infrastructure/minio.md) — full MinIO setup, persistence, security notes
 - [`docs/contracts/`](docs/contracts/) — JSON schema definitions for inter-module data contracts
 - [`docs/M1_V1_IMPLEMENTATION_SUMMARY.md`](docs/M1_V1_IMPLEMENTATION_SUMMARY.md) — M1 implementation detail

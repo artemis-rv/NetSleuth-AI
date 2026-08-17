@@ -28,6 +28,62 @@ class InvestigationCaseRepository:
         await self.session.flush()
         return result.scalar_one_or_none()
 
+    async def update(self, case_id: UUID, update_data: dict) -> Optional[InvestigationCaseModel]:
+        if not update_data:
+            return await self.get(case_id)
+        stmt = update(InvestigationCaseModel).where(InvestigationCaseModel.case_id == case_id).values(**update_data).returning(InvestigationCaseModel)
+        result = await self.session.execute(stmt)
+        await self.session.flush()
+        return result.scalar_one_or_none()
+
+    async def list_cases(
+        self, 
+        user_id: UUID, 
+        role: str, 
+        skip: int = 0, 
+        limit: int = 25,
+        status: Optional[str] = None,
+        priority: Optional[str] = None,
+        sort_by: str = "created_at",
+        sort_desc: bool = True
+    ):
+        from sqlalchemy import func
+        from app.persistence.models.identity_models import CaseAccessModel
+        
+        # Base query
+        stmt = select(InvestigationCaseModel)
+        
+        # Apply RBAC
+        if role != "administrator":
+            stmt = stmt.join(CaseAccessModel, InvestigationCaseModel.case_id == CaseAccessModel.case_id)
+            stmt = stmt.where(CaseAccessModel.user_id == user_id)
+            
+        # Apply filters
+        if status:
+            stmt = stmt.where(InvestigationCaseModel.status == status)
+        if priority:
+            stmt = stmt.where(InvestigationCaseModel.priority == priority)
+            
+        # Apply sorting
+        order_col = InvestigationCaseModel.opened_at if sort_by == "created_at" else getattr(InvestigationCaseModel, sort_by, InvestigationCaseModel.opened_at)
+        if sort_desc:
+            stmt = stmt.order_by(order_col.desc())
+        else:
+            stmt = stmt.order_by(order_col.asc())
+            
+        # Get total count
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total_result = await self.session.execute(count_stmt)
+        total = total_result.scalar() or 0
+        
+        # Apply pagination
+        stmt = stmt.offset(skip).limit(limit)
+        
+        result = await self.session.execute(stmt)
+        items = result.scalars().all()
+        
+        return items, total
+
 class EntityRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

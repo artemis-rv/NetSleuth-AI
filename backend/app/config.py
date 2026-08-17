@@ -219,6 +219,33 @@ class _Settings:
         """
         return os.environ.get("MINIO_BUCKET_REPORTS", "netsleuth-reports")
 
+    # -------------------------------------------------------------------------
+    # Authentication (JWT)
+    # -------------------------------------------------------------------------
+
+    @property
+    def JWT_SECRET_KEY(self) -> str:
+        """
+        Secret key for JWT generation. Must be set in environment.
+        """
+        secret = os.environ.get("JWT_SECRET_KEY")
+        if not secret and not self.is_production:
+            # fallback for dev if unset, though we should set it in .env
+            secret = "dev_secret_key_change_in_production"
+        if not secret:
+            raise ValueError("JWT_SECRET_KEY must be set")
+        return secret
+
+    @property
+    def JWT_ALGORITHM(self) -> str:
+        """Algorithm used to sign JWT tokens."""
+        return os.environ.get("JWT_ALGORITHM", "HS256")
+
+    @property
+    def JWT_ACCESS_TOKEN_EXPIRE_MINUTES(self) -> int:
+        """Token expiration time in minutes."""
+        return int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
 
 #: Module-level singleton — import this in application code.
 settings = _Settings()

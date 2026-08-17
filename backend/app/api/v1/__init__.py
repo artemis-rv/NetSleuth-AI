@@ -8,7 +8,7 @@ Aggregates all 15 versioned domain routers into a single v1_router.
 
 from fastapi import APIRouter
 
-from app.api.v1.auth import router as auth_router
+from app.auth.router import router as auth_router
 from app.api.v1.users import router as users_router
 from app.api.v1.cases import router as cases_router
 from app.api.v1.acquisitions import router as acquisitions_router
