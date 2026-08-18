@@ -104,10 +104,12 @@ class _Settings:
 
         Set via: DATABASE_URL
         """
-        return os.environ.get(
-            "DATABASE_URL",
-            "postgresql+asyncpg://postgres:postgres@127.0.0.1:15432/netsleuth"
-        )
+        url = os.environ.get("DATABASE_URL")
+        if not url and not self.is_production:
+            url = "postgresql+asyncpg://postgres:postgres@127.0.0.1:15432/netsleuth"
+        if not url:
+            raise ValueError("DATABASE_URL must be set in production")
+        return url
 
     # -------------------------------------------------------------------------
     # MinIO Object Storage
@@ -132,7 +134,12 @@ class _Settings:
 
         Set via: MINIO_ROOT_USER
         """
-        return os.environ.get("MINIO_ROOT_USER", "minioadmin")
+        user = os.environ.get("MINIO_ROOT_USER")
+        if not user and not self.is_production:
+            user = "minioadmin"
+        if not user or (self.is_production and user == "minioadmin"):
+            raise ValueError("MINIO_ROOT_USER must be set securely in production")
+        return user
 
     @property
     def minio_root_password(self) -> str:
@@ -141,7 +148,12 @@ class _Settings:
 
         Set via: MINIO_ROOT_PASSWORD
         """
-        return os.environ.get("MINIO_ROOT_PASSWORD", "minioadmin")
+        password = os.environ.get("MINIO_ROOT_PASSWORD")
+        if not password and not self.is_production:
+            password = "minioadmin"
+        if not password or (self.is_production and password == "minioadmin"):
+            raise ValueError("MINIO_ROOT_PASSWORD must be set securely in production")
+        return password
 
     @property
     def minio_region(self) -> str:
