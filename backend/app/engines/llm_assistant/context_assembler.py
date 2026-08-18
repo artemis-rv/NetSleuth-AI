@@ -94,6 +94,7 @@ class ContextAssembler:
         return LLMInvestigationContext(
             case_id=case_dict.get("case_id", ""),
             findings=case_dict.get("findings", []),
+            entities=case_dict.get("entities", []),
             timeline=case_dict.get("timeline", []),
             relationships=case_dict.get("relationships", []),
             evidence_references=case_dict.get("evidence_references", []),

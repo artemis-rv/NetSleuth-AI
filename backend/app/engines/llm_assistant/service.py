@@ -29,13 +29,33 @@ class LLMAssistantService:
 
     async def _execute_raw(self, prompt: str, context: LLMInvestigationContext) -> Dict[str, Any]:
         import inspect
+        import re
         system_instruction = self.prompts.build_system_instruction()
         res = self.client.generate(prompt, system_instruction)
         if inspect.isawaitable(res):
             raw_output = await res
         else:
             raw_output = res
-        return json.loads(raw_output)
+        
+        if not raw_output or not isinstance(raw_output, str):
+            raise json.JSONDecodeError("Empty or invalid output", str(raw_output), 0)
+
+        cleaned = raw_output.strip()
+        if cleaned.startswith("```"):
+            lines = cleaned.split("\n")
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            cleaned = "\n".join(lines).strip()
+        
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if match:
+                return json.loads(match.group(0))
+            raise
 
     async def generate_summary(self, context: LLMInvestigationContext) -> LLMInvestigationResponse:
         prompt = self.prompts.build_summary_prompt(context)

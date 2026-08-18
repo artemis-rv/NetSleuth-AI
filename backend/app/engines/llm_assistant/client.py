@@ -27,7 +27,7 @@ class OllamaClient(AbstractLLMClient):
         
     async def generate(self, prompt: str, system_instruction: str) -> str:
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 resp = await client.post(
                     f"{self.base_url}/api/generate",
                     json={

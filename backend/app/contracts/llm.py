@@ -52,6 +52,7 @@ class LLMInvestigationContext(BaseModel):
     schema_version: str = "llm-context-v1.0"
     case_id: str
     findings: List[Dict[str, Any]] = Field(default_factory=list)
+    entities: List[Dict[str, Any]] = Field(default_factory=list)
     timeline: List[Dict[str, Any]] = Field(default_factory=list)
     relationships: List[Dict[str, Any]] = Field(default_factory=list)
     evidence_references: List[Dict[str, Any]] = Field(default_factory=list)

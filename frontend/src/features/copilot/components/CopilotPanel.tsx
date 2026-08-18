@@ -37,11 +37,32 @@ export function CopilotPanel({ caseId }: CopilotPanelProps) {
 
   const { mutate: askQuestion, isPending } = useMutation({
     mutationFn: (q: string) => generateQA(caseId, q),
-    onSuccess: (data) => {
+    onSuccess: (data, question) => {
+      let content = 'No response provided.';
+      if (data.status === 'SUCCESS') {
+        content =
+          data.investigator_answers?.[question] ||
+          (data.investigator_answers && Object.values(data.investigator_answers)[0]) ||
+          data.summary ||
+          data.explanation ||
+          data.response ||
+          'No response provided.';
+      } else if (data.status === 'LLM_UNAVAILABLE') {
+        content = '⚠️ AI Copilot is offline or the Ollama service is currently unreachable on localhost:11434.';
+      } else if (data.status === 'LLM_MODEL_UNAVAILABLE') {
+        content = '⚠️ The configured model is not available in your local Ollama instance.';
+      } else if (data.status === 'LLM_UNGROUNDED') {
+        content = '⚠️ Insufficient forensic evidence in this case timeline to answer this question without speculation.';
+      } else if (data.status === 'LLM_INVALID_RESPONSE') {
+        content = '⚠️ AI Copilot received an unparseable response from the local language model.';
+      } else if (data.response) {
+        content = data.response;
+      }
+
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.response || 'No response provided.'
+        content
       }]);
     },
     onError: (err: any) => {

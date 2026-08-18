@@ -10,6 +10,7 @@ from app.engines.llm_assistant.context_assembler import ContextAssembler
 from app.engines.llm_assistant.models import LLMInvestigationResponse
 from app.services.audit_service import log_audit_event, get_client_ip
 from app.services.investigation_service import InvestigationService
+from app.services.findings_service import FindingsService
 from app.persistence.models.identity_models import UserModel
 
 class CopilotOrchestrator:
@@ -19,6 +20,7 @@ class CopilotOrchestrator:
         self.llm_service = LLMAssistantService(self.client)
         self.context_assembler = ContextAssembler()
         self.investigation_service = InvestigationService(db)
+        self.findings_service = FindingsService(db)
 
     async def _build_case_dict(self, case_id: uuid.UUID) -> Dict[str, Any]:
         # Fetch everything via InvestigationService repositories
@@ -27,12 +29,34 @@ class CopilotOrchestrator:
         timeline = await self.investigation_service.timeline_repo.list_by_case(case_id, skip=0, limit=1000)
         mitre_mappings = await self.investigation_service.mitre_repo.list_by_case(case_id, skip=0, limit=1000)
         attack_chain = await self.investigation_service.attack_chain_repo.get_by_case(case_id)
+        findings = await self.findings_service.repository.list_by_case(case_id=case_id, skip=0, limit=1000)
         
         # Build dict resembling V1.2
         case_dict = {
             "schema_version": "investigation-case-v1.2",
             "case_id": str(case_id),
-            "findings": [],
+            "findings": [
+                {
+                    "finding_id": str(f.finding_id),
+                    "activity": f.activity,
+                    "risk_score": f.risk_score,
+                    "confidence": f.confidence,
+                    "severity": f.severity,
+                    "decision_state": f.decision_state,
+                    "rationale": f.rationale,
+                    "feature_attribution": f.feature_attribution,
+                    "evidence_ids": [f"ev-{f.finding_id}"]
+                } for f in findings
+            ],
+            "entities": [
+                {
+                    "entity_id": str(e.entity_id),
+                    "entity_type": e.entity_type,
+                    "label": e.label,
+                    "first_seen": e.first_seen.isoformat() if e.first_seen else None,
+                    "last_seen": e.last_seen.isoformat() if e.last_seen else None,
+                } for e in entities
+            ],
             "timeline": [
                 {
                     "event_id": str(t.timeline_event_id),
@@ -57,9 +81,12 @@ class CopilotOrchestrator:
                 {
                     "technique_id": m.technique_id,
                     "technique_name": m.technique_name,
-                    "tactic": m.tactic,
-                    "confidence": float(m.confidence) if m.confidence else 0.0,
-                    "justification": m.justification,
+                    "tactic_id": m.tactic,
+                    "tactic_name": m.tactic,
+                    "mapping_status": "SUPPORTED",
+                    "mapping_confidence": float(m.confidence) if m.confidence is not None else 0.95,
+                    "rationale": m.justification,
+                    "evidence_ids": [f"ev-{m.technique_id}"],
                 } for m in mitre_mappings
             ]
         }
