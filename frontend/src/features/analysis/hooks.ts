@@ -11,7 +11,7 @@ export function useAnalysisJobs(caseId: string, page = 1) {
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
-      const hasActiveJob = data.items.some(
+      const hasActiveJob = data?.jobs?.some(
         (job) => job.status === 'queued' || job.status === 'running'
       );
       return hasActiveJob ? 3000 : false;

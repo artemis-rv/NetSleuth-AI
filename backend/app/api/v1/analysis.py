@@ -40,7 +40,9 @@ async def start_analysis(
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to start analysis job")
+        import traceback
+        err_msg = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+        raise HTTPException(status_code=500, detail=f"Failed to start analysis job: {err_msg}")
 
     # Queue the background execution
     background_tasks.add_task(
@@ -81,7 +83,8 @@ async def list_case_analysis_jobs(
             progress=job.progress,
             result_available=job.status == "completed",
             error_code=job.error_code,
-            error_message=job.error_message
+            error_message=job.error_message,
+            created_at=job.created_at
         ))
         
     return AnalysisListResponse(jobs=responses)

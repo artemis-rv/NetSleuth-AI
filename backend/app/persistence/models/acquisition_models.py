@@ -38,6 +38,7 @@ class EvidenceModel(Base):
     size_bytes = Column(BigInteger, nullable=True)
     content_type = Column(String, nullable=True)
     packet_refs = Column(JSONB, nullable=True)
+    integrity_status = Column(String, nullable=False, default="pending")
     registered_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
 
     acquisition = relationship("AcquisitionModel", back_populates="evidence")

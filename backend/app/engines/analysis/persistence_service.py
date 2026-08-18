@@ -117,10 +117,11 @@ class M2PersistenceService:
                 await finding_repo.bulk_create(finding_models)
 
             # 3. Bulk Insert Many-to-Many Relationships
+            from sqlalchemy.dialects.postgresql import insert as pg_insert
             if flow_links_data:
-                await uow.session.execute(insert(finding_flow_links).values(flow_links_data))
+                await uow.session.execute(pg_insert(finding_flow_links).values(flow_links_data).on_conflict_do_nothing())
             if event_links_data:
-                await uow.session.execute(insert(finding_event_links).values(event_links_data))
+                await uow.session.execute(pg_insert(finding_event_links).values(event_links_data).on_conflict_do_nothing())
             if artifact_links_data:
-                await uow.session.execute(insert(finding_artifact_links).values(artifact_links_data))
+                await uow.session.execute(pg_insert(finding_artifact_links).values(artifact_links_data).on_conflict_do_nothing())
 

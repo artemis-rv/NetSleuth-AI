@@ -7,7 +7,8 @@ export interface AnalysisJobResponse {
   progress: number | null;
   started_at: string;
   completed_at: string | null;
-  error_code: string | null;
+  error_code?: string;
+  error_message?: string;
   created_at: string;
   updated_at: string;
 }

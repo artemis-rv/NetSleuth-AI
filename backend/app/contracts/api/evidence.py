@@ -12,6 +12,7 @@ class EvidenceResponse(BaseModel):
     sha256: str
     format: str
     status: str
+    integrity_status: str
     registered_at: datetime
     
     class Config:

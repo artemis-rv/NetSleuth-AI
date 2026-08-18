@@ -71,6 +71,8 @@ class EvidenceService:
         else:
             status = "verified" if is_verified else "mismatch"
             
+        ev.integrity_status = status
+            
         actor_id = current_user.user_id
         actor_name = current_user.username
         expected_sha256 = ev.sha256

@@ -42,6 +42,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     loadUser();
+
+    // Listen for global 401 unauthorized events from apiClient
+    const handleUnauthorized = () => {
+      tokenStore.clear();
+      setState('unauthenticated');
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (token: string) => {

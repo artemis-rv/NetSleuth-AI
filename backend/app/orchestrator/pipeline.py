@@ -215,6 +215,15 @@ class ForensicPipelineOrchestrator:
                 for event_id in ev_ref.event_ids:
                     ctx.evidence_references.append(DomainEvidenceReference(evidence_id=event_id, evidence_type="session", source_id=event_id))
 
+        if not ctx.timeline_events:
+            event_ts = m1_package.flows[0].timestamp if m1_package.flows else datetime.datetime.now(datetime.timezone.utc)
+            ctx.timeline_events.append(TimelineEvent(
+                event_id=str(uuid.uuid4()),
+                timestamp=event_ts,
+                event_type="Acquisition Processed",
+                description="Network intelligence extracted from capture"
+            ))
+
         # 3b. M3 Deterministic Correlation
         from app.engines.correlation.correlation.correlation_engine import CorrelationEngine
         correlation_engine = CorrelationEngine()

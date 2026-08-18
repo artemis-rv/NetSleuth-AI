@@ -15,9 +15,12 @@ class AcquisitionRepository:
         return acquisition
 
     async def get(self, acquisition_id: UUID) -> Optional[AcquisitionModel]:
-        stmt = select(AcquisitionModel).where(AcquisitionModel.acquisition_id == acquisition_id)
+        from sqlalchemy.orm import selectinload
+        stmt = select(AcquisitionModel).options(selectinload(AcquisitionModel.evidence)).where(AcquisitionModel.acquisition_id == acquisition_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    get_by_id = get
 
     async def list_by_case(
         self,

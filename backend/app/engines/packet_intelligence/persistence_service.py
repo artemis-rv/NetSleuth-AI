@@ -74,29 +74,37 @@ class M1PersistenceService:
     async def _persist_package(self, acq_ref: AcquisitionReference, object_key: str, package: NetworkIntelligencePackage):
         uow = UnitOfWork()
         async with uow:
-            # Insert Acquisition
+            # Check / Insert Acquisition
             acq_repo = uow.get_repository(AcquisitionRepository)
-            await acq_repo.create(AcquisitionModel(
-                acquisition_id=uuid.UUID(acq_ref.acquisition_id),
-                file_name=acq_ref.file_name,
-                file_size=acq_ref.file_size,
-                sha256=acq_ref.sha256,
-                format=acq_ref.format,
-                source_type="pcap",
-                status="complete"
-            ))
+            acq_uuid = uuid.UUID(acq_ref.acquisition_id)
+            existing_acq = await acq_repo.get(acq_uuid)
+            if not existing_acq:
+                await acq_repo.create(AcquisitionModel(
+                    acquisition_id=acq_uuid,
+                    file_name=acq_ref.file_name,
+                    file_size=acq_ref.file_size,
+                    sha256=acq_ref.sha256,
+                    format=acq_ref.format,
+                    source_type="pcap",
+                    status="complete"
+                ))
 
-            # Insert Evidence
+            # Check / Insert Evidence
             ev_repo = uow.get_repository(EvidenceRepository)
-            await ev_repo.create(EvidenceModel(
-                evidence_id=uuid.UUID(acq_ref.evidence_id),
-                acquisition_id=uuid.UUID(acq_ref.acquisition_id),
-                minio_bucket=self.storage.bucket_name,
-                object_key=object_key,
-                sha256=acq_ref.sha256,
-                size_bytes=acq_ref.file_size,
-                content_type="application/vnd.tcpdump.pcap"
-            ))
+            has_evidence = bool(existing_acq and existing_acq.evidence)
+            if not has_evidence:
+                ev_uuid = uuid.UUID(acq_ref.evidence_id)
+                existing_ev = await ev_repo.get(ev_uuid)
+                if not existing_ev:
+                    await ev_repo.create(EvidenceModel(
+                        evidence_id=ev_uuid,
+                        acquisition_id=acq_uuid,
+                        minio_bucket=self.storage.bucket_name,
+                        object_key=object_key,
+                        sha256=acq_ref.sha256,
+                        size_bytes=acq_ref.file_size,
+                        content_type="application/vnd.tcpdump.pcap"
+                    ))
 
             # Insert Flows
             flow_repo = uow.get_repository(FlowRepository)

@@ -176,13 +176,13 @@ export function AcquisitionSection({ caseId, acquisition, evidence }: Acquisitio
                 <div className="mb-4">
                   <p className="text-xs text-muted mb-1">SHA-256 Hash</p>
                   <p className="text-xs font-mono text-secondary break-all bg-background p-2 rounded border border-border-subtle">
-                    {evidence.sha256_hash || 'Pending computation...'}
+                    {evidence.sha256 || 'Pending computation...'}
                   </p>
                 </div>
                 <div className="flex items-center justify-between">
-                  <EvidenceVerificationBadge status={evidence.status} />
+                  <EvidenceVerificationBadge status={evidence.integrity_status} />
                   
-                  {evidence.sha256_hash && (
+                  {evidence.integrity_status === 'pending' && (
                     <Button 
                       variant="secondary" 
                       size="sm" 

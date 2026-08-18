@@ -8,12 +8,13 @@ class UnitOfWork:
     Enforces the single logical transaction rule across repositories.
     """
     
-    def __init__(self):
+    def __init__(self, session_factory=None):
         self._session: AsyncSession | None = None
         self._repositories: Dict[str, Any] = {}
+        self._session_factory = session_factory or async_session_factory
 
     async def __aenter__(self):
-        self._session = async_session_factory()
+        self._session = self._session_factory()
         # Initialize repositories dynamically as requested, or explicitly if preferred.
         # For this design, we will require the caller to inject the session into repositories,
         # or we will expose a method to get a repository attached to this session.

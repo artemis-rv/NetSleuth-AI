@@ -2,9 +2,9 @@ import hashlib
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
-from backend.app.engines.correlation.domain.input import M3InvestigationInput
-from backend.app.engines.correlation.mitre.models import MitreMapping, MappingStatus
-from backend.app.engines.correlation.mitre.repository import MitreKnowledgeRepository
+from app.engines.correlation.domain.input import M3InvestigationInput
+from app.engines.correlation.mitre.models import MitreMapping, MappingStatus
+from app.engines.correlation.mitre.repository import MitreKnowledgeRepository
 
 
 class MitreMapper:

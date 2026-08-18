@@ -21,7 +21,7 @@ class FlowModel(Base):
     dst_ip = Column(INET, nullable=False)
     dst_port = Column(Integer, nullable=False)
     protocol = Column(String, nullable=False)
-    service = Column(String, nullable=False)
+    service = Column(String, nullable=True)
     duration = Column(Float, nullable=True)
     orig_bytes = Column(BigInteger, nullable=True)
     resp_bytes = Column(BigInteger, nullable=True)

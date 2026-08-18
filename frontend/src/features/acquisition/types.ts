@@ -17,19 +17,14 @@ export interface AcquisitionResponse {
 
 export interface EvidenceResponse {
   evidence_id: string;
-  case_id: string;
-  acquisition_id: string | null;
-  name: string;
-  description: string | null;
-  evidence_type: string;
-  status: 'pending' | 'verified' | 'mismatch' | 'error';
-  sha256_hash: string | null;
-  storage_path: string | null;
-  metadata: Record<string, any>;
-  chain_of_custody_events: number;
-  uploaded_by: string;
-  created_at: string;
-  updated_at: string;
+  acquisition_id: string;
+  file_name: string;
+  size_bytes: number | null;
+  sha256: string;
+  format: string;
+  status: string;
+  integrity_status: 'pending' | 'verified' | 'mismatch' | 'error' | 'missing';
+  registered_at: string;
 }
 
 export interface VerifyEvidenceResponse {

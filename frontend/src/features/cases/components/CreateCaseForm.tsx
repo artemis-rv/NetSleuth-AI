@@ -151,7 +151,7 @@ export function CreateCaseForm() {
                 >
                   <option value="">— Not set —</option>
                   {CASE_PRIORITIES.map((p) => (
-                    <option key={p} value={p}>{p}</option>
+                    <option key={p} value={p}>{p.toUpperCase()}</option>
                   ))}
                 </select>
               </div>

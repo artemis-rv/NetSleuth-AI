@@ -20,7 +20,7 @@ export function AnalysisSection({ caseId, acquisitionId }: AnalysisSectionProps)
   const startMutation = useStartAnalysis(caseId);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const jobs = data?.items || [];
+  const jobs = data?.jobs || [];
   // Sort jobs by started_at descending
   const sortedJobs = [...jobs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const activeJob = sortedJobs.find(j => j.status === 'queued' || j.status === 'running');

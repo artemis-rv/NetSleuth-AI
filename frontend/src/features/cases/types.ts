@@ -61,20 +61,20 @@ export interface CasesFilters {
 
 // Enum-like constants matching backend values
 export const CASE_STATUSES = [
-  'OPEN',
-  'ACTIVE',
-  'UNDER_REVIEW',
-  'CLOSED',
-  'ARCHIVED',
+  'open',
+  'active',
+  'under_review',
+  'closed',
+  'archived',
 ] as const;
 
 export type CaseStatus = typeof CASE_STATUSES[number];
 
 export const CASE_PRIORITIES = [
-  'CRITICAL',
-  'HIGH',
-  'MEDIUM',
-  'LOW',
+  'critical',
+  'high',
+  'medium',
+  'low',
 ] as const;
 
 export type CasePriority = typeof CASE_PRIORITIES[number];

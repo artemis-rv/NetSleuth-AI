@@ -9,8 +9,12 @@ export async function startAnalysis(caseId: string, acquisitionId: string): Prom
   });
 }
 
-export async function getAnalysisJobs(caseId: string, page = 1, pageSize = 25): Promise<PaginatedList<AnalysisJobResponse>> {
-  return apiClient<PaginatedList<AnalysisJobResponse>>(`/api/v1/cases/${caseId}/analysis`, {
+export interface AnalysisListResponse {
+  jobs: AnalysisJobResponse[];
+}
+
+export async function getAnalysisJobs(caseId: string, page = 1, pageSize = 25): Promise<AnalysisListResponse> {
+  return apiClient<AnalysisListResponse>(`/api/v1/cases/${caseId}/analysis`, {
     method: 'GET',
     params: {
       page: page.toString(),

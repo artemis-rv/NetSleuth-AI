@@ -2,7 +2,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { ShieldAlert, ShieldCheck, Clock } from 'lucide-react';
 import type { EvidenceResponse } from '../types';
 
-export function EvidenceVerificationBadge({ status }: { status: EvidenceResponse['status'] }) {
+export function EvidenceVerificationBadge({ status }: { status: EvidenceResponse['integrity_status'] }) {
   switch (status) {
     case 'verified':
       return (

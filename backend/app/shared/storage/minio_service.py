@@ -82,9 +82,9 @@ class EvidenceStorageService:
                     raise InfrastructureError(f"Failed to retrieve evidence from MinIO: {str(e)}")
 
                 async with aiofiles.open(temp_path, 'wb') as f:
-                    async with response["Body"] as stream:
-                        while chunk := await stream.read(8192):
-                            await f.write(chunk)
+                    body = response["Body"]
+                    while chunk := await body.read(65536):
+                        await f.write(chunk)
             
             yield temp_path
             

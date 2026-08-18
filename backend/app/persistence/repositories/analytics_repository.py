@@ -10,7 +10,19 @@ class FindingsPackageRepository:
         self.session = session
 
     async def create(self, package: FindingsPackageModel) -> FindingsPackageModel:
-        self.session.add(package)
+        from sqlalchemy.dialects.postgresql import insert
+        stmt = insert(FindingsPackageModel).values(
+            package_id=package.package_id,
+            acquisition_id=package.acquisition_id,
+            source_package_id=package.source_package_id,
+            analysis_engine_version=package.analysis_engine_version,
+            feature_schema_version=package.feature_schema_version,
+            anomaly_model_version=package.anomaly_model_version,
+            classifier_model_version=package.classifier_model_version,
+            findings_count=package.findings_count,
+            created_at=package.created_at
+        ).on_conflict_do_nothing()
+        await self.session.execute(stmt)
         await self.session.flush()
         return package
 
@@ -24,7 +36,35 @@ class FindingRepository:
         self.session = session
 
     async def bulk_create(self, findings: List[FindingModel]) -> None:
-        self.session.add_all(findings)
+        if not findings:
+            return
+        from sqlalchemy.dialects.postgresql import insert
+        for finding in findings:
+            stmt = insert(FindingModel).values(
+                finding_id=finding.finding_id,
+                package_id=finding.package_id,
+                acquisition_id=finding.acquisition_id,
+                activity=finding.activity,
+                decision_state=finding.decision_state,
+                risk_score=finding.risk_score,
+                confidence=finding.confidence,
+                anomaly_score=finding.anomaly_score,
+                anomaly_detected=finding.anomaly_detected,
+                severity=finding.severity,
+                risk_policy_version=finding.risk_policy_version,
+                classification_probabilities=finding.classification_probabilities,
+                feature_attribution=finding.feature_attribution,
+                rationale=finding.rationale,
+                model_version=finding.model_version,
+                feature_schema_version=finding.feature_schema_version,
+                detection_method=finding.detection_method,
+                version=finding.version,
+                supersedes_id=finding.supersedes_id,
+                first_seen=finding.first_seen,
+                last_seen=finding.last_seen,
+                detected_at=finding.detected_at
+            ).on_conflict_do_nothing()
+            await self.session.execute(stmt)
         await self.session.flush()
 
     async def get(self, finding_id: UUID) -> Optional[FindingModel]:

@@ -1,7 +1,7 @@
 import { tokenStore } from '../auth/auth-store';
 import { ApiError } from './errors';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
@@ -47,6 +47,11 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   }
 
   if (!response.ok) {
+    // Dispatch a global event so AuthContext can force logout on token expiration
+    if (response.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    }
+    
     // Note: The UI layer (AuthContext/Router) will handle state transitions and redirects
     // for 401 (Unauthenticated) and 403 (Forbidden). The client just normalizes the error.
     if (data && data.error) {

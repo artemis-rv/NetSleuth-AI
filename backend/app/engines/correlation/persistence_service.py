@@ -33,26 +33,27 @@ class M3PersistenceService:
         """
         Persists an InvestigationCase dict within a transactional UnitOfWork.
         """
-        if case_doc.get("schema_version") not in ("investigation-case-v1.1", "investigation-case-v1.2"):
+        if case_doc.get("schema_version") not in ("investigation-case-v1.1", "investigation-case-v1.2", "investigation-case-v1.3"):
             raise ValueError(f"Unsupported case schema version: {case_doc.get('schema_version')}")
             
         case_id_str = case_doc["case_id"]
         # Deterministic UUID for the Case itself
         case_uuid = uuid.uuid5(uuid.NAMESPACE_OID, case_id_str)
         
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
+
         # 1. Persist the Investigation Case
-        case_model = InvestigationCaseModel(
+        stmt = pg_insert(InvestigationCaseModel).values(
             case_id=case_uuid,
             title=case_doc.get("title", f"Investigation {case_id_str}"),
             description=case_doc.get("description"),
             status=case_doc.get("status", "open"),
-            # DB-11 constraint: Map M3 severity -> DB priority
             priority=case_doc.get("severity"),
             trigger_type="correlation_engine",
             opened_at=self._parse_time(case_doc.get("created_at")),
             updated_at=self._parse_time(case_doc.get("updated_at"))
-        )
-        self.uow.session.add(case_model)
+        ).on_conflict_do_nothing()
+        await self.uow.session.execute(stmt)
         await self.uow.session.flush()
         
         # 2. Persist Entities
@@ -65,7 +66,6 @@ class M3PersistenceService:
                 e_uuid = uuid.uuid5(uuid.NAMESPACE_OID, e_id_str)
                 entity_uuid_map[e_id_str] = e_uuid
                 
-                # DB EntityModel needs a 'label', we'll default to the value or entity_id
                 e_val = e.get("value")
                 label = e_val if e_val else e_id_str.split(":")[-1]
                 
@@ -92,7 +92,7 @@ class M3PersistenceService:
                     "first_seen": self._parse_time(e.get("first_seen")),
                     "last_seen": self._parse_time(e.get("last_seen"))
                 })
-            await self.uow.session.execute(insert(EntityModel).values(entity_records))
+            await self.uow.session.execute(pg_insert(EntityModel).values(entity_records).on_conflict_do_nothing())
             
         # 3. Persist Relationships
         relationships = case_doc.get("relationships", [])
@@ -120,7 +120,7 @@ class M3PersistenceService:
                         "last_seen": self._parse_time(r.get("last_seen"))
                     })
             if rel_records:
-                await self.uow.session.execute(insert(RelationshipModel).values(rel_records))
+                await self.uow.session.execute(pg_insert(RelationshipModel).values(rel_records).on_conflict_do_nothing())
                 
         # 4. Persist Timeline Events
         timeline = case_doc.get("timeline", [])
@@ -143,30 +143,28 @@ class M3PersistenceService:
                     "entity_id": t_entity_uuid,
                     "attributes": {"evidence_ids": t.get("evidence_ids")} if t.get("evidence_ids") else None
                 })
-            await self.uow.session.execute(insert(TimelineEventModel).values(timeline_records))
+            await self.uow.session.execute(pg_insert(TimelineEventModel).values(timeline_records).on_conflict_do_nothing())
             
         # 5. Persist Case-to-Finding and Case-to-Acquisition Links
         findings = case_doc.get("findings", [])
         if findings:
             cf_links = []
             for f in findings:
-                # Deterministic finding UUID exactly as done in M2PersistenceService
                 f_uuid = uuid.uuid5(uuid.NAMESPACE_OID, f["finding_id"])
                 cf_links.append({
                     "case_id": case_uuid,
                     "finding_id": f_uuid,
                     "role": f.get("role", "primary")
                 })
-            await self.uow.session.execute(insert(case_finding_links).values(cf_links))
+            await self.uow.session.execute(pg_insert(case_finding_links).values(cf_links).on_conflict_do_nothing())
             
         if acquisition_id:
-            await self.uow.session.execute(insert(case_acquisition_links).values({
+            await self.uow.session.execute(pg_insert(case_acquisition_links).values({
                 "case_id": case_uuid,
                 "acquisition_id": acquisition_id
-            }))
+            }).on_conflict_do_nothing())
             
         # 6. M3 evidence_references parsing. 
-        # Map specific M3 evidence reference types to specialized link tables.
         evidences = case_doc.get("evidence_references", [])
         
         rel_finding_links = []
@@ -181,18 +179,15 @@ class M3PersistenceService:
                 
             ev_type = ev.get("evidence_type")
             
-            # Map evidence IDs deterministically
             ev_uuid = uuid.uuid5(uuid.NAMESPACE_OID, ev_id_str)
             src_uuid = uuid.uuid5(uuid.NAMESPACE_OID, src_id_str)
             
             if ev_type == "finding":
-                # Is source a relationship?
                 if src_id_str.startswith("REL-") or src_id_str in rel_uuid_map:
                     rel_finding_links.append({
                         "relationship_id": src_uuid,
                         "finding_id": ev_uuid
                     })
-                # Is source a behavior?
                 elif src_id_str.startswith("BEH-"):
                     beh_finding_links.append({
                         "behavior_id": src_uuid,
@@ -200,7 +195,6 @@ class M3PersistenceService:
                     })
                     
             elif ev_type == "artifact":
-                # Is source an entity?
                 if src_id_str in entity_uuid_map or src_id_str.startswith("ip:") or src_id_str.startswith("domain:"):
                     ent_artifact_links.append({
                         "entity_id": src_uuid,
@@ -208,12 +202,12 @@ class M3PersistenceService:
                     })
 
         if rel_finding_links:
-            await self.uow.session.execute(insert(relationship_finding_links).values(rel_finding_links))
+            await self.uow.session.execute(pg_insert(relationship_finding_links).values(rel_finding_links).on_conflict_do_nothing())
         if ent_artifact_links:
             from app.persistence.models.investigation_models import entity_artifact_links
-            await self.uow.session.execute(insert(entity_artifact_links).values(ent_artifact_links))
+            await self.uow.session.execute(pg_insert(entity_artifact_links).values(ent_artifact_links).on_conflict_do_nothing())
         if beh_finding_links:
             from app.persistence.models.investigation_models import behavior_finding_links
-            await self.uow.session.execute(insert(behavior_finding_links).values(beh_finding_links))
+            await self.uow.session.execute(pg_insert(behavior_finding_links).values(beh_finding_links).on_conflict_do_nothing())
 
         return case_uuid
