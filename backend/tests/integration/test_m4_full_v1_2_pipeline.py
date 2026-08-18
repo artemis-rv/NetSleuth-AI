@@ -109,10 +109,10 @@ class TestM4FullV12PipelineIntegration(unittest.TestCase):
         pkg = self.adapter.adapt(self.v1_2_case)
         self.assertEqual(pkg.schema_version, "investigation-case-v1.2")
 
-        # Generate report V1.1
+        # Generate report V1.2
         report = self.engine.generate_report(self.v1_2_case, self.valid_evidence_records)
-        self.assertEqual(report["schema_version"], "report-v1.1")
-        self.validator.validate("report-v1.1.json", report)
+        self.assertEqual(report["schema_version"], "report-v1.2")
+        self.validator.validate("report-v1.2.json", report)
 
         # Verify core V1 fields preserved
         self.assertEqual(report["case_id"], self.v1_2_case["case_id"])
@@ -254,7 +254,7 @@ class TestM4FullV12PipelineIntegration(unittest.TestCase):
         exported = self.exporter.export_json(report)
         reloaded = json.loads(exported)
 
-        self.validator.validate("report-v1.1.json", reloaded)
+        self.validator.validate("report-v1.2.json", reloaded)
         self.assertEqual(set(reloaded.keys()), set(report.keys()))
 
     # --- FAMILY I: TEXT FIDELITY ---
@@ -299,7 +299,7 @@ class TestM4FullV12PipelineIntegration(unittest.TestCase):
         report_v1_1 = self.engine.generate_report(self.v1_2_case, self.valid_evidence_records)
 
         self.validator.validate("report-v1.json", report_v1)
-        self.validator.validate("report-v1.1.json", report_v1_1)
+        self.validator.validate("report-v1.2.json", report_v1_1)
 
     # --- FAMILY M: INPUT IMMUTABILITY ---
     def test_family_m_input_immutability(self):

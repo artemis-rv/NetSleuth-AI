@@ -13,7 +13,10 @@ const SEVERITY_STYLES: Record<string, string> = {
   info: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
 };
 
-function formatDateRange(start: string, end: string): string {
+function formatDateRange(start: string | null | undefined, end: string | null | undefined): string {
+  if (!start && !end) return 'Observation window pending';
+  if (!start) return `Until ${new Date(end!).toLocaleDateString()}`;
+  if (!end) return `Since ${new Date(start).toLocaleDateString()}`;
   const s = new Date(start);
   const e = new Date(end);
   const diff = Math.round((e.getTime() - s.getTime()) / 1000);

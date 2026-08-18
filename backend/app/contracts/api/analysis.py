@@ -24,7 +24,7 @@ class AnalysisStatusResponse(BaseModel):
     result_available: bool = False
     error_code: Optional[str] = None
     error_message: Optional[str] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
 class AnalysisListResponse(BaseModel):
     jobs: List[AnalysisStatusResponse]

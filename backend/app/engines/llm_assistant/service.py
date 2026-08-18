@@ -28,8 +28,13 @@ class LLMAssistantService:
                 raise GroundingError("Ungrounded claim detected: " + text)
 
     async def _execute_raw(self, prompt: str, context: LLMInvestigationContext) -> Dict[str, Any]:
+        import inspect
         system_instruction = self.prompts.build_system_instruction()
-        raw_output = await self.client.generate(prompt, system_instruction)
+        res = self.client.generate(prompt, system_instruction)
+        if inspect.isawaitable(res):
+            raw_output = await res
+        else:
+            raw_output = res
         return json.loads(raw_output)
 
     async def generate_summary(self, context: LLMInvestigationContext) -> LLMInvestigationResponse:

@@ -62,7 +62,8 @@ export interface TimelineEventResponse {
   timeline_event_id: string;
   case_id: string;
   event_type: string;
-  description: string;
+  // Nullable — DB column allows NULL, backend Optional[str]
+  description: string | null;
   event_timestamp: string;
   source_id: string | null;
   created_at: string;
@@ -101,6 +102,8 @@ export interface GraphResponse {
 export interface AttackChainResponse {
   chain_id: string;
   case_id: string;
+  title?: string;
+  summary?: string;
   stages: Record<string, unknown>;
   confidence: number | null;
   created_at: string;

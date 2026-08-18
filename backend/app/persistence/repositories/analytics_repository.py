@@ -58,7 +58,7 @@ class FindingRepository:
                 model_version=finding.model_version,
                 feature_schema_version=finding.feature_schema_version,
                 detection_method=finding.detection_method,
-                version=finding.version,
+                version=finding.version or 1,
                 supersedes_id=finding.supersedes_id,
                 first_seen=finding.first_seen,
                 last_seen=finding.last_seen,

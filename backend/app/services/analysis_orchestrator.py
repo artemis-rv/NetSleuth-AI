@@ -71,6 +71,7 @@ class AnalysisOrchestratorService:
         Background task executing M1->M4.
         Note: FastAPI BackgroundTasks are in-process and NOT crash-durable.
         """
+        current_stage = "INITIALIZING"
         try:
             # Fetch job details
             async with self.uow:
@@ -93,6 +94,7 @@ class AnalysisOrchestratorService:
                 )
 
             # Get Acquisition Metadata
+            current_stage = "LOADING_ACQUISITION"
             async with self.uow:
                 acq = await self.acquisition_repo.get_by_id(acquisition_id)
                 if not acq:
@@ -102,6 +104,7 @@ class AnalysisOrchestratorService:
                     raise ValueError("No evidence object linked to acquisition")
                 evidence = evidence_list[0]
 
+            current_stage = "M1_PACKET_INTELLIGENCE"
             async with self.uow:
                 await self.analysis_repo.update_status(analysis_id, "running", stage="M1_PACKET_INTELLIGENCE", progress=10)
 
@@ -126,15 +129,18 @@ class AnalysisOrchestratorService:
                 loop = asyncio.get_running_loop()
                 m1_package = await loop.run_in_executor(None, self.m1_orchestrator.process_acquisition, acq_ref)
 
+            current_stage = "M2_ANALYSIS"
             async with self.uow:
                 await self.analysis_repo.update_status(analysis_id, "running", stage="M2_ANALYSIS", progress=40)
 
             # --- M2 -> M4 Phase ---
-            pipeline_result = await self.pipeline_orchestrator.run_pipeline_from_m1(m1_package)
+            current_stage = "M3_CORRELATION"
+            pipeline_result = await self.pipeline_orchestrator.run_pipeline_from_m1(m1_package, case_id=str(case_id))
             
             if pipeline_result.get("status") != "success":
                 raise RuntimeError("Forensic pipeline reported failure")
 
+            current_stage = "COMPLETED"
             async with self.uow:
                 await self.analysis_repo.update_status(analysis_id, "completed", stage="COMPLETED", progress=100)
 
@@ -148,13 +154,22 @@ class AnalysisOrchestratorService:
                 )
 
         except Exception as e:
-            logger.exception(f"Analysis job {analysis_id} failed.")
+            logger.exception(f"Analysis job {analysis_id} failed at stage {current_stage}.")
+            # Emit stage-specific error code for diagnostics
+            stage_error_map = {
+                "M1_PACKET_INTELLIGENCE": "M1_PROCESSING_FAILED",
+                "LOADING_ACQUISITION": "ACQUISITION_LOAD_FAILED",
+                "M2_ANALYSIS": "M2_ANALYSIS_FAILED",
+                "M3_CORRELATION": "M3_CORRELATION_FAILED",
+                "M4_REPORTING": "M4_REPORTING_FAILED",
+            }
+            error_code = stage_error_map.get(current_stage, "ANALYSIS_FAILED")
             async with self.uow:
                 await self.analysis_repo.update_status(
                     analysis_id, 
                     "failed", 
-                    stage="FAILED",
-                    error_code="ANALYSIS_FAILED", 
+                    stage=current_stage,
+                    error_code=error_code, 
                     error_message=str(e)
                 )
 
@@ -280,7 +295,7 @@ def get_analysis_orchestrator(session: Session) -> AnalysisOrchestratorService:
     from app.engines.packet_intelligence.persistence_service import M1PersistenceService
     storage_svc = EvidenceStorageService()
     pipeline_orchestrator.m1_persistence = M1PersistenceService(
-        orchestrator=UnitOfWork(session_factory=lambda: session), 
+        orchestrator=m1_orchestrator,  # Correct type: M1Orchestrator (not UnitOfWork)
         storage_service=storage_svc
     )
 

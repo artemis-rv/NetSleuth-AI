@@ -20,6 +20,8 @@ class ReportEngine:
             return "investigation-case-v1.1.json", "report-v1", "report-v1.json"
         elif schema_version == "investigation-case-v1.2":
             return "investigation-case-v1.2.json", "report-v1.1", "report-v1.1.json"
+        elif schema_version == "investigation-case-v1.3":
+            return "investigation-case-v1.3.json", "report-v1.3", "report-v1.3.json"
         else:
             raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
 

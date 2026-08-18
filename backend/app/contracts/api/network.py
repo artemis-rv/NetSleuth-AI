@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 from datetime import datetime
@@ -10,8 +10,13 @@ class FlowListItem(BaseModel):
     src_port: int
     dst_ip: str
     dst_port: int
+
+    @field_validator('src_ip', 'dst_ip', mode='before')
+    @classmethod
+    def cast_ip_to_str(cls, v):
+        return str(v) if v is not None else v
     protocol: str
-    service: str
+    service: Optional[str] = None
     duration: Optional[float] = None
     orig_bytes: Optional[int] = None
     resp_bytes: Optional[int] = None

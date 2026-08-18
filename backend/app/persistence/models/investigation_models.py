@@ -46,7 +46,6 @@ class EntityModel(Base):
 
 class RelationshipModel(Base):
     __tablename__ = "relationships"
-    __tablename__ = "relationships"
 
     relationship_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)

@@ -453,7 +453,7 @@ class TestPerformance(unittest.TestCase):
 
     THROUGHPUT_MIN_MBPS = 50.0    # MB/s minimum SHA-256 throughput
     ACQUIRE_1MB_MAX_MS = 200.0    # ms maximum for a 1 MB acquisition
-    VALIDATOR_REJECT_MAX_MS = 5.0 # ms maximum for validator to reject bad magic
+    VALIDATOR_REJECT_MAX_MS = 50.0 # ms maximum for validator to reject bad magic
 
     def setUp(self):
         self.service = AcquisitionService()

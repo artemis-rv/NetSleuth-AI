@@ -77,6 +77,16 @@ class ForensicPipelineOrchestrator:
         assembler = ContextAssembler()
         return assembler.assemble(case_dict, evidence_map)
 
+    def _run_coro_sync(self, coro):
+        import asyncio
+        import concurrent.futures
+        try:
+            loop = asyncio.get_running_loop()
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                return pool.submit(asyncio.run, coro).result()
+        except RuntimeError:
+            return asyncio.run(coro)
+
     def generate_llm_summary(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any] = None) -> Optional[LLMInvestigationResponse]:
         if not self.llm_service:
             return None
@@ -84,7 +94,7 @@ class ForensicPipelineOrchestrator:
             # Take a validated snapshot to guarantee immutability of original data
             case_snapshot = copy.deepcopy(case_dict)
             ctx = self._get_llm_context(case_snapshot, evidence_map or {})
-            return self.llm_service.generate_summary(ctx)
+            return self._run_coro_sync(self.llm_service.generate_summary(ctx))
         except Exception as e:
             logger.error(f"Optional LLM Summary generation failed: {e}")
             return LLMInvestigationResponse(
@@ -112,7 +122,7 @@ class ForensicPipelineOrchestrator:
                 )
 
             ctx = self._get_llm_context(case_snapshot, evidence_map or {})
-            return self.llm_service.generate_mitre_explanation(ctx, technique_id)
+            return self._run_coro_sync(self.llm_service.generate_mitre_explanation(ctx, technique_id))
         except Exception as e:
             logger.error(f"Optional LLM MITRE explanation generation failed: {e}")
             return LLMInvestigationResponse(
@@ -128,11 +138,7 @@ class ForensicPipelineOrchestrator:
         try:
             case_snapshot = copy.deepcopy(case_dict)
             ctx = self._get_llm_context(case_snapshot, evidence_map or {})
-            
-            # Q&A specific handling for unsupported narrative
-            # Our service layer uses GroundingError for unsupported claims
-            resp = self.llm_service.generate_qa(ctx, question)
-            return resp
+            return self._run_coro_sync(self.llm_service.generate_qa(ctx, question))
         except Exception as e:
             logger.error(f"Optional LLM Q&A generation failed: {e}")
             return LLMInvestigationResponse(
@@ -142,7 +148,7 @@ class ForensicPipelineOrchestrator:
                 provenance={}
             )
 
-    async def run_pipeline_from_m1(self, m1_package: NetworkIntelligencePackage) -> Dict[str, Any]:
+    async def run_pipeline_from_m1(self, m1_package: NetworkIntelligencePackage, case_id: str = None) -> Dict[str, Any]:
         """
         Fast E2E pipeline primarily used for CI tests.
         Bypasses PCAP/Zeek processing (M1 extraction) and begins directly with 
@@ -186,12 +192,69 @@ class ForensicPipelineOrchestrator:
         m3_adapter = M3InputAdapter()
         m3_input = m3_adapter.adapt(m1_package.model_dump(mode="json"), m2_package.model_dump(mode="json"))
 
-        ctx = InvestigationContext(case_id=f"CASE-{m1_package.acquisition_id}", acquisition_id=m1_package.acquisition_id)
+        ctx = InvestigationContext(case_id=case_id if case_id else f"CASE-{m1_package.acquisition_id}", acquisition_id=m1_package.acquisition_id)
         from app.engines.correlation.domain.finding import FindingReference
         from app.engines.correlation.domain.timeline import TimelineEvent
+        from app.engines.correlation.domain.entity import Entity
         from app.engines.correlation.domain.evidence import EvidenceReference as DomainEvidenceReference
         import datetime
-        
+
+        # 1. Map all M1 Evidence References (flows, events, artifacts) for strict referential integrity
+        declared_ev_ids = set()
+        for flow in m1_package.flows:
+            if flow.flow_id not in declared_ev_ids:
+                ctx.evidence_references.append(DomainEvidenceReference(evidence_id=flow.flow_id, evidence_type="flow", source_id=flow.flow_id))
+                declared_ev_ids.add(flow.flow_id)
+        for event in m1_package.protocol_events:
+            if event.event_id not in declared_ev_ids:
+                ctx.evidence_references.append(DomainEvidenceReference(evidence_id=event.event_id, evidence_type="session", source_id=event.event_id))
+                declared_ev_ids.add(event.event_id)
+        for art in m1_package.artifacts:
+            if art.artifact_id not in declared_ev_ids:
+                ctx.evidence_references.append(DomainEvidenceReference(evidence_id=art.artifact_id, evidence_type="artifact", source_id=art.artifact_id))
+                declared_ev_ids.add(art.artifact_id)
+
+        # 2. Extract Entities from M1 Network Intelligence
+        seen_entity_ids = set()
+        for flow in m1_package.flows:
+            src_ip = str(flow.source.ip)
+            dst_ip = str(flow.destination.ip)
+            src_ent_id = f"ip:{src_ip}"
+            dst_ent_id = f"ip:{dst_ip}"
+            if src_ent_id not in seen_entity_ids:
+                ctx.entities.append(Entity(entity_id=src_ent_id, entity_type="ip", value=src_ip, first_seen=flow.timestamp, last_seen=flow.timestamp))
+                seen_entity_ids.add(src_ent_id)
+            if dst_ent_id not in seen_entity_ids:
+                ctx.entities.append(Entity(entity_id=dst_ent_id, entity_type="ip", value=dst_ip, first_seen=flow.timestamp, last_seen=flow.timestamp))
+                seen_entity_ids.add(dst_ent_id)
+
+            flow_ent_id = f"flow:{flow.flow_id}"
+            if flow_ent_id not in seen_entity_ids:
+                ctx.entities.append(Entity(entity_id=flow_ent_id, entity_type="flow", value=flow.flow_id, attributes={"flow_id": flow.flow_id, "protocol": flow.protocol}, first_seen=flow.timestamp, last_seen=flow.timestamp))
+                seen_entity_ids.add(flow_ent_id)
+
+        for evt in m1_package.protocol_events:
+            evt_ent_id = f"protocol_event:{evt.event_id}"
+            p_data = evt.protocol_data.model_dump() if hasattr(evt.protocol_data, "model_dump") else (evt.protocol_data if isinstance(evt.protocol_data, dict) else {})
+            if evt_ent_id not in seen_entity_ids:
+                ctx.entities.append(Entity(entity_id=evt_ent_id, entity_type="protocol_event", value=evt.event_id, attributes={"flow_id": evt.flow_id, "protocol": evt.protocol, "data": p_data}, first_seen=evt.timestamp, last_seen=evt.timestamp))
+                seen_entity_ids.add(evt_ent_id)
+            
+            if evt.protocol == "dns" and p_data:
+                q = getattr(evt.protocol_data, "query", None) or p_data.get("query")
+                if q:
+                    dom_ent_id = f"domain:{q}"
+                    if dom_ent_id not in seen_entity_ids:
+                        ctx.entities.append(Entity(entity_id=dom_ent_id, entity_type="domain", value=q, first_seen=evt.timestamp, last_seen=evt.timestamp))
+                        seen_entity_ids.add(dom_ent_id)
+
+        for art in m1_package.artifacts:
+            art_ent_id = f"artifact:{art.artifact_id}"
+            if art_ent_id not in seen_entity_ids:
+                ctx.entities.append(Entity(entity_id=art_ent_id, entity_type="artifact", value=art.value, attributes={"source_event_id": art.source_event_id, "flow_id": art.flow_id}))
+                seen_entity_ids.add(art_ent_id)
+
+        # 3. Extract Findings & Finding Timeline Events
         for finding in m2_package.findings:
             ref = FindingReference(
                 finding_id=finding.finding_id,
@@ -203,24 +266,28 @@ class ForensicPipelineOrchestrator:
             ctx.timeline_events.append(TimelineEvent(
                 event_id=str(uuid.uuid4()),
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
-                event_type="Finding Triggered",
-                description=f"Finding {finding.finding_id} generated",
+                event_type="finding",
+                description=f"Finding: {finding.activity_class.value} (Risk: {int(finding.risk_score * 100)}%)",
                 finding_ids=[finding.finding_id]
             ))
-            
-            # Map evidence references to the context for traceability
-            for ev_ref in finding.evidence_references:
-                for flow_id in ev_ref.flow_ids:
-                    ctx.evidence_references.append(DomainEvidenceReference(evidence_id=flow_id, evidence_type="flow", source_id=flow_id))
-                for event_id in ev_ref.event_ids:
-                    ctx.evidence_references.append(DomainEvidenceReference(evidence_id=event_id, evidence_type="session", source_id=event_id))
+
+        # 4. Add Network Flow Timeline Events
+        for flow in m1_package.flows:
+            ctx.timeline_events.append(TimelineEvent(
+                event_id=str(uuid.uuid4()),
+                timestamp=flow.timestamp,
+                event_type="network",
+                description=f"Network Flow {flow.protocol.upper()}: {flow.source.ip}:{flow.source.port} -> {flow.destination.ip}:{flow.destination.port}",
+                evidence_ids=[flow.flow_id],
+                entity_ids=[f"ip:{flow.source.ip}", f"ip:{flow.destination.ip}"]
+            ))
 
         if not ctx.timeline_events:
             event_ts = m1_package.flows[0].timestamp if m1_package.flows else datetime.datetime.now(datetime.timezone.utc)
             ctx.timeline_events.append(TimelineEvent(
                 event_id=str(uuid.uuid4()),
                 timestamp=event_ts,
-                event_type="Acquisition Processed",
+                event_type="network",
                 description="Network intelligence extracted from capture"
             ))
 
@@ -266,11 +333,30 @@ class ForensicPipelineOrchestrator:
         logger.info("Executing M4 Evidence & Reporting Engine...")
         llm_dict = llm_enrichment.model_dump(mode="json") if llm_enrichment else None
         m4_report = self.m4_engine.generate_report(m3_case_dict, [], llm_enrichment=llm_dict)
-        
-        # NOTE: M4 persistence service is mocked or not injected here yet,
-        # but in a real flow we would call self.m4_persistence.persist_report(m4_report)
-        # We'll return m4_report for the test to validate it generated successfully.
-        
+
+        # Persist M4 report metadata to PostgreSQL
+        try:
+            logger.info("Persisting M4 Report...")
+            async with self.uow:
+                report_title = m4_report.get("title", f"Investigation Report — {case_id}")
+                report_sha256 = m4_report.get("integrity", {}).get("sha256") or "0" * 64
+                report_schema = m4_report.get("schema_version", "report-v1.3")
+                await self.m4_persistence.persist_report(
+                    case_id=str(case_id),
+                    title=report_title,
+                    report_type="forensic_investigation",
+                    format="json",
+                    minio_bucket="netsleuth-reports",
+                    object_key=f"{case_id}/report.json",
+                    hash_sha256=report_sha256,
+                    generator_id="m4-report-engine"
+                )
+            logger.info("M4 Persistence Complete.")
+        except Exception as m4_err:
+            # M4 persistence failure must NOT erase already-persisted M3 forensic data.
+            # Log and continue — analysis is still complete from a forensic standpoint.
+            logger.warning(f"M4 report persistence failed (non-fatal): {m4_err}")
+
         logger.info("Forensic Pipeline E2E execution successful.")
         return {
             "status": "success",

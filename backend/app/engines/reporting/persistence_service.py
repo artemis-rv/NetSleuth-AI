@@ -20,11 +20,17 @@ class M4PersistenceService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
+    def _to_uuid(self, id_str: str) -> uuid.UUID:
+        try:
+            return uuid.UUID(str(id_str))
+        except (ValueError, AttributeError):
+            return uuid.uuid5(uuid.NAMESPACE_OID, str(id_str))
+
     async def persist_evidence_package(self, package: M4EvidencePackage) -> None:
         """
         Persists physical evidence items and custody events within a single transaction.
         """
-        case_uuid = uuid.uuid5(uuid.NAMESPACE_OID, package.case_id)
+        case_uuid = self._to_uuid(package.case_id)
 
         evidence_records = []
         custody_records = []
@@ -103,8 +109,8 @@ class M4PersistenceService:
         Persists a newly generated report document.
         """
         report_uuid = uuid.uuid4()
-        case_uuid = uuid.uuid5(uuid.NAMESPACE_OID, case_id)
-        user_uuid = uuid.uuid5(uuid.NAMESPACE_OID, generator_id)
+        case_uuid = self._to_uuid(case_id)
+        user_uuid = self._to_uuid(generator_id)
 
         report = ReportModel(
             report_id=report_uuid,

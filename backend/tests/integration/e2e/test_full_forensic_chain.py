@@ -197,7 +197,7 @@ async def test_fast_e2e_pipeline():
     
     # Assert MITRE and M4 success
     report = result["m4_report"]
-    assert report["schema_version"] in ("report-v1", "report-v1.1", "report-v1.2")
+    assert report["schema_version"] in ("report-v1", "report-v1.1", "report-v1.2", "report-v1.3")
     
     assert "mitre_mappings" in m3_case_dict
     mitre_mappings = m3_case_dict["mitre_mappings"]

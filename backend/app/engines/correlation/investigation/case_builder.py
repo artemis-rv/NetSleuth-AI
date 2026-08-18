@@ -161,12 +161,12 @@ class InvestigationCaseBuilder:
         # 3. Entities
         valid_types = ["host", "ip", "domain", "url", "session", "flow", "protocol_event", "ioc", "artifact", "finding"]
         for e in ctx.entities:
+            label = getattr(e, "value", None) or (e.entity_id.split(":")[-1] if ":" in e.entity_id else e.entity_id)
             e_doc = {
                 "entity_id": e.entity_id,
-                "entity_type": e.entity_type if e.entity_type in valid_types else "artifact"
+                "entity_type": e.entity_type if e.entity_type in valid_types else "artifact",
+                "label": str(label)
             }
-            if hasattr(e, "attributes") and e.attributes:
-                e_doc["attributes"] = e.attributes
             if e.first_seen:
                 e_doc["first_seen"] = e.first_seen.isoformat().replace("+00:00", "Z")
             if e.last_seen:

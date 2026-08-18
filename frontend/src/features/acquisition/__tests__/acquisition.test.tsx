@@ -119,7 +119,7 @@ describe('AcquisitionSection', () => {
 
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={acquisition} evidence={evidence} />
+        <AcquisitionSection caseId="case-1" acquisition={acquisition as any} evidence={evidence as any} />
       </Wrapper>
     );
 

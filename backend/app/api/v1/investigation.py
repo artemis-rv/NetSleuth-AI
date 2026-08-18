@@ -47,7 +47,15 @@ async def get_entity(
     try:
         await verify_case_access_direct(entity.case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_ENTITY_ACCESS", user.user_id, str(entity_id), "User lacks access to entity's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_ENTITY_ACCESS",
+            target_entity_type="entity",
+            target_entity_id=str(entity_id),
+            result="failure",
+            actor_id=user.user_id,
+            metadata={"reason": "User lacks access to entity's case"}
+        )
         raise e
         
     return entity
@@ -78,7 +86,15 @@ async def get_relationship(
     try:
         await verify_case_access_direct(relationship.case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_RELATIONSHIP_ACCESS", user.user_id, str(relationship_id), "User lacks access to relationship's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_RELATIONSHIP_ACCESS",
+            target_entity_type="relationship",
+            target_entity_id=str(relationship_id),
+            result="failure",
+            actor_id=user.user_id,
+            metadata={"reason": "User lacks access to relationship's case"}
+        )
         raise e
         
     return relationship

@@ -115,7 +115,11 @@ class RootCauseAnalyzer:
 
             # Deterministic ID
             support_hyp_str = val.hypothesis_id
-            support_ev_str = ",".join(sorted(val.supporting_evidence_ids))
+            support_ev_list = sorted(list(val.supporting_evidence_ids)) or sorted(list(hyp.supporting_evidence_ids))
+            if not support_ev_list:
+                # Must have at least 1 supporting evidence per V1.3 contract schema
+                continue
+            support_ev_str = ",".join(support_ev_list)
             hash_input = f"{m3_input.acquisition_id}|{statement}|{support_hyp_str}|{support_ev_str}|{status.value}"
             rc_id = "RC-" + hashlib.sha256(hash_input.encode('utf-8')).hexdigest()[:12]
 
@@ -125,7 +129,7 @@ class RootCauseAnalyzer:
                 status=status,
                 confidence=confidence,
                 supporting_hypothesis_ids=[val.hypothesis_id],
-                supporting_evidence_ids=sorted(list(val.supporting_evidence_ids)),
+                supporting_evidence_ids=support_ev_list,
                 supporting_finding_ids=hyp.supporting_finding_ids,
                 missing_evidence=list(set(missing_evidence))
             )

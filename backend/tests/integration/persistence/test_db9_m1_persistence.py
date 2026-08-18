@@ -86,9 +86,9 @@ class MockM1Orchestrator:
 
 @pytest.mark.asyncio
 async def test_m1_persistence_pipeline(tmp_path):
-    # Create dummy PCAP
+    dummy_content = b"dummy pcap data for testing M1 pipeline " + str(uuid.uuid4()).encode()
     pcap_path = Path(tmp_path) / "sample.pcap"
-    pcap_path.write_bytes(b"dummy pcap data for testing M1 pipeline")
+    pcap_path.write_bytes(dummy_content)
     
     storage = EvidenceStorageService()
     orchestrator = MockM1Orchestrator()
@@ -138,4 +138,4 @@ async def test_m1_persistence_pipeline(tmp_path):
     async with storage.get_client() as s3:
         response = await s3.get_object(Bucket=storage.bucket_name, Key=evidence.object_key)
         data = await response['Body'].read()
-        assert data == b"dummy pcap data for testing M1 pipeline"
+        assert data == dummy_content

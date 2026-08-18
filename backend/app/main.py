@@ -191,6 +191,26 @@ def create_app() -> FastAPI:
         """Liveness probe: verifies process is alive."""
         return {"status": "healthy"}
 
+    @application.get("/health/db", tags=["System"])
+    async def health_db_check() -> Dict[str, Any]:
+        """Database health check."""
+        is_healthy = await check_db_health()
+        if not is_healthy:
+            return JSONResponse(status_code=503, content={"status": "unhealthy", "database": "disconnected"})
+        return {"status": "healthy", "database": "connected"}
+
+    @application.get("/health/storage", tags=["System"])
+    async def health_storage_check() -> Dict[str, Any]:
+        """MinIO / S3 storage health check."""
+        try:
+            from app.shared.storage.minio_service import EvidenceStorageService
+            svc = EvidenceStorageService()
+            async with svc.get_client() as s3:
+                await s3.list_buckets()
+            return {"status": "healthy", "storage": "connected"}
+        except Exception as e:
+            return JSONResponse(status_code=503, content={"status": "unhealthy", "storage": "disconnected", "error": str(e)})
+
     @application.get("/ready", tags=["System"])
     async def readiness_check() -> Dict[str, str]:
         """Readiness probe: verifies application is initialized to accept traffic."""

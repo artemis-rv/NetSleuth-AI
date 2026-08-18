@@ -91,7 +91,9 @@ export function TimelineSection({ caseId }: TimelineSectionProps) {
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-primary leading-relaxed">{evt.description}</p>
+                    {evt.description && (
+                      <p className="text-sm text-primary leading-relaxed">{evt.description}</p>
+                    )}
 
                     {/* Source ref */}
                     {evt.source_id && (

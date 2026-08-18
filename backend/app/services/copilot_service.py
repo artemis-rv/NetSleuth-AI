@@ -57,27 +57,21 @@ class CopilotOrchestrator:
                 {
                     "technique_id": m.technique_id,
                     "technique_name": m.technique_name,
-                    "mapping_status": str(m.mapping_status),
-                    "mapping_confidence": float(m.mapping_confidence) if m.mapping_confidence else 0.0,
-                    "rationale": m.rationale,
-                    "evidence_ids": m.evidence_ids or []
+                    "tactic": m.tactic,
+                    "confidence": float(m.confidence) if m.confidence else 0.0,
+                    "justification": m.justification,
                 } for m in mitre_mappings
             ]
         }
         
-        if attack_chain:
-            case_dict["attack_chain"] = {
-                "status": str(attack_chain.status),
-                "stages": [
-                    {
-                        "stage_id": str(s.stage_id),
-                        "name": s.name,
-                        "timestamp": s.timestamp.isoformat() if s.timestamp else None,
-                        "event_ids": [str(e) for e in s.event_ids] if getattr(s, "event_ids", None) else [],
-                        "finding_ids": [str(f) for f in s.finding_ids] if getattr(s, "finding_ids", None) else []
-                    } for s in attack_chain.stages
-                ]
-            }
+        if attack_chain and attack_chain.stages:
+            if isinstance(attack_chain.stages, dict):
+                case_dict["attack_chain"] = attack_chain.stages
+            else:
+                case_dict["attack_chain"] = {
+                    "status": "potential",
+                    "stages": attack_chain.stages
+                }
             
         return case_dict
 

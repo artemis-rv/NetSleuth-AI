@@ -1,6 +1,5 @@
 import { apiClient } from '../../api/client';
 import type { AnalysisJobResponse } from './types';
-import type { PaginatedList } from '../acquisition/api'; // Reuse PaginatedList
 
 export async function startAnalysis(caseId: string, acquisitionId: string): Promise<AnalysisJobResponse> {
   return apiClient<AnalysisJobResponse>(`/api/v1/cases/${caseId}/analysis`, {

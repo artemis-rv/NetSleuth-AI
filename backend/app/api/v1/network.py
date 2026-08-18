@@ -57,16 +57,39 @@ async def get_flow(
     case_id = await service.get_case_id_for_acquisition(flow.acquisition_id)
     
     if not case_id:
-        await log_audit_event(db, "UNAUTHORIZED_FLOW_ACCESS", user.user_id, str(flow_id), "Flow not linked to a case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_FLOW_ACCESS",
+            target_entity_type="flow",
+            target_entity_id=str(flow_id),
+            result="failure",
+            actor_id=user.user_id,
+            metadata={"reason": "Flow not linked to a case"}
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
         
     try:
         await verify_case_access_direct(case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_FLOW_ACCESS", user.user_id, str(flow_id), "User lacks access to flow's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_FLOW_ACCESS",
+            target_entity_type="flow",
+            target_entity_id=str(flow_id),
+            result="failure",
+            actor_id=user.user_id,
+            metadata={"reason": "User lacks access to flow's case"}
+        )
         raise e
         
-    await log_audit_event(db, "FLOW_VIEWED", user.user_id, str(flow_id))
+    await log_audit_event(
+        db=db,
+        action="FLOW_VIEWED",
+        target_entity_type="flow",
+        target_entity_id=str(flow_id),
+        result="success",
+        actor_id=user.user_id
+    )
     return flow
 
 @router.get(
@@ -109,16 +132,39 @@ async def get_event(
     case_id = await service.get_case_id_for_acquisition(event.acquisition_id)
     
     if not case_id:
-        await log_audit_event(db, "UNAUTHORIZED_EVENT_ACCESS", user.user_id, str(event_id), "Event not linked to a case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_EVENT_ACCESS",
+            target_entity_type="event",
+            target_entity_id=str(event_id),
+            result="failure",
+            actor_id=user.user_id,
+            metadata={"reason": "Event not linked to a case"}
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
         
     try:
         await verify_case_access_direct(case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_EVENT_ACCESS", user.user_id, str(event_id), "User lacks access to event's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_EVENT_ACCESS",
+            target_entity_type="event",
+            target_entity_id=str(event_id),
+            result="failure",
+            actor_id=user.user_id,
+            metadata={"reason": "User lacks access to event's case"}
+        )
         raise e
         
-    await log_audit_event(db, "EVENT_VIEWED", user.user_id, str(event_id))
+    await log_audit_event(
+        db=db,
+        action="EVENT_VIEWED",
+        target_entity_type="event",
+        target_entity_id=str(event_id),
+        result="success",
+        actor_id=user.user_id
+    )
     return event
 
 @router.get(
