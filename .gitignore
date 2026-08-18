@@ -54,3 +54,10 @@ infra/data/
 infra/pg/
 infra/pg.zip
 
+# Seed scripts with development passwords
+backend/seed.py
+backend/seed_users.py
+seed.py
+seed_users.py
+
+
