@@ -32,7 +32,7 @@ class FlowRepository:
         stmt = select(FlowModel).join(
             case_acquisition_links,
             FlowModel.acquisition_id == case_acquisition_links.c.acquisition_id
-        ).where(case_acquisition_links.c.case_id == case_id)
+        ).where(case_acquisition_links.c.case_id == case_id).distinct()
         
         if src_ip:
             stmt = stmt.where(FlowModel.src_ip == src_ip)
@@ -55,7 +55,7 @@ class FlowRepository:
         from app.persistence.models.investigation_models import case_acquisition_links
         from sqlalchemy import func
         
-        stmt = select(func.count(FlowModel.flow_id)).join(
+        stmt = select(func.count(func.distinct(FlowModel.flow_id))).join(
             case_acquisition_links,
             FlowModel.acquisition_id == case_acquisition_links.c.acquisition_id
         ).where(case_acquisition_links.c.case_id == case_id)
@@ -128,7 +128,7 @@ class ArtifactRepository:
         stmt = select(ArtifactModel).join(
             case_acquisition_links,
             ArtifactModel.acquisition_id == case_acquisition_links.c.acquisition_id
-        ).where(case_acquisition_links.c.case_id == case_id)
+        ).where(case_acquisition_links.c.case_id == case_id).distinct()
         
         if artifact_type:
             stmt = stmt.where(ArtifactModel.type == artifact_type)
@@ -145,7 +145,7 @@ class ArtifactRepository:
         from app.persistence.models.investigation_models import case_acquisition_links
         from sqlalchemy import func
         
-        stmt = select(func.count(ArtifactModel.artifact_id)).join(
+        stmt = select(func.count(func.distinct(ArtifactModel.artifact_id))).join(
             case_acquisition_links,
             ArtifactModel.acquisition_id == case_acquisition_links.c.acquisition_id
         ).where(case_acquisition_links.c.case_id == case_id)
