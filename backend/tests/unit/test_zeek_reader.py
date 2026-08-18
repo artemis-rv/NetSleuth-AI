@@ -7,6 +7,7 @@ Unit tests for the Phase 4 Zeek Reader.
 from __future__ import annotations
 
 import os
+import shutil
 import struct
 import tempfile
 import unittest
@@ -245,6 +246,7 @@ class TestZeekReaderIntegration(unittest.TestCase):
         shutil.rmtree(self.output_root_temp, ignore_errors=True)
         shutil.rmtree(self.evidence_temp, ignore_errors=True)
 
+    @unittest.skipIf(not shutil.which("docker"), "Docker not installed")
     def test_integration_runner_to_reader(self):
         """End-to-End: ZeekRunner produces logs -> ZeekReader consumes them."""
         # 1. Create a real PCAP

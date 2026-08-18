@@ -274,11 +274,11 @@ class _Settings:
     @property
     def ollama_model(self) -> str:
         """
-        Ollama model name to use for Copilot capabilities.
+        Ollama Model for LLM processing.
         Set via: OLLAMA_MODEL
-        Default: qwen
+        Default: qwen2.5-coder:latest
         """
-        return os.environ.get("OLLAMA_MODEL", "qwen")
+        return os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:latest")
 
 
 

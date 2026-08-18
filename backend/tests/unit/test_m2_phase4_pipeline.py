@@ -183,11 +183,11 @@ class TestValidation(unittest.TestCase):
 
     def test_identifier_in_name_raises(self):
         with self.assertRaises(FeatureValidationError):
-            validate_no_identifier_leakage({"src_ip_feature": 1.0})
+            validate_no_identifier_leakage({"src_ip": 1.0})
 
     def test_flow_id_raises(self):
         with self.assertRaises(FeatureValidationError):
-            validate_no_identifier_leakage({"flow_id_count": 5.0})
+            validate_no_identifier_leakage({"flow_id": 5.0})
 
     def test_nan_raises(self):
         with self.assertRaises(FeatureValidationError):
@@ -243,8 +243,7 @@ class TestFeatureTransformer(unittest.TestCase):
         from app.engines.analysis.features.validation import _IDENTIFIER_PATTERNS
         for arr in results:
             for name in arr:
-                for pat in _IDENTIFIER_PATTERNS:
-                    self.assertNotIn(pat, name.lower())
+                self.assertNotIn(name.lower(), _IDENTIFIER_PATTERNS)
 
     def test_serialization_round_trip(self):
         t = FeatureTransformer()

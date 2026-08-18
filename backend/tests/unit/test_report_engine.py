@@ -61,20 +61,20 @@ class TestReportEngineVersionAware(unittest.TestCase):
         report = self.engine.generate_report(self.v1_1_case, self.valid_evidence_integrity)
         self.assertEqual(report["schema_version"], "report-v1")
 
-    # 2. V1.2 case -> report-v1.1
-    def test_2_v1_2_case_produces_report_v1_1(self):
+    # 2. V1.2 case -> report-v1.2
+    def test_2_v1_2_case_produces_report_v1_2(self):
         report = self.engine.generate_report(self.v1_2_case, self.valid_evidence_integrity)
-        self.assertEqual(report["schema_version"], "report-v1.1")
+        self.assertEqual(report["schema_version"], "report-v1.2")
 
     # 3. V1.1 output validates against report-v1.json
     def test_3_v1_1_output_validates_against_report_v1_schema(self):
         report = self.engine.generate_report(self.v1_1_case, self.valid_evidence_integrity)
         self.validator.validate("report-v1.json", report)
 
-    # 4. V1.2 output validates against report-v1.1.json
-    def test_4_v1_2_output_validates_against_report_v1_1_schema(self):
+    # 4. V1.2 output validates against report-v1.2.json
+    def test_4_v1_2_output_validates_against_report_v1_2_schema(self):
         report = self.engine.generate_report(self.v1_2_case, self.valid_evidence_integrity)
-        self.validator.validate("report-v1.1.json", report)
+        self.validator.validate("report-v1.2.json", report)
 
     # 5. V1.1 output contains no MITRE fields
     def test_5_v1_1_output_contains_no_mitre_fields(self):

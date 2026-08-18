@@ -1,9 +1,9 @@
 from typing import Dict, Any, Tuple
 from pydantic import ValidationError
 
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage
-from backend.app.contracts.analysis import FindingsPackage
-from backend.app.engines.correlation.domain.input import (
+from app.contracts.network_intelligence import NetworkIntelligencePackage
+from app.contracts.analysis import FindingsPackage
+from app.engines.correlation.domain.input import (
     M3InvestigationInput, 
     EvidenceIndex, 
     TelemetryCapability

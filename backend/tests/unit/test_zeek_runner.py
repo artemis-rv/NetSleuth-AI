@@ -149,8 +149,9 @@ class TestZeekRunner(unittest.TestCase):
             self.runner.run(ref)
         self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.DOCKER_NOT_FOUND)
 
+    @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("subprocess.run")
-    def test_docker_daemon_unavailable_raises_error(self, mock_run):
+    def test_docker_daemon_unavailable_raises_error(self, mock_run, mock_which):
         """If docker daemon check fails, raise DOCKER_DAEMON_UNAVAILABLE."""
         # First call mock for check_docker_env -> docker info
         mock_run.return_value = MagicMock(returncode=1, stderr=b"daemon not running")
@@ -161,8 +162,9 @@ class TestZeekRunner(unittest.TestCase):
             self.runner.run(ref)
         self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.DOCKER_DAEMON_UNAVAILABLE)
 
+    @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("subprocess.run")
-    def test_image_unavailable_raises_error(self, mock_run):
+    def test_image_unavailable_raises_error(self, mock_run, mock_which):
         """If docker image is unavailable or version check fails, raise IMAGE_UNAVAILABLE."""
         # check_docker_env passes, but zeek --version fails
         mock_run.side_effect = [
@@ -176,7 +178,9 @@ class TestZeekRunner(unittest.TestCase):
             self.runner.run(ref)
         self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.IMAGE_UNAVAILABLE)
 
-    def test_missing_capture_file_raises_error(self):
+    @patch.object(ZeekRunner, '_get_zeek_version', return_value="1.0.0")
+    @patch.object(ZeekRunner, '_check_docker_env')
+    def test_missing_capture_file_raises_error(self, mock_env, mock_img):
         """If the capture file referenced does not exist, raise CAPTURE_NOT_FOUND."""
         ref = AcquisitionReference(
             acquisition_id="acq-123",
@@ -192,7 +196,9 @@ class TestZeekRunner(unittest.TestCase):
             self.runner.run(ref)
         self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.CAPTURE_NOT_FOUND)
 
-    def test_path_traversal_attempt_blocked(self):
+    @patch.object(ZeekRunner, '_get_zeek_version', return_value="1.0.0")
+    @patch.object(ZeekRunner, '_check_docker_env')
+    def test_path_traversal_attempt_blocked(self, mock_env, mock_img):
         """If capture file is outside allowed roots, raise PATH_TRAVERSAL_DETECTED."""
         # Setup runner with constrained roots that EXCLUDE the system temp directory
         restricted_runner = ZeekRunner(
@@ -206,8 +212,9 @@ class TestZeekRunner(unittest.TestCase):
             restricted_runner.run(ref)
         self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.PATH_TRAVERSAL_DETECTED)
 
+    @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("subprocess.run")
-    def test_docker_command_construction(self, mock_run):
+    def test_docker_command_construction(self, mock_run, mock_which):
         """Verify the Docker command arguments are built correctly."""
         mock_run.side_effect = [
             MagicMock(returncode=0),  # docker info
@@ -238,8 +245,9 @@ class TestZeekRunner(unittest.TestCase):
         # Check JSON output option
         self.assertIn("LogAscii::use_json=T", executed_cmd)
 
+    @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("subprocess.run")
-    def test_zeek_nonzero_exit_raises_error(self, mock_run):
+    def test_zeek_nonzero_exit_raises_error(self, mock_run, mock_which):
         """If Zeek exits with a non-zero code, raise ZEEK_NONZERO_EXIT."""
         mock_run.side_effect = [
             MagicMock(returncode=0),  # docker info
@@ -253,8 +261,9 @@ class TestZeekRunner(unittest.TestCase):
             self.runner.run(ref)
         self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.ZEEK_NONZERO_EXIT)
 
+    @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("subprocess.run")
-    def test_zeek_timeout_raises_error(self, mock_run):
+    def test_zeek_timeout_raises_error(self, mock_run, mock_which):
         """If Zeek execution times out, raise TIMEOUT."""
         mock_run.side_effect = [
             MagicMock(returncode=0),  # docker info
@@ -272,6 +281,7 @@ class TestZeekRunner(unittest.TestCase):
     # Integration Tests (Real Docker & Zeek Execution)
     # =======================================================================
 
+    @unittest.skipIf(not shutil.which("docker"), "Docker not installed")
     def test_integration_successful_pcap_run(self):
         """End-to-End run with a real PCAP, Docker container, and JSON verification."""
         p = self._temp_file(_make_pcap_bytes(), ".pcap")
@@ -306,6 +316,7 @@ class TestZeekRunner(unittest.TestCase):
                     except json.JSONDecodeError:
                         self.fail(f"Log {log_name} was not written in JSON format: {first_line}")
 
+    @unittest.skipIf(not shutil.which("docker"), "Docker not installed")
     def test_integration_successful_pcapng_run(self):
         """End-to-End run with a real PCAPNG capture."""
         p = self._temp_file(_make_pcapng_bytes(), ".pcapng")
