@@ -36,6 +36,9 @@ Thumbs.db
 
 # Build artifacts
 *.egg-info/
+dist/
+build/
+node_modules/
 
 # Evidence files — never commit capture data
 sample_data/evidence/*.pcap
@@ -43,7 +46,8 @@ sample_data/evidence/*.pcapng
 
 # Zeek dynamic outputs — never commit runtime outputs
 sample_data/zeek_output/
-
+backend/sample_data/zeek_output/
+**/zeek_output/
 
 test_output.log
 debug_finding.txt

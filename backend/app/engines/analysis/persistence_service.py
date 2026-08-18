@@ -100,6 +100,7 @@ class M2PersistenceService:
                     model_version=finding.model_version,
                     feature_schema_version=finding.feature_schema_version,
                     detection_method=detection_method,
+                    version=getattr(finding, "version", 1) or 1,
                     detected_at=finding.created_at
                 )
                 finding_models.append(f_model)

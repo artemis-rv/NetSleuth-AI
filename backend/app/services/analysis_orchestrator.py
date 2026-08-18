@@ -42,13 +42,14 @@ class AnalysisOrchestratorService:
     async def start_analysis(self, case_id: uuid.UUID, acquisition_id: uuid.UUID, user_id: uuid.UUID) -> uuid.UUID:
         """Starts an analysis job. Returns the new analysis_id immediately (background execution)."""
         async with self.uow:
+            analysis_repo = self.uow.get_repository(AnalysisRepository)
             # Idempotency / Concurrency check
-            is_active = await self.analysis_repo.has_active_analysis(acquisition_id)
+            is_active = await analysis_repo.has_active_analysis(acquisition_id)
             if is_active:
                 raise ValidationError("An active analysis job already exists for this acquisition.")
 
             # Create analysis job
-            job = await self.analysis_repo.create_job(
+            job = await analysis_repo.create_job(
                 case_id=case_id,
                 acquisition_id=acquisition_id,
                 created_by=user_id
@@ -74,14 +75,16 @@ class AnalysisOrchestratorService:
         try:
             # Fetch job details
             async with self.uow:
-                job = await self.analysis_repo.get_job(analysis_id)
+                analysis_repo = self.uow.get_repository(AnalysisRepository)
+                acquisition_repo = self.uow.get_repository(AcquisitionRepository)
+                job = await analysis_repo.get_job(analysis_id)
                 if not job:
                     logger.error(f"Analysis job {analysis_id} not found.")
                     return
                 
                 acquisition_id = job.acquisition_id
                 case_id = job.case_id
-                await self.analysis_repo.update_status(analysis_id, "running", stage="INITIALIZING", progress=0)
+                await analysis_repo.update_status(analysis_id, "running", stage="INITIALIZING", progress=0)
 
                 await log_audit_event(
                     db=self.uow.session,
@@ -94,7 +97,9 @@ class AnalysisOrchestratorService:
 
             # Get Acquisition Metadata
             async with self.uow:
-                acq = await self.acquisition_repo.get_by_id(acquisition_id)
+                acquisition_repo = self.uow.get_repository(AcquisitionRepository)
+                analysis_repo = self.uow.get_repository(AnalysisRepository)
+                acq = await acquisition_repo.get(acquisition_id)
                 if not acq:
                     raise ValueError("Acquisition not found")
                 evidence_list = acq.evidence
@@ -103,7 +108,8 @@ class AnalysisOrchestratorService:
                 evidence = evidence_list[0]
 
             async with self.uow:
-                await self.analysis_repo.update_status(analysis_id, "running", stage="M1_PACKET_INTELLIGENCE", progress=10)
+                analysis_repo = self.uow.get_repository(AnalysisRepository)
+                await analysis_repo.update_status(analysis_id, "running", stage="M1_PACKET_INTELLIGENCE", progress=10)
 
             # --- M1 Phase ---
             # 1. Download evidence to temporary secure file
@@ -119,15 +125,12 @@ class AnalysisOrchestratorService:
                 )
 
                 # 2. Run M1 Orchestrator (Zeek -> Extraction)
-                # Note: m1_orchestrator process_acquisition is currently synchronous/blocking the thread.
-                # In a real app we'd use run_in_executor, but we'll call it directly here.
-                # Wait, zeek_runner.run uses subprocess.run. M1 is entirely synchronous.
-                # Run it in an executor to not block the FastAPI async event loop.
                 loop = asyncio.get_running_loop()
                 m1_package = await loop.run_in_executor(None, self.m1_orchestrator.process_acquisition, acq_ref)
 
             async with self.uow:
-                await self.analysis_repo.update_status(analysis_id, "running", stage="M2_ANALYSIS", progress=40)
+                analysis_repo = self.uow.get_repository(AnalysisRepository)
+                await analysis_repo.update_status(analysis_id, "running", stage="M2_ANALYSIS", progress=40)
 
             # --- M2 -> M4 Phase ---
             pipeline_result = await self.pipeline_orchestrator.run_pipeline_from_m1(m1_package)
@@ -136,7 +139,8 @@ class AnalysisOrchestratorService:
                 raise RuntimeError("Forensic pipeline reported failure")
 
             async with self.uow:
-                await self.analysis_repo.update_status(analysis_id, "completed", stage="COMPLETED", progress=100)
+                analysis_repo = self.uow.get_repository(AnalysisRepository)
+                await analysis_repo.update_status(analysis_id, "completed", stage="COMPLETED", progress=100)
 
                 await log_audit_event(
                     db=self.uow.session,
@@ -150,7 +154,8 @@ class AnalysisOrchestratorService:
         except Exception as e:
             logger.exception(f"Analysis job {analysis_id} failed.")
             async with self.uow:
-                await self.analysis_repo.update_status(
+                analysis_repo = self.uow.get_repository(AnalysisRepository)
+                await analysis_repo.update_status(
                     analysis_id, 
                     "failed", 
                     stage="FAILED",
@@ -158,7 +163,6 @@ class AnalysisOrchestratorService:
                     error_message=str(e)
                 )
 
-                # Use a system-level UUID if user_id cannot be tracked safely here
                 await log_audit_event(
                     db=self.uow.session,
                     actor_id=user_id,
@@ -170,7 +174,8 @@ class AnalysisOrchestratorService:
 
     async def get_job_status(self, analysis_id: uuid.UUID) -> Optional[dict]:
         async with self.uow:
-            job = await self.analysis_repo.get_job(analysis_id)
+            analysis_repo = self.uow.get_repository(AnalysisRepository)
+            job = await analysis_repo.get_job(analysis_id)
             if not job:
                 return None
             return {

@@ -43,7 +43,7 @@ async def get_evidence(
     
     stmt = select(case_acquisition_links.c.case_id).where(case_acquisition_links.c.acquisition_id == ev.acquisition_id)
     result = await db.execute(stmt)
-    case_id = result.scalar_one_or_none()
+    case_id = result.scalars().first()
     
     if case_id:
         from app.auth.dependencies import verify_case_access_direct
@@ -70,7 +70,7 @@ async def verify_evidence(
     
     stmt = select(case_acquisition_links.c.case_id).where(case_acquisition_links.c.acquisition_id == ev.acquisition_id)
     result = await db.execute(stmt)
-    case_id = result.scalar_one_or_none()
+    case_id = result.scalars().first()
     
     if case_id:
         from app.auth.dependencies import verify_case_access_direct
