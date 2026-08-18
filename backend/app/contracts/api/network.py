@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 from datetime import datetime
@@ -18,6 +18,11 @@ class FlowListItem(BaseModel):
     connection_state: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("src_ip", "dst_ip", mode="before")
+    @classmethod
+    def convert_ip(cls, v: Any) -> str:
+        return str(v) if v is not None else ""
 
 class FlowDetailResponse(FlowListItem):
     acquisition_id: UUID
