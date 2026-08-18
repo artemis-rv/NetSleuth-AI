@@ -49,24 +49,31 @@ class TestZeekReader(unittest.TestCase):
     """Test suite for ZeekReader boundary behavior."""
 
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.output_dir = Path(self.temp_dir.name)
         self.acquisition_id = "acq-12345"
-        self.reader = ZeekReader()
+        from unittest.mock import MagicMock
+        self.mock_storage = MagicMock()
+        self.reader = ZeekReader(storage=self.mock_storage)
 
     def tearDown(self):
-        self.temp_dir.cleanup()
+        pass
 
-    def _create_log_file(self, filename: str, content: str) -> None:
-        file_path = self.output_dir / filename
-        file_path.write_text(content, encoding="utf-8")
+    def _setup_mock_stream(self, content: str) -> None:
+        from contextlib import contextmanager
+        @contextmanager
+        def mock_stream_file(object_key: str):
+            lines = content.split('\n')
+            if lines and not lines[-1]:
+                lines.pop()
+            yield lines
+        self.mock_storage.stream_file = mock_stream_file
 
     def _create_mock_result(self, generated_logs: list[str]) -> ZeekRunnerResult:
         return ZeekRunnerResult(
             acquisition_id=self.acquisition_id,
             status=ZeekRunnerStatus.SUCCESS,
-            output_directory=self.output_dir,
-            generated_logs=generated_logs,
+            bucket="test-zeek-bucket",
+            prefix=f"zeek/{self.acquisition_id}/",
+            generated_objects=generated_logs,
             exit_code=0,
             execution_duration_s=1.0,
             zeek_image="zeek/zeek:lts",
@@ -80,8 +87,8 @@ class TestZeekReader(unittest.TestCase):
             '{"ts": 1700000000.0, "uid": "C123", "id.orig_h": "10.0.0.1"}\n'
             '{"ts": 1700000001.0, "uid": "C456", "id.orig_h": "10.0.0.2"}\n'
         )
-        self._create_log_file("conn.log", content)
-        result = self._create_mock_result(["conn.log"])
+        self._setup_mock_stream(content)
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/conn.log"])
 
         records = list(self.reader.read(result))
 
@@ -98,8 +105,8 @@ class TestZeekReader(unittest.TestCase):
 
     def test_empty_log(self):
         """Test that an empty log yields no records without crashing."""
-        self._create_log_file("dns.log", "")
-        result = self._create_mock_result(["dns.log"])
+        self._setup_mock_stream("")
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/dns.log"])
 
         records = list(self.reader.read(result))
         self.assertEqual(len(records), 0)
@@ -120,8 +127,8 @@ class TestZeekReader(unittest.TestCase):
             '{"ts": 1700000000.0, "uid": "C123"}\n'
             '#close\t2023-11-15\n'
         )
-        self._create_log_file("conn.log", content)
-        result = self._create_mock_result(["conn.log"])
+        self._setup_mock_stream(content)
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/conn.log"])
 
         records = list(self.reader.read(result))
         self.assertEqual(len(records), 1)
@@ -136,8 +143,8 @@ class TestZeekReader(unittest.TestCase):
             '{"ts": 1700000001.0, "uid": "C456, MISSING_QUOTE}\n'
             '{"ts": 1700000002.0, "uid": "C789"}\n'
         )
-        self._create_log_file("conn.log", content)
-        result = self._create_mock_result(["conn.log"])
+        self._setup_mock_stream(content)
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/conn.log"])
 
         records = list(self.reader.read(result))
         self.assertEqual(len(records), 3)
@@ -159,8 +166,8 @@ class TestZeekReader(unittest.TestCase):
             '["not", "a", "dict"]\n'
             '42\n'
         )
-        self._create_log_file("weird.log", content)
-        result = self._create_mock_result(["weird.log"])
+        self._setup_mock_stream(content)
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/weird.log"])
 
         records = list(self.reader.read(result))
         self.assertEqual(len(records), 3)
@@ -170,29 +177,11 @@ class TestZeekReader(unittest.TestCase):
         self.assertIsInstance(records[2], RawZeekErrorRecord)
         self.assertEqual(records[2].error_type, "INVALID_RECORD_TYPE")
 
-    def test_invalid_output_directory(self):
-        """Test that a missing output directory raises an immediate exception."""
-        result = ZeekRunnerResult(
-            acquisition_id=self.acquisition_id,
-            status=ZeekRunnerStatus.SUCCESS,
-            output_directory=Path("/does/not/exist/ever/12345"),
-            generated_logs=["conn.log"],
-            exit_code=0,
-            execution_duration_s=1.0,
-            zeek_image="zeek/zeek:lts",
-            zeek_version="8.0.0",
-            stderr_tail="",
-        )
-
-        with self.assertRaises(ZeekRunnerError) as ctx:
-            list(self.reader.read(result))
-        self.assertEqual(ctx.exception.code, ZeekRunnerErrorCode.OUTPUT_DIR_ERROR)
-
     def test_metadata_preservation(self):
         """Test that acquisition_id, log_type, and line_number are strictly preserved."""
         content = '{"ts": 1.0}\n'
-        self._create_log_file("x509.log", content)
-        result = self._create_mock_result(["x509.log"])
+        self._setup_mock_stream(content)
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/x509.log"])
 
         records = list(self.reader.read(result))
         self.assertEqual(len(records), 1)
@@ -205,24 +194,27 @@ class TestZeekReader(unittest.TestCase):
 
     def test_multiple_different_log_types(self):
         """Test reading multiple different log files sequentially."""
-        self._create_log_file("conn.log", '{"uid": "1"}\n')
-        self._create_log_file("dns.log", '{"uid": "2"}\n')
-        result = self._create_mock_result(["conn.log", "dns.log"])
-
+        self._setup_mock_stream('{"uid": "1"}\n{"uid": "2"}\n')
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/conn.log", f"zeek/{self.acquisition_id}/dns.log"])
+        
         records = list(self.reader.read(result))
-        self.assertEqual(len(records), 2)
+        self.assertEqual(len(records), 4)
         
         self.assertEqual(records[0].log_type, "conn")
         self.assertEqual(records[0].record["uid"], "1")
-        
-        self.assertEqual(records[1].log_type, "dns")
+        self.assertEqual(records[1].log_type, "conn")
         self.assertEqual(records[1].record["uid"], "2")
+        
+        self.assertEqual(records[2].log_type, "dns")
+        self.assertEqual(records[2].record["uid"], "1")
+        self.assertEqual(records[3].log_type, "dns")
+        self.assertEqual(records[3].record["uid"], "2")
 
     def test_memory_efficiency(self):
         """Verify the reader yields incrementally and doesn't read the whole file."""
         content = '{"ts": 1.0}\n{"ts": 2.0}\n'
-        self._create_log_file("conn.log", content)
-        result = self._create_mock_result(["conn.log"])
+        self._setup_mock_stream(content)
+        result = self._create_mock_result([f"zeek/{self.acquisition_id}/conn.log"])
 
         generator = self.reader.read(result)
         self.assertIsInstance(generator, Generator)
@@ -236,14 +228,33 @@ class TestZeekReaderIntegration(unittest.TestCase):
     """Integration test validating ZeekReader consumes ZeekRunner output."""
 
     def setUp(self):
-        self.output_root_temp = tempfile.mkdtemp()
+        import tempfile
         self.evidence_temp = tempfile.mkdtemp()
-        self.runner = ZeekRunner(output_root=self.output_root_temp)
-        self.reader = ZeekReader()
+        from unittest.mock import MagicMock
+        from contextlib import contextmanager
+        self.mock_storage = MagicMock()
+        self.mock_storage.bucket_name = "test-zeek-bucket"
+        self.in_memory_files = {}
+        
+        def mock_upload_file(file_path, object_key):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                self.in_memory_files[object_key] = f.read()
+        self.mock_storage.upload_file = mock_upload_file
+        
+        @contextmanager
+        def mock_stream_file(object_key: str):
+            content = self.in_memory_files.get(object_key, "")
+            lines = content.split('\n')
+            if lines and not lines[-1]:
+                lines.pop()
+            yield lines
+        self.mock_storage.stream_file = mock_stream_file
+
+        self.runner = ZeekRunner(storage=self.mock_storage)
+        self.reader = ZeekReader(storage=self.mock_storage)
 
     def tearDown(self):
         import shutil
-        shutil.rmtree(self.output_root_temp, ignore_errors=True)
         shutil.rmtree(self.evidence_temp, ignore_errors=True)
 
     @unittest.skipIf(not shutil.which("docker"), "Docker not installed")
@@ -273,7 +284,7 @@ class TestZeekReaderIntegration(unittest.TestCase):
         # 3. Run ZeekRunner
         runner_result = self.runner.run(ref)
         self.assertEqual(runner_result.status, ZeekRunnerStatus.SUCCESS)
-        self.assertGreater(len(runner_result.generated_logs), 0)
+        self.assertGreater(len(runner_result.generated_objects), 0)
 
         # 4. Read logs via ZeekReader
         records = list(self.reader.read(runner_result))
