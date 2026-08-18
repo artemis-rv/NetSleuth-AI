@@ -258,6 +258,29 @@ class _Settings:
         """Token expiration time in minutes."""
         return int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
+    # -------------------------------------------------------------------------
+    # LLM / Copilot
+    # -------------------------------------------------------------------------
+
+    @property
+    def ollama_base_url(self) -> str:
+        """
+        Base URL for Ollama local inference.
+        Set via: OLLAMA_BASE_URL
+        Default: http://localhost:11434
+        """
+        return os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+
+    @property
+    def ollama_model(self) -> str:
+        """
+        Ollama model name to use for Copilot capabilities.
+        Set via: OLLAMA_MODEL
+        Default: qwen
+        """
+        return os.environ.get("OLLAMA_MODEL", "qwen")
+
+
 
 #: Module-level singleton — import this in application code.
 settings = _Settings()

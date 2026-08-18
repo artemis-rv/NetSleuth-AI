@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Dict, List
 
-from backend.app.contracts.network_intelligence import Flow, ProtocolEvent, Artifact
-from backend.app.contracts.analysis import Finding
+from app.contracts.network_intelligence import Flow, ProtocolEvent, Artifact
+from app.contracts.analysis import Finding
 
 class TelemetryCapability(BaseModel):
     """Profile of available telemetry in the input package."""

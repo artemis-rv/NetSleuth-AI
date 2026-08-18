@@ -1,6 +1,7 @@
 import os
-import requests
+import httpx
 from typing import Optional
+from app.config import settings
 
 class LLMClientError(Exception):
     pass
@@ -12,34 +13,34 @@ class LLMModelUnavailableError(LLMClientError):
     pass
 
 class AbstractLLMClient:
-    def generate(self, prompt: str, system_instruction: str) -> str:
+    async def generate(self, prompt: str, system_instruction: str) -> str:
         raise NotImplementedError()
 
 class OllamaClient(AbstractLLMClient):
     """
     Lightweight HTTP wrapper around a local Ollama instance.
-    Defaults to OLLAMA_BASE_URL (http://localhost:11434) and OLLAMA_MODEL (qwen2.5)
+    Defaults to OLLAMA_BASE_URL (http://localhost:11434) and OLLAMA_MODEL (qwen)
     """
     def __init__(self, base_url: Optional[str] = None, model: Optional[str] = None):
-        self.base_url = base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model = model or os.environ.get("OLLAMA_MODEL", "qwen")
+        self.base_url = base_url or settings.ollama_base_url
+        self.model = model or settings.ollama_model
         
-    def generate(self, prompt: str, system_instruction: str) -> str:
+    async def generate(self, prompt: str, system_instruction: str) -> str:
         try:
-            resp = requests.post(
-                f"{self.base_url}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "system": system_instruction,
-                    "stream": False,
-                    "format": "json"
-                },
-                timeout=30.0
-            )
-        except requests.exceptions.Timeout:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/generate",
+                    json={
+                        "model": self.model,
+                        "prompt": prompt,
+                        "system": system_instruction,
+                        "stream": False,
+                        "format": "json"
+                    }
+                )
+        except httpx.TimeoutException:
             raise LLMConnectionError("Ollama timeout")
-        except requests.exceptions.ConnectionError:
+        except httpx.RequestError:
             raise LLMConnectionError("Ollama unavailable")
             
         if resp.status_code == 404:

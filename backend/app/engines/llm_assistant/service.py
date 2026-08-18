@@ -27,12 +27,12 @@ class LLMAssistantService:
             if "known malicious" not in ctx_dump and "malicious" not in ctx_dump:
                 raise GroundingError("Ungrounded claim detected: " + text)
 
-    def _execute_raw(self, prompt: str, context: LLMInvestigationContext) -> Dict[str, Any]:
+    async def _execute_raw(self, prompt: str, context: LLMInvestigationContext) -> Dict[str, Any]:
         system_instruction = self.prompts.build_system_instruction()
-        raw_output = self.client.generate(prompt, system_instruction)
+        raw_output = await self.client.generate(prompt, system_instruction)
         return json.loads(raw_output)
 
-    def generate_summary(self, context: LLMInvestigationContext) -> LLMInvestigationResponse:
+    async def generate_summary(self, context: LLMInvestigationContext) -> LLMInvestigationResponse:
         prompt = self.prompts.build_summary_prompt(context)
         req_id = str(uuid.uuid4())
         base_resp = LLMInvestigationResponse(
@@ -42,7 +42,7 @@ class LLMAssistantService:
         )
         
         try:
-            data = self._execute_raw(prompt, context)
+            data = await self._execute_raw(prompt, context)
             summary = data.get("summary", "")
             self._validate_groundedness(summary, context)
             
@@ -61,7 +61,7 @@ class LLMAssistantService:
             
         return base_resp
 
-    def generate_mitre_explanation(self, context: LLMInvestigationContext, technique_id: str) -> LLMInvestigationResponse:
+    async def generate_mitre_explanation(self, context: LLMInvestigationContext, technique_id: str) -> LLMInvestigationResponse:
         prompt = self.prompts.build_mitre_explanation_prompt(context, technique_id)
         req_id = str(uuid.uuid4())
         base_resp = LLMInvestigationResponse(
@@ -71,7 +71,7 @@ class LLMAssistantService:
         )
         
         try:
-            data = self._execute_raw(prompt, context)
+            data = await self._execute_raw(prompt, context)
             returned_tech = data.get("technique_id")
             explanation = data.get("explanation", "")
             
@@ -110,7 +110,7 @@ class LLMAssistantService:
             
         return base_resp
 
-    def generate_qa(self, context: LLMInvestigationContext, question: str) -> LLMInvestigationResponse:
+    async def generate_qa(self, context: LLMInvestigationContext, question: str) -> LLMInvestigationResponse:
         prompt = self.prompts.build_qa_prompt(context, question)
         req_id = str(uuid.uuid4())
         base_resp = LLMInvestigationResponse(
@@ -120,7 +120,7 @@ class LLMAssistantService:
         )
         
         try:
-            data = self._execute_raw(prompt, context)
+            data = await self._execute_raw(prompt, context)
             answer = data.get("answer", "")
             self._validate_groundedness(answer, context)
             
