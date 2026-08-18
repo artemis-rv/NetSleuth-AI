@@ -47,7 +47,17 @@ const TABS = [
   { id: 'reports', label: 'Reports', active: false },
 ] as const;
 
+import { AcquisitionSection } from '../../acquisition/components/AcquisitionSection';
+import { AnalysisSection } from '../../analysis/components/AnalysisSection';
+import { useAcquisitions, useEvidence } from '../../acquisition/hooks';
+
 function CaseOverview({ caseData }: { caseData: CaseResponse }) {
+  const { data: acquisitions } = useAcquisitions(caseData.case_id);
+  const { data: evidence } = useEvidence(caseData.case_id);
+
+  const activeAcquisition = acquisitions?.items?.[0];
+  const activeEvidence = evidence?.items?.[0];
+
   return (
     <div className="space-y-6">
       {/* Trigger Panel */}
@@ -101,6 +111,19 @@ function CaseOverview({ caseData }: { caseData: CaseResponse }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Acquisition Section */}
+      <AcquisitionSection 
+        caseId={caseData.case_id} 
+        acquisition={activeAcquisition} 
+        evidence={activeEvidence} 
+      />
+
+      {/* Analysis Section */}
+      <AnalysisSection 
+        caseId={caseData.case_id} 
+        acquisitionId={activeAcquisition?.acquisition_id} 
+      />
 
       {/* Metadata Panel */}
       <Card>
