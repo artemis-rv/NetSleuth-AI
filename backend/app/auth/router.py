@@ -86,3 +86,23 @@ async def read_users_me(current_user: UserModel = Depends(get_current_user)):
         "is_active": current_user.is_active,
         "last_login_at": current_user.last_login_at
     }
+
+@router.post("/logout")
+async def logout(
+    request: Request,
+    current_user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    await log_audit_event(
+        db=db,
+        action="logout",
+        target_entity_type="system",
+        target_entity_id="auth",
+        result="success",
+        actor_id=current_user.user_id,
+        actor_name=current_user.username,
+        source_ip=get_client_ip(request)
+    )
+    await db.commit()
+    return {"message": "Successfully logged out"}
+

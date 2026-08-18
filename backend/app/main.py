@@ -176,6 +176,16 @@ def create_app() -> FastAPI:
     # -------------------------------------------------------------------------
     # 3. Base Platform Health Endpoints
     # -------------------------------------------------------------------------
+    @application.get("/", tags=["System"])
+    async def root_welcome() -> Dict[str, str]:
+        """Root endpoint: provides system info and docs link."""
+        return {
+            "name": settings.app_name,
+            "version": settings.app_version,
+            "status": "running",
+            "documentation": "/docs"
+        }
+
     @application.get("/health", tags=["System"])
     async def health_check() -> Dict[str, str]:
         """Liveness probe: verifies process is alive."""
