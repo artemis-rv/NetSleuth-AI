@@ -1,0 +1,30 @@
+{
+  "schema_version": "report-v1.3",
+  "report_id": "RPT-CASE-2",
+  "case_id": "CASE-2",
+  "generated_at": "2026-08-18T12:00:00Z",
+  "generator_version": "NetSleuth-AI M4 v1.0",
+  "summary": {
+    "case_title": "Test Case 2",
+    "case_status": "open",
+    "total_findings": 0,
+    "total_timeline_events": 0,
+    "total_evidence_references": 0,
+    "verified_evidence_count": 0,
+    "mismatched_evidence_count": 0,
+    "unverified_evidence_count": 0
+  },
+  "findings": [],
+  "timeline": [],
+  "entities": [],
+  "relationships": [],
+  "evidence_integrity": [],
+  "assessment": {
+    "summary": "This is a summary without formal investigation conclusions",
+    "facts": [],
+    "hypotheses": [],
+    "hypothesis_validations": [],
+    "root_causes": [],
+    "impact_assessments": []
+  }
+}

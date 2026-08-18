@@ -24,6 +24,10 @@ from app.engines.analysis.persistence_service import M2PersistenceService
 
 # M3
 from app.engines.correlation.investigation.case_builder import InvestigationCaseBuilder
+from app.engines.correlation.investigation.hypothesis_generator import HypothesisGenerator
+from app.engines.correlation.investigation.hypothesis_validator import HypothesisValidator
+from app.engines.correlation.investigation.root_cause_analyzer import RootCauseAnalyzer
+from app.engines.correlation.investigation.impact_assessor import ImpactAssessor
 from app.engines.correlation.domain.investigation import InvestigationContext
 from app.engines.correlation.persistence_service import M3PersistenceService
 
@@ -54,6 +58,12 @@ class ForensicPipelineOrchestrator:
         self.m3_builder = m3_builder
         self.m4_engine = m4_engine
         self.llm_service = llm_service
+        
+        # M3 Investigation Engines
+        self.hypothesis_generator = HypothesisGenerator()
+        self.hypothesis_validator = HypothesisValidator()
+        self.root_cause_analyzer = RootCauseAnalyzer()
+        self.impact_assessor = ImpactAssessor()
         
         # Persistence Services
         self.m1_persistence = m1_persistence
@@ -221,7 +231,13 @@ class ForensicPipelineOrchestrator:
             mappings = mapper.map_finding(m3_input, finding.finding_id)
             ctx.mitre_mappings.extend(mappings)
         
-        # 3d. Investigation Case Builder (Attack Chain & Formatting)
+        # 3d. Investigation Engine
+        ctx.hypotheses = self.hypothesis_generator.generate(ctx, m3_input)
+        ctx.hypothesis_validations = self.hypothesis_validator.validate(ctx, m3_input)
+        ctx.root_causes = self.root_cause_analyzer.analyze(ctx, m3_input)
+        ctx.impact_assessments = self.impact_assessor.analyze(ctx, m3_input)
+        
+        # 3e. Investigation Case Builder (Attack Chain & Formatting)
         m3_case_dict = self.m3_builder.build(ctx)
         case_id = m3_case_dict["case_id"]
         

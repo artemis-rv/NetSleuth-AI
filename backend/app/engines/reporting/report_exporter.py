@@ -33,6 +33,10 @@ class ReportExporter:
             schema_file = "report-v1.json"
         elif schema_version == "report-v1.1":
             schema_file = "report-v1.1.json"
+        elif schema_version == "report-v1.2":
+            schema_file = "report-v1.2.json"
+        elif schema_version == "report-v1.3":
+            schema_file = "report-v1.3.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 

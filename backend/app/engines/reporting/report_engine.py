@@ -97,6 +97,10 @@ class ReportEngine:
             case_schema_file = "investigation-case-v1.2.json"
             out_schema_version = "report-v1.2"
             out_schema_file = "report-v1.2.json"
+        elif schema_version == "investigation-case-v1.3":
+            case_schema_file = "investigation-case-v1.3.json"
+            out_schema_version = "report-v1.3"
+            out_schema_file = "report-v1.3.json"
         else:
             raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
 
@@ -191,12 +195,28 @@ class ReportEngine:
         }
 
         if case_data.get("assessment") is not None:
-            report_payload["assessment"] = case_data["assessment"]
+            if schema_version == "investigation-case-v1.3":
+                # For V1.3, we preserve facts if present, and explicitly project new arrays
+                assm = {"summary": "Investigation Engine Results"}
+                if "facts" in case_data["assessment"]:
+                    assm["facts"] = case_data["assessment"]["facts"]
+                if "hypotheses" in case_data["assessment"]:
+                    assm["hypotheses"] = [self._project_hypothesis(h) for h in case_data["assessment"]["hypotheses"]]
+                if "hypothesis_validations" in case_data["assessment"]:
+                    assm["hypothesis_validations"] = [self._project_hypothesis_validation(hv) for hv in case_data["assessment"]["hypothesis_validations"]]
+                if "root_causes" in case_data["assessment"]:
+                    assm["root_causes"] = [self._project_root_cause(rc) for rc in case_data["assessment"]["root_causes"]]
+                if "impact_assessments" in case_data["assessment"]:
+                    assm["impact_assessments"] = [self._project_impact_assessment(ia) for ia in case_data["assessment"]["impact_assessments"]]
+                report_payload["assessment"] = assm
+            else:
+                report_payload["assessment"] = case_data["assessment"]
+                
         if case_data.get("provenance") is not None:
             report_payload["provenance"] = case_data["provenance"]
 
-        # 9. Project V1.1 MITRE intelligence for V1.2 cases
-        if schema_version == "investigation-case-v1.2":
+        # 9. Project V1.1 MITRE intelligence for V1.2 and V1.3 cases
+        if schema_version in ("investigation-case-v1.2", "investigation-case-v1.3"):
             if "mitre_mappings" in case_data and case_data["mitre_mappings"] is not None:
                 report_payload["mitre_mappings"] = [self._project_mitre_mapping(m) for m in case_data["mitre_mappings"]]
             if "mitre_provenance" in case_data and case_data["mitre_provenance"] is not None:
@@ -253,3 +273,69 @@ class ReportEngine:
                 projected_stages.append(pst)
             pac["stages"] = projected_stages
         return pac
+
+    def _project_hypothesis(self, h: Dict[str, Any]) -> Dict[str, Any]:
+        ph: Dict[str, Any] = {
+            "hypothesis_id": h["hypothesis_id"],
+            "statement": h["statement"],
+            "hypothesis_type": h["hypothesis_type"],
+            "status": h["status"],
+            "confidence": h["confidence"],
+            "supporting_evidence_ids": list(h["supporting_evidence_ids"])
+        }
+        for k in (
+            "supporting_finding_ids", "related_entity_ids", "related_mitre_mapping_ids",
+            "first_seen", "last_seen", "supporting_reasons", "missing_evidence"
+        ):
+            if k in h:
+                ph[k] = h[k]
+        return ph
+
+    def _project_hypothesis_validation(self, hv: Dict[str, Any]) -> Dict[str, Any]:
+        phv: Dict[str, Any] = {
+            "validation_id": hv["validation_id"],
+            "hypothesis_id": hv["hypothesis_id"],
+            "validation_status": hv["validation_status"],
+            "confidence": hv["confidence"],
+            "validated_at": hv["validated_at"]
+        }
+        for k in (
+            "supporting_evidence_ids", "contradicting_evidence_ids", 
+            "supporting_reasons", "contradicting_reasons", "missing_evidence"
+        ):
+            if k in hv:
+                phv[k] = hv[k]
+        return phv
+
+    def _project_root_cause(self, rc: Dict[str, Any]) -> Dict[str, Any]:
+        prc: Dict[str, Any] = {
+            "root_cause_id": rc["root_cause_id"],
+            "statement": rc["statement"],
+            "status": rc["status"],
+            "confidence": rc["confidence"],
+            "supporting_evidence_ids": list(rc["supporting_evidence_ids"])
+        }
+        for k in (
+            "supporting_hypothesis_ids", "supporting_finding_ids",
+            "rationale", "missing_evidence"
+        ):
+            if k in rc:
+                prc[k] = rc[k]
+        return prc
+
+    def _project_impact_assessment(self, ia: Dict[str, Any]) -> Dict[str, Any]:
+        pia: Dict[str, Any] = {
+            "impact_id": ia["impact_id"],
+            "category": ia["category"],
+            "statement": ia["statement"],
+            "status": ia["status"],
+            "confidence": ia["confidence"],
+            "supporting_evidence_ids": list(ia["supporting_evidence_ids"])
+        }
+        for k in (
+            "supporting_finding_ids", "affected_entity_ids",
+            "rationale", "missing_evidence"
+        ):
+            if k in ia:
+                pia[k] = ia[k]
+        return pia
