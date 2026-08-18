@@ -61,15 +61,40 @@ async def get_finding(
     
     if not case_id:
         # Cannot authorize if not linked to a case
-        await log_audit_event(db, "UNAUTHORIZED_FINDING_ACCESS", user.user_id, str(finding_id), "Finding not linked to a case")
-        from fastapi import HTTPException
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_FINDING_ACCESS",
+            target_entity_type="finding",
+            target_entity_id=str(finding_id),
+            result="failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            metadata={"reason": "Finding not linked to a case"}
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
         
     try:
         await verify_case_access_direct(case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_FINDING_ACCESS", user.user_id, str(finding_id), "User lacks access to finding's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_FINDING_ACCESS",
+            target_entity_type="finding",
+            target_entity_id=str(finding_id),
+            result="failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            metadata={"reason": "User lacks access to finding case"}
+        )
         raise e
         
-    await log_audit_event(db, "FINDING_VIEWED", user.user_id, str(finding_id))
+    await log_audit_event(
+        db=db,
+        action="FINDING_VIEWED",
+        target_entity_type="finding",
+        target_entity_id=str(finding_id),
+        result="success",
+        actor_id=user.user_id,
+        actor_name=user.username
+    )
     return finding

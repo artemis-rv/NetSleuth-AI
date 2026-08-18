@@ -39,7 +39,16 @@ async def get_report(
     try:
         await verify_case_access_direct(report.case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_REPORT_ACCESS", user.user_id, str(report_id), "User lacks access to report's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_REPORT_ACCESS",
+            target_entity_type="report",
+            target_entity_id=str(report_id),
+            result="failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            metadata={"reason": "User lacks access to report case"}
+        )
         raise e
         
     return report

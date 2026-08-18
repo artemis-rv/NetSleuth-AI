@@ -42,7 +42,16 @@ async def get_evidence_item(
     try:
         await verify_case_access_direct(item.case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_CUSTODY_ACCESS", user.user_id, str(item_id), "User lacks access to evidence item's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_CUSTODY_ACCESS",
+            target_entity_type="custody_item",
+            target_entity_id=str(item_id),
+            result="failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            metadata={"reason": "User lacks access to evidence item case"}
+        )
         raise e
         
     return item
@@ -63,7 +72,16 @@ async def list_item_custody_events(
     try:
         await verify_case_access_direct(item.case_id, user, db)
     except Exception as e:
-        await log_audit_event(db, "UNAUTHORIZED_CUSTODY_ACCESS", user.user_id, str(item_id), "User lacks access to evidence item's case")
+        await log_audit_event(
+            db=db,
+            action="UNAUTHORIZED_CUSTODY_ACCESS",
+            target_entity_type="custody_item",
+            target_entity_id=str(item_id),
+            result="failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            metadata={"reason": "User lacks access to evidence item case"}
+        )
         raise e
         
     return await service.list_events_by_item(item_id=item_id, page=page, page_size=page_size)
