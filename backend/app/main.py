@@ -49,6 +49,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await close_db()
 
 
+def _cors_headers(request: Request) -> Dict[str, str]:
+    origin = request.headers.get("origin")
+    request_id = _get_request_id(request)
+    headers = {REQUEST_ID_HEADER: request_id}
+    if origin and (origin in settings.cors_origins or "*" in settings.cors_origins):
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Access-Control-Allow-Methods"] = "*"
+        headers["Access-Control-Allow-Headers"] = "*"
+    elif settings.cors_origins:
+        headers["Access-Control-Allow-Origin"] = settings.cors_origins[0]
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Access-Control-Allow-Methods"] = "*"
+        headers["Access-Control-Allow-Headers"] = "*"
+    return headers
+
+
 def create_app() -> FastAPI:
     """
     Application factory for NetSleuth-AI backend.
@@ -83,7 +100,7 @@ def create_app() -> FastAPI:
     application.add_middleware(RequestIdMiddleware)
 
     # -------------------------------------------------------------------------
-    # 2. Register Global Exception Handlers (Standardized Error Envelope)
+    # 2. Register Global Exception Handlers (Standardized Error Envelope with CORS)
     # -------------------------------------------------------------------------
     @application.exception_handler(ApplicationError)
     async def application_error_handler(request: Request, exc: ApplicationError) -> JSONResponse:
@@ -99,7 +116,7 @@ def create_app() -> FastAPI:
         return JSONResponse(
             status_code=exc.status_code,
             content={"error": error_payload},
-            headers={REQUEST_ID_HEADER: request_id},
+            headers=_cors_headers(request),
         )
 
     @application.exception_handler(RequestValidationError)
@@ -115,7 +132,7 @@ def create_app() -> FastAPI:
                     "details": exc.errors(),
                 }
             },
-            headers={REQUEST_ID_HEADER: request_id},
+            headers=_cors_headers(request),
         )
 
     @application.exception_handler(StarletteHTTPException)
@@ -140,7 +157,7 @@ def create_app() -> FastAPI:
                     "request_id": request_id,
                 }
             },
-            headers={REQUEST_ID_HEADER: request_id},
+            headers=_cors_headers(request),
         )
 
     @application.exception_handler(Exception)
@@ -156,7 +173,7 @@ def create_app() -> FastAPI:
                     "request_id": request_id,
                 }
             },
-            headers={REQUEST_ID_HEADER: request_id},
+            headers=_cors_headers(request),
         )
 
     # -------------------------------------------------------------------------

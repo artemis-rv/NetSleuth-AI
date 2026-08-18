@@ -11,7 +11,7 @@ class FlowListItem(BaseModel):
     dst_ip: str
     dst_port: int
     protocol: str
-    service: str
+    service: Optional[str] = None
     duration: Optional[float] = None
     orig_bytes: Optional[int] = None
     resp_bytes: Optional[int] = None
@@ -21,7 +21,7 @@ class FlowListItem(BaseModel):
 
 class FlowDetailResponse(FlowListItem):
     acquisition_id: UUID
-    zeek_uid: str
+    zeek_uid: Optional[str] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     orig_packets: Optional[int] = None
@@ -42,10 +42,10 @@ class FlowListResponse(BaseModel):
 class ProtocolEventResponse(BaseModel):
     event_id: UUID
     flow_id: UUID
-    zeek_uid: str
+    zeek_uid: Optional[str] = None
     protocol: str
     timestamp: datetime
-    protocol_data: Dict[str, Any]
+    protocol_data: Optional[Dict[str, Any]] = None
     provenance: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
