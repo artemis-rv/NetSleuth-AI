@@ -177,11 +177,69 @@ You should see `netsleuth-minio` with status `(healthy)`.
 Open the MinIO Console in your browser: **http://localhost:9001**  
 Log in with the credentials you set in `.env`.
 
-### 5 — Stop the infrastructure
+### 5 — Set up the Python Backend
+
+Create a Python virtual environment, activate it, and install all dependencies:
 
 ```bash
-docker compose down          # stops containers, keeps your data
-docker compose down -v       # stops containers AND deletes all stored data (careful)
+# Navigate to backend
+cd backend
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# On Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+# On Linux / macOS / Git Bash:
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 6 — Apply Database Migrations
+
+Apply the database schema changes using Alembic:
+
+```bash
+# Ensure you are in /backend directory and your .venv is active
+alembic upgrade head
+```
+
+### 7 — Start the Backend Server
+
+Start the FastAPI application development server:
+
+```bash
+# From the /backend directory
+python -m uvicorn app.main:create_app --factory --reload --port 8000
+```
+
+### 8 — Set up the Frontend Client
+
+Ensure Node.js is installed. Then install dependency packages and launch the Vite React developer server:
+
+```bash
+# Navigate to the frontend directory
+cd ../frontend
+
+# Install node dependencies
+npm install
+
+# Start Vite development server
+npm run dev
+```
+
+The frontend application will be running at **http://localhost:5173** and automatically proxy/request the backend server at **http://localhost:8000**.
+
+### 9 — Stop the Docker Infrastructure
+
+When you are done with development:
+
+```bash
+docker compose down          # stops containers, keeps database and MinIO volumes
+docker compose down -v       # stops containers AND destroys database and MinIO volumes (deletes all data)
 ```
 
 ---
@@ -196,7 +254,7 @@ docker compose down -v       # stops containers AND deletes all stored data (car
 | `netsleuth-models` | Trained ML model artifacts |
 | `netsleuth-reports` | Generated forensic reports and exports |
 
-Buckets are created automatically when you run `docker compose up`. You do not need to create them manually.
+Buckets are created automatically when you run `docker compose up` through the MinIO initializer service.
 
 ---
 

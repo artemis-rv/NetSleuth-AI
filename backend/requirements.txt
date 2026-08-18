@@ -1,0 +1,41 @@
+# =============================================================================
+# NetSleuth-AI — Backend Requirements
+# =============================================================================
+
+# Core Web Framework
+fastapi==0.141.1
+uvicorn==0.52.3
+pydantic==2.13.4
+python-multipart==0.0.32
+
+# Database & Migrations
+SQLAlchemy==2.0.52
+asyncpg==0.31.0
+alembic==1.19.1
+greenlet==3.5.5
+
+# Security & Authentication
+bcrypt==3.2.2
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.5.0
+cryptography==50.0.0
+
+# Async IO & HTTP Client
+httpx==0.28.1
+aiofiles==25.1.0
+
+# MinIO / S3 Object Storage Connection
+aioboto3==15.5.0
+aiobotocore==2.25.1
+boto3==1.40.61
+botocore==1.40.61
+
+# Machine Learning & Data Processing
+numpy==2.5.2
+pandas==3.0.5
+scikit-learn==1.9.0
+scipy==1.18.0
+
+# Testing
+pytest==9.1.1
+pytest-asyncio==1.4.0
