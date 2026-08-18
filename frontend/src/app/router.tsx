@@ -38,15 +38,7 @@ export const router = createBrowserRouter([
             path: 'investigations/:caseId',
             element: <CaseDetailPage />,
           },
-          // Future phases — placeholder routes preserved for FE-0 sidebar compatibility
-          {
-            path: 'network',
-            element: <NotFoundPage />,
-          },
-          {
-            path: 'timeline',
-            element: <NotFoundPage />,
-          },
+          // These are now tab views inside investigations/:caseId
           {
             path: 'evidence',
             element: <NotFoundPage />,
