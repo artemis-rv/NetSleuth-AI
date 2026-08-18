@@ -9,7 +9,7 @@ from __future__ import annotations
 import unittest
 from datetime import datetime, timezone
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     ArtifactType,
     DNSData,
     EventProvenance,
@@ -17,7 +17,7 @@ from backend.app.contracts.network_intelligence import (
     ProtocolEvent,
     TLSData,
 )
-from backend.app.engines.packet_intelligence.artifacts import ArtifactExtractor
+from app.engines.packet_intelligence.artifacts import ArtifactExtractor
 
 
 class TestArtifactExtractor(unittest.TestCase):

@@ -14,8 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Generator
 
-from backend.app.contracts.network_intelligence import AcquisitionReference, Provenance
-from backend.app.engines.packet_intelligence.zeek import (
+from app.contracts.network_intelligence import AcquisitionReference, Provenance
+from app.engines.packet_intelligence.zeek import (
     RawZeekErrorRecord,
     RawZeekRecord,
     ZeekReader,

@@ -7,7 +7,7 @@ M2 Phase 3 Feature Extraction module tests.
 import unittest
 from datetime import datetime, timezone
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     NetworkIntelligencePackage,
     Flow,
     Endpoint,
@@ -18,8 +18,8 @@ from backend.app.contracts.network_intelligence import (
     FlowProvenance,
     EventProvenance,
 )
-from backend.app.contracts.feature_schema import FeatureName
-from backend.app.engines.analysis.features.extractor import extract_all_features
+from app.contracts.feature_schema import FeatureName
+from app.engines.analysis.features.extractor import extract_all_features
 
 ACQ_ID = "ACQ-123"
 PKG_ID = "PKG-123"

@@ -11,10 +11,10 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import DNSData, ProtocolEvent, Flow
-from backend.app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, DNSAdapter, ConnAdapter
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
-from backend.app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
+from app.contracts.network_intelligence import DNSData, ProtocolEvent, Flow
+from app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, DNSAdapter, ConnAdapter
+from app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
+from app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
 
 
 class TestDNSAdapter(unittest.TestCase):

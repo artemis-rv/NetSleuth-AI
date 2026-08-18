@@ -10,10 +10,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import ProtocolEvent, TLSData, Flow
-from backend.app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, TLSAdapter, ConnAdapter
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
-from backend.app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
+from app.contracts.network_intelligence import ProtocolEvent, TLSData, Flow
+from app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, TLSAdapter, ConnAdapter
+from app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
+from app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
 
 
 class TestTLSAdapter(unittest.TestCase):

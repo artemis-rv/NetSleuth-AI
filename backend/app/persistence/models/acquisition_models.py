@@ -41,3 +41,16 @@ class EvidenceModel(Base):
     registered_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
 
     acquisition = relationship("AcquisitionModel", back_populates="evidence")
+
+    @property
+    def file_name(self) -> str:
+        return self.acquisition.file_name if self.acquisition else ""
+
+    @property
+    def format(self) -> str:
+        return self.acquisition.format if self.acquisition else ""
+
+    @property
+    def status(self) -> str:
+        return self.acquisition.status if self.acquisition else ""
+

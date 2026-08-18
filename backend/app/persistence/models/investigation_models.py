@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Float, text, ForeignKey, Table, JSON, CheckConstraint
+from sqlalchemy import Column, String, Float, Integer, text, ForeignKey, Table, JSON, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP, JSONB, ARRAY
 from sqlalchemy.orm import relationship
 
@@ -107,6 +107,26 @@ class MitreMappingModel(Base):
     justification = Column(String, nullable=True)
     confidence = Column(Float, nullable=True)
     mapped_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
+
+class AnalysisJobModel(Base):
+    __tablename__ = "analysis_jobs"
+    __table_args__ = {"schema": "investigation"}
+
+    analysis_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
+    acquisition_id = Column(UUID(as_uuid=True), ForeignKey("acquisition.acquisitions.acquisition_id", ondelete="RESTRICT"), nullable=False)
+    status = Column(String, nullable=False)
+    current_stage = Column(String, nullable=True)
+    progress = Column(Integer, nullable=True)
+    error_code = Column(String, nullable=True)
+    error_message = Column(String, nullable=True)
+    started_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    completed_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+
 
 class TimelineEventModel(Base):
     __tablename__ = "timeline_events"

@@ -9,7 +9,7 @@ from __future__ import annotations
 import unittest
 from datetime import datetime, timezone
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     Artifact,
     ArtifactProvenance,
     ArtifactType,
@@ -17,7 +17,7 @@ from backend.app.contracts.network_intelligence import (
     EventProvenance,
     ProtocolEvent,
 )
-from backend.app.engines.packet_intelligence.provenance import (
+from app.engines.packet_intelligence.provenance import (
     ProvenanceError,
     ProvenanceErrorCode,
     ProvenanceValidator,

@@ -10,10 +10,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import HTTPData, ProtocolEvent, Flow
-from backend.app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, HTTPAdapter, ConnAdapter
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
-from backend.app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
+from app.contracts.network_intelligence import HTTPData, ProtocolEvent, Flow
+from app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, HTTPAdapter, ConnAdapter
+from app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
+from app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
 
 
 class TestHTTPAdapter(unittest.TestCase):

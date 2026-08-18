@@ -37,6 +37,37 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 
 ---
 
+## Data Storage Architecture
+
+NetSleuth-AI uses a dual-storage pattern separating structured relational metadata from raw binary objects.
+
+### 1. PostgreSQL Relational Database (`netsleuth`)
+**Connection**: `postgresql://postgres:postgres@localhost:15432/netsleuth` (host `15432` → container `5432`)
+
+| Schema | Role / Data Stored | Key Entities |
+|--------|--------------------|--------------|
+| `identity` | Users, authentication credentials, RBAC roles (`administrator`, `investigator`, `analyst`), case access control lists | `users`, `case_access` |
+| `investigation` | Investigation cases, trigger events, goals, attack chain stages, timeline context, persistent `analysis_jobs` | `investigation_cases`, `analysis_jobs`, `case_acquisition_links` |
+| `acquisition` | Acquisition file metadata, source type, format, SHA-256 hashes, status tracking | `acquisitions`, `evidence` |
+| `packet_intel` | Normalized network flows, protocol events (DNS, HTTP, TLS), extracted indicators/artifacts | `flows`, `protocol_events`, `artifacts` |
+| `analysis` | Statistical flow metrics, ML feature vectors, model predictions, generated findings packages | `feature_vectors`, `findings_packages` |
+| `correlation` | Aggregated threat context, MITRE ATT&CK technique mappings, attack graph nodes/edges | `timeline_events`, `mitre_mappings`, `attack_graphs` |
+| `evidence` | Cryptographic evidence metadata, integrity verification logs | `evidence_packages`, `verification_logs` |
+| `audit` | Immutable security and operation audit trail | `audit_events` |
+
+### 2. MinIO Object Storage (S3-Compatible)
+**Connection**: `http://localhost:9000` (S3 API) \| `http://localhost:9001` (Web Console)
+
+| Storage Bucket | Role / Data Stored | Object Key Structure |
+|----------------|--------------------|----------------------|
+| `netsleuth-evidence` (or `evidence`) | Authoritative original raw PCAP/PCAPNG capture files | `evidence/{acquisition_id}/{file_name}` |
+| `netsleuth-zeek` | Intermediate raw Zeek log files (`conn.log`, `dns.log`, `http.log`, `ssl.log`) | `zeek/{acquisition_id}/conn.log` |
+| `netsleuth-datasets` | Feature extraction & ML model evaluation datasets | `datasets/{dataset_id}/data.parquet` |
+| `netsleuth-models` | Serialized ML model weights, scaler artifacts, and detection parameters | `models/{model_id}/model.pt` |
+| `netsleuth-reports` | Generated forensic investigation reports (JSON/PDF) and exported evidence zip packages | `reports/{case_id}/{report_id}.json` / `.pdf` |
+
+---
+
 ## What Is Already Implemented
 
 ### M1 — Packet Intelligence (Complete)
@@ -83,13 +114,14 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 - **APP-1 (Authentication & RBAC)**: JWT authentication, password hashing (`passlib`/`bcrypt`), Role-Based Access Control (`administrator`, `investigator`, `analyst`), case-level access policies, and standard security auditing (`audit.audit_events`).
 - **APP-2 (Case Management APIs)**: Investigation case management endpoints (`POST /cases`, `GET /cases`, `GET /cases/{case_id}`, `PATCH /cases/{case_id}`), Pydantic contracts, strict pagination, safe filter/sort options, and status transition workflows.
 - **APP-3 (Acquisition & Evidence APIs)**: MinIO integration for original PCAP storage, explicit transactional coordination with PostgreSQL, streaming integrity checks (SHA-256), orchestration with M1 Acquisition Engine, orphaned object handling, and case-scoped authorization endpoints (`/api/v1/cases/{case_id}/acquisitions`, `/api/v1/evidence/{evidence_id}`).
+- **APP-4 (Analysis & Orchestration APIs)**: Asynchronous end-to-end analysis orchestration (M1 → M2 → M3 → M4), persistent `analysis_jobs` database tracking, status polling, stage progress monitoring, idempotency guards (at most one active analysis per acquisition), and full integration testing (`/api/v1/cases/{case_id}/analysis`).
 
 ---
 
 ## Integration Status & Next Steps
 
 - **Pipeline Orchestration**: Unified M1 -> M2 -> M3 -> M4 pipeline operational.
-- **Application Layer**: APP-0, APP-1, APP-2, and APP-3 completed with full integration test coverage.
+- **Application Layer**: APP-0, APP-1, APP-2, APP-3, and APP-4 completed with full integration test coverage.
 - **Next Steps**: FE-0 — Frontend App Shell + Design System + Authenticated Routing.
 
 ---

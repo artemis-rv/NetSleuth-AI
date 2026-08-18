@@ -4,7 +4,7 @@ from pathlib import Path
 from copy import deepcopy
 
 try:
-    from backend.app.shared.contract_validation import ContractValidator
+    from app.shared.contract_validation import ContractValidator
 except ImportError:
     from src.shared.contract_validation import ContractValidator
 

@@ -3,11 +3,11 @@ import json
 from pathlib import Path
 from copy import deepcopy
 
-from backend.app.shared.contract_validation import ContractValidator
-from backend.app.engines.reporting.report_engine import ReportEngine
-from backend.app.engines.reporting.report_exporter import ReportExporter
-from backend.app.engines.reporting.html_renderer import HTMLReportRenderer
-from backend.app.engines.reporting.pdf_renderer import PDFReportRenderer
+from app.shared.contract_validation import ContractValidator
+from app.engines.reporting.report_engine import ReportEngine
+from app.engines.reporting.report_exporter import ReportExporter
+from app.engines.reporting.html_renderer import HTMLReportRenderer
+from app.engines.reporting.pdf_renderer import PDFReportRenderer
 
 class TestReportPresentation(unittest.TestCase):
     def setUp(self):

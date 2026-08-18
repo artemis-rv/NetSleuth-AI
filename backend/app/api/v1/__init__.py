@@ -23,6 +23,7 @@ from app.api.v1.custody import router as custody_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.copilot import router as copilot_router
 from app.api.v1.admin import router as admin_router
+from app.api.v1.investigation import router as investigation_router
 
 v1_router = APIRouter(prefix="/v1")
 
@@ -42,6 +43,7 @@ v1_router.include_router(custody_router)
 v1_router.include_router(reports_router)
 v1_router.include_router(copilot_router)
 v1_router.include_router(admin_router)
+v1_router.include_router(investigation_router)
 
 __all__ = [
     "v1_router",

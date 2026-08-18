@@ -45,7 +45,10 @@ async def get_current_user(
     
     if user is None or not user.is_active:
         raise credentials_exception
-        
+    
+    # Touch attributes to load them into __dict__ and expunge from session
+    _ = (user.user_id, user.username, user.email, user.role, user.is_active)
+    db.expunge(user)
     return user
 
 class RequireRole:

@@ -32,6 +32,58 @@ class FindingRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def list_by_case(
+        self,
+        case_id: UUID,
+        skip: int = 0,
+        limit: int = 50,
+        activity: Optional[str] = None,
+        decision_state: Optional[str] = None,
+        min_risk: Optional[float] = None
+    ) -> List[FindingModel]:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        
+        stmt = select(FindingModel).join(
+            case_acquisition_links,
+            FindingModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if activity:
+            stmt = stmt.where(FindingModel.activity == activity)
+        if decision_state:
+            stmt = stmt.where(FindingModel.decision_state == decision_state)
+        if min_risk is not None:
+            stmt = stmt.where(FindingModel.risk_score >= min_risk)
+            
+        stmt = stmt.order_by(FindingModel.detected_at.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+        
+    async def count_by_case(
+        self,
+        case_id: UUID,
+        activity: Optional[str] = None,
+        decision_state: Optional[str] = None,
+        min_risk: Optional[float] = None
+    ) -> int:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        from sqlalchemy import func
+        
+        stmt = select(func.count(FindingModel.finding_id)).join(
+            case_acquisition_links,
+            FindingModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if activity:
+            stmt = stmt.where(FindingModel.activity == activity)
+        if decision_state:
+            stmt = stmt.where(FindingModel.decision_state == decision_state)
+        if min_risk is not None:
+            stmt = stmt.where(FindingModel.risk_score >= min_risk)
+            
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
 class ModelRegistryRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

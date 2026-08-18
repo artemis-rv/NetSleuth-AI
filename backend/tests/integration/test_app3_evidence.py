@@ -25,7 +25,7 @@ async def test_upload_and_verify_evidence(client: TestClient, setup_users_cases)
     test_case_id = str(setup_users_cases["case_inv1"].case_id)
     
     # 1. Upload
-    file_content = b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00" 
+    file_content = b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00" + uuid.uuid4().bytes
     files = {"file": ("test_verify.pcap", file_content, "application/vnd.tcpdump.pcap")}
     
     resp1 = client.post(f"/api/v1/cases/{test_case_id}/acquisitions", headers=headers, files=files)
