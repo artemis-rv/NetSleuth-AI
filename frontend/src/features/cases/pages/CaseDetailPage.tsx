@@ -89,7 +89,7 @@ type InvestigationSubTabId = (typeof INVESTIGATION_SUBTABS)[number]['id'];
 
 
 // ─── Case Overview (FE-2) ────────────────────────────────────────────────────
-function CaseOverview({ caseData }: { caseData: CaseResponse }) {
+function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTabChange?: (tab: TabId) => void }) {
   const { data: acquisitions } = useAcquisitions(caseData.case_id);
   const { data: evidence } = useEvidence(caseData.case_id);
 
@@ -161,6 +161,7 @@ function CaseOverview({ caseData }: { caseData: CaseResponse }) {
       <AnalysisSection
         caseId={caseData.case_id}
         acquisitionId={activeAcquisition?.acquisition_id}
+        onViewFindings={() => onTabChange?.('findings')}
       />
 
       {/* Metadata Panel */}
@@ -373,7 +374,7 @@ export function CaseDetailPage() {
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
           >
-            {activeTab === 'overview' && <CaseOverview caseData={caseData} />}
+            {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={setActiveTab} />}
             {activeTab === 'findings' && <FindingsSection caseId={caseData.case_id} />}
             {activeTab === 'network' && <NetworkSection caseId={caseData.case_id} />}
             {activeTab === 'timeline' && <InvestigationTabGroup caseId={caseData.case_id} />}

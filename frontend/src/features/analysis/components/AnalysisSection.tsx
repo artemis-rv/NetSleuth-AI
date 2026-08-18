@@ -11,11 +11,12 @@ import { useState } from 'react';
 interface AnalysisSectionProps {
   caseId: string;
   acquisitionId: string | undefined;
+  onViewFindings?: () => void;
 }
 
 const STAGES = ['QUEUED', 'M1', 'M2', 'M3', 'M4', 'COMPLETED'];
 
-export function AnalysisSection({ caseId, acquisitionId }: AnalysisSectionProps) {
+export function AnalysisSection({ caseId, acquisitionId, onViewFindings }: AnalysisSectionProps) {
   const { data, isLoading } = useAnalysisJobs(caseId);
   const startMutation = useStartAnalysis(caseId);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -168,7 +169,7 @@ export function AnalysisSection({ caseId, acquisitionId }: AnalysisSectionProps)
                 
                 {latestJob.status === 'completed' && (
                   <div className="mt-10 flex justify-end">
-                    <Button variant="secondary" className="gap-1.5" disabled title="Findings available in next module">
+                    <Button variant="secondary" className="gap-1.5" onClick={onViewFindings}>
                       View Findings <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
