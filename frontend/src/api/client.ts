@@ -17,7 +17,9 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   }
   
   if (customConfig.body && !(customConfig.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
   }
 
   const config: RequestInit = {
