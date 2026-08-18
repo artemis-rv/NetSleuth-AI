@@ -20,8 +20,8 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 |--------|------|--------|
 | **M1** — Input + Packet Intelligence | PCAP ingestion, Zeek runner, protocol adapters, artifact extraction | ✅ Complete |
 | **M2** — Analysis Engine | Anomaly detection, behaviour extraction, findings production | ✅ Complete |
-| **M3** — Correlation + Investigation | Context assembly, MITRE mapping, attack chain construction | 🔧 In progress |
-| **M4** — Evidence + Reporting | Evidence packaging, report generation, export | 🔲 Not started |
+| **M3** — Correlation + Investigation | Context assembly, MITRE mapping, attack chain construction | ✅ Complete (Engine & KB ready; orchestrator injection pending) |
+| **M4** — Evidence + Reporting | Evidence packaging, report generation, export | ✅ Complete (Report engine & DB persistence ready) |
 
 ---
 
@@ -29,7 +29,7 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Python 3.10+ |
+| Language | Python 3.10+ / 3.12 |
 | Packet analysis | [Zeek](https://zeek.org/) |
 | Structured database | PostgreSQL + asyncpg + SQLAlchemy — **running locally via Docker** |
 | Object storage | MinIO (S3-compatible) — **running locally via Docker** |
@@ -46,27 +46,51 @@ A forensic network investigation system that ingests raw packet captures (PCAP/P
 - Protocol adapters — normalises each log type into canonical models
 - Artifact extractor — pulls observables (IPs, domains, hashes, certs)
 - Provenance validator — enforces SHA-256 integrity across the pipeline
-- M1 Orchestrator — wires all stages into a single `NetworkIntelligencePackage`
+- M1 Persistence Service — transparent async persistence boundary (PostgreSQL DB-9 & MinIO)
 
 ### M2 — Analysis Engine (Complete)
 - Feature extraction pipeline — evaluates flows/events for statistical anomalies
 - ML Models — isolated prediction layer mapping behaviors
 - Findings package generator — structures discoveries into standard contracts
-- M2 Persistence Service — transparent async persistence boundary for PostgreSQL
+- M2 Persistence Service — transparent async persistence boundary (PostgreSQL DB-10)
+
+### M3 — Correlation & Investigation (Complete)
+- Context assembly — aggregates M2 findings and builds timeline events
+- MITRE ATT&CK Knowledge Base & Mapper — static repository (`network-evidence-v1.json`) and runtime `MitreMapper`
+- Attack chain construction — builds chronological attack chain stages inside `InvestigationCase`
+- M3 Persistence Service — transparent async persistence boundary (PostgreSQL DB-11)
+
+### M4 — Evidence & Reporting (Complete)
+- Evidence Integrity verification & packaging engine
+- Report Engine — produces contract-compliant `Report V1` JSON documents
+- M4 Persistence Service — transparent async persistence boundary (PostgreSQL DB-12 & MinIO)
+
+### Orchestration & End-to-End Testing (Complete)
+- `ForensicPipelineOrchestrator` (`backend/app/orchestrator/pipeline.py`) — unified pipeline connecting M1 -> M2 -> M3 -> M4
+- Fast E2E integration test (`tests/integration/e2e/test_full_forensic_chain.py`) — primary CI test validating full cross-engine DB persistence using mock data
+- Real-PCAP system integration test (`tests/integration/e2e/test_full_forensic_chain_real_pcap.py`) — full forensic path test requiring real PCAP + Zeek + MinIO
 
 ### Shared Infrastructure (Complete)
-- MinIO object storage — running in Docker, all buckets provisioned
-- PostgreSQL DB — running in Docker, Alembic migrations defined and wired
+- MinIO object storage — running in Docker, all 5 buckets provisioned
+- PostgreSQL DB — running in Docker, Alembic migrations defined and wired (DB-0 through DB-12 complete)
 - Backend configuration contract — `backend/app/config.py`
 - Environment variable convention — `.env` / `.env.example`
 
 ---
 
-## What Is Left
+### Application Layer (Complete)
+- **APP-0 (Application Foundation)**: FastAPI application core structure, SQLAlchemy async database initialization, and API router routing (`/api/v1`).
+- **APP-1 (Authentication & RBAC)**: JWT authentication, password hashing (`passlib`/`bcrypt`), Role-Based Access Control (`administrator`, `investigator`, `analyst`), case-level access policies, and standard security auditing (`audit.audit_events`).
+- **APP-2 (Case Management APIs)**: Investigation case management endpoints (`POST /cases`, `GET /cases`, `GET /cases/{case_id}`, `PATCH /cases/{case_id}`), Pydantic contracts, strict pagination, safe filter/sort options, and status transition workflows.
+- **APP-3 (Acquisition & Evidence APIs)**: MinIO integration for original PCAP storage, explicit transactional coordination with PostgreSQL, streaming integrity checks (SHA-256), orchestration with M1 Acquisition Engine, orphaned object handling, and case-scoped authorization endpoints (`/api/v1/cases/{case_id}/acquisitions`, `/api/v1/evidence/{evidence_id}`).
 
-- **M3** correlation engine (MITRE mapping, attack chains, investigation)
-- **M4** evidence and reporting engine
-- API layer / frontend (not planned yet)
+---
+
+## Integration Status & Next Steps
+
+- **Pipeline Orchestration**: Unified M1 -> M2 -> M3 -> M4 pipeline operational.
+- **Application Layer**: APP-0, APP-1, APP-2, and APP-3 completed with full integration test coverage.
+- **Next Steps**: FE-0 — Frontend App Shell + Design System + Authenticated Routing.
 
 ---
 
@@ -200,6 +224,7 @@ NetSleuth-AI/
 
 ## Documentation
 
+- [`docs/api/CASES_API_V1.md`](docs/api/CASES_API_V1.md) — Case Management API V1 contracts and authorization rules
 - [`docs/infrastructure/minio.md`](docs/infrastructure/minio.md) — full MinIO setup, persistence, security notes
 - [`docs/contracts/`](docs/contracts/) — JSON schema definitions for inter-module data contracts
 - [`docs/M1_V1_IMPLEMENTATION_SUMMARY.md`](docs/M1_V1_IMPLEMENTATION_SUMMARY.md) — M1 implementation detail

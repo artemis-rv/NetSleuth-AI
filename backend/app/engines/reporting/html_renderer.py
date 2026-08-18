@@ -19,6 +19,8 @@ class HTMLReportRenderer:
             return "report-v1.json"
         elif schema_version == "report-v1.1":
             return "report-v1.1.json"
+        elif schema_version == "report-v1.2":
+            return "report-v1.2.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 
@@ -58,6 +60,7 @@ class HTMLReportRenderer:
         mitre_mappings = report_data.get("mitre_mappings")
         mitre_provenance = report_data.get("mitre_provenance")
         attack_chain = report_data.get("attack_chain")
+        llm_enrichment = report_data.get("llm_enrichment")
 
         # HTML Head and Stylesheet
         css_style = """
@@ -514,6 +517,74 @@ class HTMLReportRenderer:
                 html_out.append('</tbody></table>')
             else:
                 html_out.append('<p>No attack chain stages recorded.</p>')
+            html_out.append('</section>')
+
+        # V1.2 AI-Assisted Narrative Section (if present)
+        if llm_enrichment is not None:
+            html_out.extend([
+                '<section>',
+                '<h2>AI-Assisted Narrative</h2>',
+                f'<p><strong>Status:</strong> <span class="badge badge-informational">{e(llm_enrichment.get("status"))}</span></p>'
+            ])
+            if llm_enrichment.get("summary"):
+                html_out.extend([
+                    '<h3>Summary</h3>',
+                    f'<p>{e(llm_enrichment.get("summary"))}</p>'
+                ])
+            if llm_enrichment.get("explanation"):
+                html_out.extend([
+                    '<h3>Explanation</h3>',
+                    f'<p>{e(llm_enrichment.get("explanation"))}</p>'
+                ])
+            
+            mitre_expls = llm_enrichment.get("mitre_explanations", [])
+            if mitre_expls:
+                html_out.extend([
+                    '<h3>MITRE Explanations</h3>',
+                    '<table>',
+                    '<thead><tr><th>Technique ID</th><th>Technique Name</th><th>Status</th><th>Confidence</th><th>Evidence IDs</th><th>Explanation</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for m in mitre_expls:
+                    ev_ids = ", ".join([e(ev) for ev in m.get("evidence_ids", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(m.get("technique_id"))}</span></td>'
+                        f'<td>{e(m.get("technique_name"))}</td>'
+                        f'<td>{e(m.get("mapping_status"))}</td>'
+                        f'<td>{e(m.get("mapping_confidence"))}</td>'
+                        f'<td>{ev_ids}</td>'
+                        f'<td>{e(m.get("explanation"))}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+
+            qa = llm_enrichment.get("investigator_answers", {})
+            if qa:
+                html_out.extend([
+                    '<h3>Investigator Q&A</h3>',
+                    '<ul>'
+                ])
+                for q, a in qa.items():
+                    html_out.append(f'<li><strong>Q: {e(q)}</strong><br>A: {e(a)}</li>')
+                html_out.append('</ul>')
+
+            if llm_enrichment.get("limitations"):
+                html_out.extend([
+                    '<h3>Limitations</h3>',
+                    f'<p>{e(llm_enrichment.get("limitations"))}</p>'
+                ])
+            
+            prov = llm_enrichment.get("provenance", {})
+            if prov:
+                html_out.extend([
+                    '<h3>Model Provenance</h3>',
+                    '<ul>'
+                ])
+                for k, v in prov.items():
+                    html_out.append(f'<li><strong>{e(k)}:</strong> {e(v)}</li>')
+                html_out.append('</ul>')
+
             html_out.append('</section>')
 
         # Closing container & body

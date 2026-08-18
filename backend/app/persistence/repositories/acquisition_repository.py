@@ -19,6 +19,47 @@ class AcquisitionRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def list_by_case(
+        self,
+        case_id: UUID,
+        skip: int = 0,
+        limit: int = 25,
+        status: Optional[str] = None,
+        format: Optional[str] = None
+    ):
+        from sqlalchemy import func
+        from app.persistence.models.investigation_models import case_acquisition_links
+        
+        stmt = select(AcquisitionModel).join(
+            case_acquisition_links, 
+            AcquisitionModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if status:
+            stmt = stmt.where(AcquisitionModel.status == status)
+        if format:
+            stmt = stmt.where(AcquisitionModel.format == format)
+            
+        stmt = stmt.order_by(AcquisitionModel.ingested_at.desc())
+        
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await self.session.execute(count_stmt)).scalar() or 0
+        
+        stmt = stmt.offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return result.scalars().all(), total
+
+    async def link_to_case(self, case_id: UUID, acquisition_id: UUID) -> None:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        from sqlalchemy.dialects.postgresql import insert
+        
+        stmt = insert(case_acquisition_links).values(
+            case_id=case_id,
+            acquisition_id=acquisition_id
+        ).on_conflict_do_nothing()
+        await self.session.execute(stmt)
+        await self.session.flush()
+
 class EvidenceRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -32,3 +73,27 @@ class EvidenceRepository:
         stmt = select(EvidenceModel).where(EvidenceModel.evidence_id == evidence_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_by_case(
+        self,
+        case_id: UUID,
+        skip: int = 0,
+        limit: int = 25
+    ):
+        from sqlalchemy import func
+        from app.persistence.models.investigation_models import case_acquisition_links
+        
+        stmt = select(EvidenceModel).join(
+            AcquisitionModel, EvidenceModel.acquisition_id == AcquisitionModel.acquisition_id
+        ).join(
+            case_acquisition_links, AcquisitionModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        stmt = stmt.order_by(EvidenceModel.registered_at.desc())
+        
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await self.session.execute(count_stmt)).scalar() or 0
+        
+        stmt = stmt.offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return result.scalars().all(), total

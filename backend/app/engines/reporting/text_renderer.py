@@ -19,6 +19,8 @@ class TextReportRenderer:
             return "report-v1.json"
         elif schema_version == "report-v1.1":
             return "report-v1.1.json"
+        elif schema_version == "report-v1.2":
+            return "report-v1.2.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 
@@ -215,8 +217,8 @@ class TextReportRenderer:
                     lines.append(f"      - ({c_idx}) Custodian: {c.get('custodian_id', '')} | Action: {c.get('action', '')} | Timestamp: {c.get('timestamp', '')}{sig_str}")
             lines.append("")
 
-        # --- V1.1 SPECIFIC SECTIONS: MITRE ATT&CK FINDINGS, PROVENANCE, ATTACK CHAIN ---
-        if report_data.get("schema_version") == "report-v1.1":
+        # --- V1.1 / V1.2 SPECIFIC SECTIONS: MITRE ATT&CK FINDINGS, PROVENANCE, ATTACK CHAIN ---
+        if report_data.get("schema_version") in ("report-v1.1", "report-v1.2"):
             # MITRE PROVENANCE
             if "mitre_provenance" in report_data and report_data["mitre_provenance"] is not None:
                 m_prov = report_data["mitre_provenance"]

@@ -29,6 +29,17 @@ class CaseAccessRepository:
         await self.session.flush()
         return access
 
+    async def get_by_user_and_case(self, user_id: UUID, case_id: UUID) -> Optional[CaseAccessModel]:
+        from sqlalchemy import and_
+        stmt = select(CaseAccessModel).where(
+            and_(
+                CaseAccessModel.user_id == user_id,
+                CaseAccessModel.case_id == case_id
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
 class AuditRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

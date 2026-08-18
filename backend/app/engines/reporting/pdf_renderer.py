@@ -19,6 +19,8 @@ class PDFReportRenderer:
             return "report-v1.json"
         elif schema_version == "report-v1.1":
             return "report-v1.1.json"
+        elif schema_version == "report-v1.2":
+            return "report-v1.2.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 
@@ -67,6 +69,7 @@ class PDFReportRenderer:
         mitre_mappings = report_data.get("mitre_mappings")
         mitre_provenance = report_data.get("mitre_provenance")
         attack_chain = report_data.get("attack_chain")
+        llm_enrichment = report_data.get("llm_enrichment")
 
         lines.append("NetSleuth-AI Forensic Investigation Report")
         lines.append("=" * 60)
@@ -248,6 +251,53 @@ class PDFReportRenderer:
             else:
                 lines.append("No attack chain stages recorded.")
             lines.append("")
+
+        if llm_enrichment is not None:
+            lines.append("--- AI-ASSISTED NARRATIVE ---")
+            lines.append(f"Status: {self._pdf_escape(llm_enrichment.get('status'))}")
+            
+            if llm_enrichment.get("summary"):
+                lines.append("Summary:")
+                lines.append(f"  {self._pdf_escape(llm_enrichment.get('summary'))}")
+                lines.append("")
+                
+            if llm_enrichment.get("explanation"):
+                lines.append("Explanation:")
+                lines.append(f"  {self._pdf_escape(llm_enrichment.get('explanation'))}")
+                lines.append("")
+                
+            mitre_expls = llm_enrichment.get("mitre_explanations", [])
+            if mitre_expls:
+                lines.append("MITRE Explanations:")
+                for m in mitre_expls:
+                    lines.append(
+                        f"  [{self._pdf_escape(m.get('technique_id'))}] {self._pdf_escape(m.get('technique_name'))} "
+                        f"(Status: {self._pdf_escape(m.get('mapping_status'))}, "
+                        f"Confidence: {self._pdf_escape(m.get('mapping_confidence'))})"
+                    )
+                    ev_ids = ", ".join([self._pdf_escape(ev) for ev in m.get("evidence_ids", [])]) or "-"
+                    lines.append(f"    Evidence: {ev_ids}")
+                    lines.append(f"    Explanation: {self._pdf_escape(m.get('explanation'))}")
+                lines.append("")
+                
+            qa = llm_enrichment.get("investigator_answers", {})
+            if qa:
+                lines.append("Investigator Q&A:")
+                for q, a in qa.items():
+                    lines.append(f"  Q: {self._pdf_escape(q)}")
+                    lines.append(f"  A: {self._pdf_escape(a)}")
+                lines.append("")
+                
+            if llm_enrichment.get("limitations"):
+                lines.append(f"Limitations: {self._pdf_escape(llm_enrichment.get('limitations'))}")
+                lines.append("")
+                
+            prov = llm_enrichment.get("provenance", {})
+            if prov:
+                lines.append("Model Provenance:")
+                for k, v in prov.items():
+                    lines.append(f"  {self._pdf_escape(k)}: {self._pdf_escape(v)}")
+                lines.append("")
 
         # Format stream commands for PDF object
         stream_cmds: List[str] = [

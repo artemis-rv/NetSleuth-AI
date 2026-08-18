@@ -75,23 +75,23 @@ async def test_db11_m3_persistence_full_case():
         "updated_at": "2024-01-01T12:30:00Z",
         "entities": [
             {
-                "entity_id": "ip:192.168.1.100",
+                "entity_id": f"ip:192.168.1.{rand_suffix[:4]}",
                 "entity_type": "ip",
-                "value": "192.168.1.100",
+                "value": f"192.168.1.{rand_suffix[:4]}",
                 "first_seen": "2024-01-01T12:00:00Z",
                 "last_seen": "2024-01-01T12:05:00Z"
             },
             {
-                "entity_id": "ip:10.0.0.5",
+                "entity_id": f"ip:10.0.0.{rand_suffix[:4]}",
                 "entity_type": "ip",
-                "value": "10.0.0.5"
+                "value": f"10.0.0.{rand_suffix[:4]}"
             }
         ],
         "relationships": [
             {
-                "relationship_id": "REL-001",
-                "source_entity_id": "ip:192.168.1.100",
-                "target_entity_id": "ip:10.0.0.5",
+                "relationship_id": f"REL-{rand_suffix[:6]}",
+                "source_entity_id": f"ip:192.168.1.{rand_suffix[:4]}",
+                "target_entity_id": f"ip:10.0.0.{rand_suffix[:4]}",
                 "relationship_type": "communicated_with",
                 "confidence": 0.95,
                 "first_seen": "2024-01-01T12:01:00Z",
@@ -100,11 +100,11 @@ async def test_db11_m3_persistence_full_case():
         ],
         "timeline": [
             {
-                "event_id": "EV-100",
+                "event_id": f"EV-{rand_suffix[:6]}",
                 "timestamp": "2024-01-01T12:01:30Z",
                 "event_type": "network",
                 "description": "RDP connection initiated.",
-                "source_entity_id": "ip:192.168.1.100"
+                "source_entity_id": f"ip:192.168.1.{rand_suffix[:4]}"
             }
         ],
         "findings": [
@@ -117,7 +117,7 @@ async def test_db11_m3_persistence_full_case():
             {
                 "evidence_id": f_str_id,
                 "evidence_type": "finding",
-                "source_id": "REL-001"
+                "source_id": f"REL-{rand_suffix[:6]}"
             }
         ]
     }
@@ -140,7 +140,7 @@ async def test_db11_m3_persistence_full_case():
         ent_res = await uow.session.execute(select(EntityModel).where(EntityModel.case_id == case_uuid))
         entities = ent_res.scalars().all()
         assert len(entities) == 2
-        ip1 = next(e for e in entities if e.value == "192.168.1.100")
+        ip1 = next(e for e in entities if e.value == f"192.168.1.{rand_suffix[:4]}")
         assert ip1.first_seen is not None
         
         # Relationships

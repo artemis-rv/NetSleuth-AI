@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 from app.shared.contract_validation import ContractValidator
 
 class ReportEngine:
@@ -80,7 +80,8 @@ class ReportEngine:
     def generate_report(
         self,
         investigation_case: Dict[str, Any],
-        evidence_integrity_records: Union[List[Dict[str, Any]], Any]
+        evidence_integrity_records: Union[List[Dict[str, Any]], Any],
+        llm_enrichment: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Generates a contract-compliant Report V1 dictionary from InvestigationCase and EvidenceIntegrity input.
@@ -97,7 +98,20 @@ class ReportEngine:
 
         # 2. Schema version detection
         schema_version = case_data.get("schema_version")
-        case_schema_file, out_schema_version, out_schema_file = self._detect_case_version(case_data)
+        if schema_version == "investigation-case-v1.1":
+            case_schema_file = "investigation-case-v1.1.json"
+            out_schema_version = "report-v1"
+            out_schema_file = "report-v1.json"
+        elif schema_version == "investigation-case-v1.2":
+            case_schema_file = "investigation-case-v1.2.json"
+            if llm_enrichment is not None:
+                out_schema_version = "report-v1.2"
+                out_schema_file = "report-v1.2.json"
+            else:
+                out_schema_version = "report-v1.1"
+                out_schema_file = "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
 
         # Validate upstream InvestigationCase schema
         self.validator.validate(case_schema_file, case_data)
@@ -202,6 +216,10 @@ class ReportEngine:
                 report_payload["mitre_provenance"] = self._project_mitre_provenance(case_data["mitre_provenance"])
             if "attack_chain" in case_data and case_data["attack_chain"] is not None:
                 report_payload["attack_chain"] = self._project_attack_chain(case_data["attack_chain"])
+            
+            # 9.5 Add LLM Enrichment
+            if llm_enrichment is not None:
+                report_payload["llm_enrichment"] = deepcopy(llm_enrichment)
 
         # 10. Validate generated report payload against corresponding schema contract
         self.validator.validate(out_schema_file, report_payload)

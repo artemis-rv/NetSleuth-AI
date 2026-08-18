@@ -33,7 +33,7 @@ class M3PersistenceService:
         """
         Persists an InvestigationCase dict within a transactional UnitOfWork.
         """
-        if case_doc.get("schema_version") != "investigation-case-v1.1":
+        if case_doc.get("schema_version") not in ("investigation-case-v1.1", "investigation-case-v1.2"):
             raise ValueError(f"Unsupported case schema version: {case_doc.get('schema_version')}")
             
         case_id_str = case_doc["case_id"]
