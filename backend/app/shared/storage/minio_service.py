@@ -5,10 +5,14 @@ from typing import Optional, Tuple
 
 class EvidenceStorageService:
     def __init__(self):
-        self.endpoint_url = os.getenv("MINIO_URL", "http://localhost:9000")
-        self.access_key = os.getenv("MINIO_ROOT_USER", "minioadmin")
-        self.secret_key = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
-        self.bucket_name = "evidence"
+        from app.config import settings
+        endpoint = settings.minio_endpoint
+        if not endpoint.startswith("http://") and not endpoint.startswith("https://"):
+            endpoint = f"http://{endpoint}"
+        self.endpoint_url = os.getenv("MINIO_URL", endpoint)
+        self.access_key = settings.minio_root_user
+        self.secret_key = settings.minio_root_password
+        self.bucket_name = settings.minio_bucket_evidence
         self.session = aioboto3.Session()
 
     @asynccontextmanager
@@ -27,7 +31,10 @@ class EvidenceStorageService:
             try:
                 await s3.head_bucket(Bucket=self.bucket_name)
             except Exception:
-                await s3.create_bucket(Bucket=self.bucket_name)
+                try:
+                    await s3.create_bucket(Bucket=self.bucket_name)
+                except Exception:
+                    pass  # Bucket already exists or created concurrently
 
     async def upload_evidence(self, file_path: str, object_key: str) -> None:
         """Upload a local file to MinIO."""
@@ -44,11 +51,46 @@ class EvidenceStorageService:
             sha256_hash = hashlib.sha256()
             async with self.get_client() as s3:
                 response = await s3.get_object(Bucket=self.bucket_name, Key=object_key)
-                async with response["Body"] as stream:
-                    while chunk := await stream.read(8192):
-                        sha256_hash.update(chunk)
+                content = await response["Body"].read()
+                sha256_hash.update(content)
             
             observed = sha256_hash.hexdigest()
             return observed == expected_sha256, observed
         except botocore.exceptions.ClientError:
             return False, None
+
+    @asynccontextmanager
+    async def download_evidence_temp(self, object_key: str):
+        """
+        Securely download an object to a temporary local file via streaming.
+        Yields the local file path and automatically cleans it up on exit.
+        """
+        import tempfile
+        import aiofiles
+        import botocore.exceptions
+        from app.exceptions import InfrastructureError
+
+        # Create a named temporary file (closed so aiofiles can open it)
+        fd, temp_path = tempfile.mkstemp(prefix="evidence_", suffix=".pcap")
+        os.close(fd)
+
+        try:
+            async with self.get_client() as s3:
+                try:
+                    response = await s3.get_object(Bucket=self.bucket_name, Key=object_key)
+                except botocore.exceptions.ClientError as e:
+                    raise InfrastructureError(f"Failed to retrieve evidence from MinIO: {str(e)}")
+
+                async with aiofiles.open(temp_path, 'wb') as f:
+                    async with response["Body"] as stream:
+                        while chunk := await stream.read(8192):
+                            await f.write(chunk)
+            
+            yield temp_path
+            
+        finally:
+            if os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass

@@ -9,23 +9,23 @@ import math
 import unittest
 from datetime import datetime, timezone
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     NetworkIntelligencePackage, Flow, Endpoint,
     ProtocolEvent, DNSData, HTTPData, TLSData,
     FlowProvenance, EventProvenance,
 )
-from backend.app.contracts.feature_schema import FeatureName, FEATURE_SCHEMA_VERSION
-from backend.app.engines.analysis.features.pipeline import (
+from app.contracts.feature_schema import FeatureName, FEATURE_SCHEMA_VERSION
+from app.engines.analysis.features.pipeline import (
     FeatureEngineeringPipeline, FeatureMetadata,
 )
-from backend.app.engines.analysis.features.transformer import FeatureTransformer
-from backend.app.engines.analysis.features.normalization import (
+from app.engines.analysis.features.transformer import FeatureTransformer
+from app.engines.analysis.features.normalization import (
     MinMaxScaler, StandardScaler, LogScaler,
 )
-from backend.app.engines.analysis.features.encoding import (
+from app.engines.analysis.features.encoding import (
     entropy_from_json_dist, cardinality_from_json_dist, encode_categorical_feature,
 )
-from backend.app.engines.analysis.features.validation import (
+from app.engines.analysis.features.validation import (
     FeatureValidationError, validate_no_identifier_leakage, validate_numeric_array,
     validate_missing_values,
 )
@@ -211,7 +211,7 @@ class TestFeatureTransformer(unittest.TestCase):
     def setUp(self):
         self.pkg1 = _pkg(flows=[_flow("F1", "u1", orig_b=100, resp_b=50)])
         self.pkg2 = _pkg(flows=[_flow("F2", "u2", orig_b=10000, resp_b=5000)])
-        from backend.app.engines.analysis.features.extractor import extract_all_features
+        from app.engines.analysis.features.extractor import extract_all_features
         self.v1 = extract_all_features(self.pkg1)
         self.v2 = extract_all_features(self.pkg2)
 
@@ -240,7 +240,7 @@ class TestFeatureTransformer(unittest.TestCase):
     def test_no_identifier_in_output(self):
         t = FeatureTransformer()
         results = t.fit_transform([self.v1])
-        from backend.app.engines.analysis.features.validation import _IDENTIFIER_PATTERNS
+        from app.engines.analysis.features.validation import _IDENTIFIER_PATTERNS
         for arr in results:
             for name in arr:
                 for pat in _IDENTIFIER_PATTERNS:
@@ -358,7 +358,7 @@ class TestFeatureEngineeringPipeline(unittest.TestCase):
 
     def test_schema_compatibility(self):
         """Numeric array keys should correspond to known schema features."""
-        from backend.app.engines.analysis.features.transformer import _SCALER_STRATEGY
+        from app.engines.analysis.features.transformer import _SCALER_STRATEGY
         pipeline = FeatureEngineeringPipeline()
         pipeline.fit([self.train_pkg])
         numeric, _ = pipeline.transform(self.test_pkg)

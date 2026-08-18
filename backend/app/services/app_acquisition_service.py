@@ -76,12 +76,12 @@ class AppAcquisitionService:
             try:
                 acq_model = AcquisitionModel(
                     acquisition_id=uuid.UUID(acquisition_ref.acquisition_id),
-                    file_name=acquisition_ref.file_name,
+                    file_name=file.filename or acquisition_ref.file_name,
                     file_size=acquisition_ref.file_size,
                     sha256=acquisition_ref.sha256,
                     format=acquisition_ref.format,
                     source_type="pcap",
-                    status="stored"
+                    status="complete"
                 )
                 await self.acq_repo.create(acq_model)
 

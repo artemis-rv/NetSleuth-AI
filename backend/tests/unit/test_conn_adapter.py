@@ -12,10 +12,10 @@ import struct
 import tempfile
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import AcquisitionReference, Flow, Provenance
-from backend.app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, ConnAdapter
-from backend.app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
-from backend.app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
+from app.contracts.network_intelligence import AcquisitionReference, Flow, Provenance
+from app.engines.packet_intelligence.adapters import AdapterError, AdapterErrorCode, ConnAdapter
+from app.engines.packet_intelligence.zeek.reader import RawZeekRecord, ZeekReader
+from app.engines.packet_intelligence.zeek import ZeekRunnerResult, ZeekRunnerStatus
 
 
 

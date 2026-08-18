@@ -92,6 +92,22 @@ class EntityRepository:
         self.session.add_all(entities)
         await self.session.flush()
 
+    async def list_by_case(self, case_id: UUID, skip: int = 0, limit: int = 50) -> List[EntityModel]:
+        stmt = select(EntityModel).where(EntityModel.case_id == case_id).order_by(EntityModel.created_at.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(self, case_id: UUID) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(EntityModel.entity_id)).where(EntityModel.case_id == case_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def get(self, entity_id: UUID) -> Optional[EntityModel]:
+        stmt = select(EntityModel).where(EntityModel.entity_id == entity_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
 class RelationshipRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -99,6 +115,22 @@ class RelationshipRepository:
     async def bulk_create(self, relationships: List[RelationshipModel]) -> None:
         self.session.add_all(relationships)
         await self.session.flush()
+
+    async def list_by_case(self, case_id: UUID, skip: int = 0, limit: int = 100) -> List[RelationshipModel]:
+        stmt = select(RelationshipModel).where(RelationshipModel.case_id == case_id).order_by(RelationshipModel.created_at.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(self, case_id: UUID) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(RelationshipModel.relationship_id)).where(RelationshipModel.case_id == case_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def get(self, relationship_id: UUID) -> Optional[RelationshipModel]:
+        stmt = select(RelationshipModel).where(RelationshipModel.relationship_id == relationship_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
 class BehaviorRepository:
     def __init__(self, session: AsyncSession):
@@ -108,6 +140,17 @@ class BehaviorRepository:
         self.session.add_all(behaviors)
         await self.session.flush()
 
+    async def list_by_case(self, case_id: UUID, skip: int = 0, limit: int = 50) -> List[BehaviorModel]:
+        stmt = select(BehaviorModel).where(BehaviorModel.case_id == case_id).order_by(BehaviorModel.first_observed.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(self, case_id: UUID) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(BehaviorModel.behavior_id)).where(BehaviorModel.case_id == case_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
 class TimelineEventRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -116,6 +159,17 @@ class TimelineEventRepository:
         self.session.add_all(events)
         await self.session.flush()
 
+    async def list_by_case(self, case_id: UUID, skip: int = 0, limit: int = 50) -> List[TimelineEventModel]:
+        stmt = select(TimelineEventModel).where(TimelineEventModel.case_id == case_id).order_by(TimelineEventModel.event_timestamp.asc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(self, case_id: UUID) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(TimelineEventModel.timeline_event_id)).where(TimelineEventModel.case_id == case_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
 class MitreMappingRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -123,3 +177,25 @@ class MitreMappingRepository:
     async def bulk_create(self, mappings: List[MitreMappingModel]) -> None:
         self.session.add_all(mappings)
         await self.session.flush()
+
+    async def list_by_case(self, case_id: UUID, skip: int = 0, limit: int = 50) -> List[MitreMappingModel]:
+        stmt = select(MitreMappingModel).where(MitreMappingModel.case_id == case_id).order_by(MitreMappingModel.mapped_at.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(self, case_id: UUID) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(MitreMappingModel.mitre_mapping_id)).where(MitreMappingModel.case_id == case_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+from app.persistence.models.investigation_models import AttackChainModel
+
+class AttackChainRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_by_case(self, case_id: UUID) -> Optional[AttackChainModel]:
+        stmt = select(AttackChainModel).where(AttackChainModel.case_id == case_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()

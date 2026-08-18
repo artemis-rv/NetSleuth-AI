@@ -21,7 +21,7 @@ import math
 import unittest
 from datetime import datetime, timezone
 
-from backend.app.contracts.analysis import (
+from app.contracts.analysis import (
     ActivityClass,
     AnomalyResult,
     ClassificationResult,
@@ -32,7 +32,7 @@ from backend.app.contracts.analysis import (
     FindingsPackage,
     M2_CONTRACT_VERSION,
 )
-from backend.app.contracts.feature_schema import (
+from app.contracts.feature_schema import (
     FEATURE_SCHEMA,
     FEATURE_SCHEMA_VERSION,
     FeatureName,

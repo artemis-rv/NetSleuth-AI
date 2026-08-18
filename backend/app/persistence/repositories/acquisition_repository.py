@@ -70,7 +70,8 @@ class EvidenceRepository:
         return evidence
 
     async def get(self, evidence_id: UUID) -> Optional[EvidenceModel]:
-        stmt = select(EvidenceModel).where(EvidenceModel.evidence_id == evidence_id)
+        from sqlalchemy.orm import joinedload
+        stmt = select(EvidenceModel).options(joinedload(EvidenceModel.acquisition)).where(EvidenceModel.evidence_id == evidence_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -81,9 +82,10 @@ class EvidenceRepository:
         limit: int = 25
     ):
         from sqlalchemy import func
+        from sqlalchemy.orm import joinedload
         from app.persistence.models.investigation_models import case_acquisition_links
         
-        stmt = select(EvidenceModel).join(
+        stmt = select(EvidenceModel).options(joinedload(EvidenceModel.acquisition)).join(
             AcquisitionModel, EvidenceModel.acquisition_id == AcquisitionModel.acquisition_id
         ).join(
             case_acquisition_links, AcquisitionModel.acquisition_id == case_acquisition_links.c.acquisition_id

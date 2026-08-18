@@ -13,15 +13,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from backend.app.contracts.analysis import ActivityClass
-from backend.app.engines.analysis.dataset.cleaner import clean_row
-from backend.app.engines.analysis.dataset.errors import (
+from app.contracts.analysis import ActivityClass
+from app.engines.analysis.dataset.cleaner import clean_row
+from app.engines.analysis.dataset.errors import (
     DatasetCleaningError,
     DatasetFileNotFoundError,
 )
-from backend.app.engines.analysis.dataset.labels import UNMAPPED, normalize_label
-from backend.app.engines.analysis.dataset.loader import determine_split, load_dataset_file
-from backend.app.contracts.feature_schema import FeatureName
+from app.engines.analysis.dataset.labels import UNMAPPED, normalize_label
+from app.engines.analysis.dataset.loader import determine_split, load_dataset_file
+from app.contracts.feature_schema import FeatureName
 
 
 class TestDatasetLabels(unittest.TestCase):

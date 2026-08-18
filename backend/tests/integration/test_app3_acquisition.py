@@ -18,7 +18,7 @@ async def test_upload_acquisition_success(client: TestClient, setup_users_cases,
     headers = {"Authorization": f"Bearer {inv1_token}"}
     test_case_id = str(setup_users_cases["case_inv1"].case_id)
     
-    file_content = b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00"
+    file_content = b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00" + uuid.uuid4().bytes
     files = {"file": ("test.pcap", file_content, "application/vnd.tcpdump.pcap")}
     
     response = client.post(f"/api/v1/cases/{test_case_id}/acquisitions", headers=headers, files=files)
@@ -31,7 +31,7 @@ async def test_upload_acquisition_success(client: TestClient, setup_users_cases,
     assert "evidence_id" in data
     assert data["file_name"] == "test.pcap"
     assert data["format"] == "pcap"
-    assert data["status"] == "stored"
+    assert data["status"] == "complete"
     
     acq_id = uuid.UUID(data["acquisition_id"])
     
@@ -39,7 +39,7 @@ async def test_upload_acquisition_success(client: TestClient, setup_users_cases,
     stmt = select(AcquisitionModel).where(AcquisitionModel.acquisition_id == acq_id)
     acq = (await db_session.execute(stmt)).scalar_one_or_none()
     assert acq is not None
-    assert acq.status == "stored"
+    assert acq.status == "complete"
     
     stmt2 = select(case_acquisition_links).where(case_acquisition_links.c.acquisition_id == acq_id)
     link = (await db_session.execute(stmt2)).first()

@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from backend.app.contracts.network_intelligence import (
+from app.contracts.network_intelligence import (
     AcquisitionReference,
     Artifact,
     ArtifactType,
@@ -22,16 +22,16 @@ from backend.app.contracts.network_intelligence import (
     ProtocolEvent,
     Provenance,
 )
-from backend.app.engines.packet_intelligence.adapters.conn import ConnAdapter
-from backend.app.engines.packet_intelligence.adapters.dns import DNSAdapter
-from backend.app.engines.packet_intelligence.adapters.http import HTTPAdapter
-from backend.app.engines.packet_intelligence.adapters.tls import TLSAdapter
-from backend.app.engines.packet_intelligence.artifacts.extractor import ArtifactExtractor
-from backend.app.engines.packet_intelligence.errors import PackageAssemblyError, PackageAssemblyErrorCode
-from backend.app.engines.packet_intelligence.orchestrator import M1Orchestrator
-from backend.app.engines.packet_intelligence.provenance.validator import ProvenanceValidator
-from backend.app.engines.packet_intelligence.zeek.reader import ZeekReader
-from backend.app.engines.packet_intelligence.zeek.runner import ZeekRunner
+from app.engines.packet_intelligence.adapters.conn import ConnAdapter
+from app.engines.packet_intelligence.adapters.dns import DNSAdapter
+from app.engines.packet_intelligence.adapters.http import HTTPAdapter
+from app.engines.packet_intelligence.adapters.tls import TLSAdapter
+from app.engines.packet_intelligence.artifacts.extractor import ArtifactExtractor
+from app.engines.packet_intelligence.errors import PackageAssemblyError, PackageAssemblyErrorCode
+from app.engines.packet_intelligence.orchestrator import M1Orchestrator
+from app.engines.packet_intelligence.provenance.validator import ProvenanceValidator
+from app.engines.packet_intelligence.zeek.reader import ZeekReader
+from app.engines.packet_intelligence.zeek.runner import ZeekRunner
 
 
 class TestM1Orchestrator(unittest.TestCase):

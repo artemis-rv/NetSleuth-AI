@@ -2,10 +2,10 @@ import unittest
 from datetime import datetime, timezone
 import copy
 
-from backend.app.engines.correlation.domain.input import M3InvestigationInput, TelemetryCapability
-from backend.app.engines.correlation.adapters.m3_input_adapter import M3InputAdapter
-from backend.app.contracts.network_intelligence import NetworkIntelligencePackage, Flow, ProtocolEvent, Artifact, ArtifactType, FlowProvenance, EventProvenance, ArtifactProvenance, Endpoint, DNSData, HTTPData, TLSData
-from backend.app.contracts.analysis import FindingsPackage, Finding, ActivityClass, EvidenceReference
+from app.engines.correlation.domain.input import M3InvestigationInput, TelemetryCapability
+from app.engines.correlation.adapters.m3_input_adapter import M3InputAdapter
+from app.contracts.network_intelligence import NetworkIntelligencePackage, Flow, ProtocolEvent, Artifact, ArtifactType, FlowProvenance, EventProvenance, ArtifactProvenance, Endpoint, DNSData, HTTPData, TLSData
+from app.contracts.analysis import FindingsPackage, Finding, ActivityClass, EvidenceReference
 
 class TestM3InputAdapter(unittest.TestCase):
     def setUp(self):

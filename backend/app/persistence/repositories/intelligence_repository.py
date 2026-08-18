@@ -18,6 +18,58 @@ class FlowRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def list_by_case(
+        self,
+        case_id: UUID,
+        skip: int = 0,
+        limit: int = 50,
+        src_ip: Optional[str] = None,
+        dst_ip: Optional[str] = None,
+        protocol: Optional[str] = None
+    ) -> List[FlowModel]:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        
+        stmt = select(FlowModel).join(
+            case_acquisition_links,
+            FlowModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if src_ip:
+            stmt = stmt.where(FlowModel.src_ip == src_ip)
+        if dst_ip:
+            stmt = stmt.where(FlowModel.dst_ip == dst_ip)
+        if protocol:
+            stmt = stmt.where(FlowModel.protocol == protocol)
+            
+        stmt = stmt.order_by(FlowModel.timestamp.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(
+        self,
+        case_id: UUID,
+        src_ip: Optional[str] = None,
+        dst_ip: Optional[str] = None,
+        protocol: Optional[str] = None
+    ) -> int:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        from sqlalchemy import func
+        
+        stmt = select(func.count(FlowModel.flow_id)).join(
+            case_acquisition_links,
+            FlowModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if src_ip:
+            stmt = stmt.where(FlowModel.src_ip == src_ip)
+        if dst_ip:
+            stmt = stmt.where(FlowModel.dst_ip == dst_ip)
+        if protocol:
+            stmt = stmt.where(FlowModel.protocol == protocol)
+            
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
 class ProtocolEventRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -31,6 +83,26 @@ class ProtocolEventRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def list_by_flow(
+        self,
+        flow_id: UUID,
+        skip: int = 0,
+        limit: int = 50
+    ) -> List[ProtocolEventModel]:
+        stmt = select(ProtocolEventModel).where(ProtocolEventModel.flow_id == flow_id)
+        stmt = stmt.order_by(ProtocolEventModel.timestamp.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_flow(
+        self,
+        flow_id: UUID
+    ) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(ProtocolEventModel.event_id)).where(ProtocolEventModel.flow_id == flow_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
 class ArtifactRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -43,3 +115,43 @@ class ArtifactRepository:
         stmt = select(ArtifactModel).where(ArtifactModel.artifact_id == artifact_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_by_case(
+        self,
+        case_id: UUID,
+        skip: int = 0,
+        limit: int = 50,
+        artifact_type: Optional[str] = None
+    ) -> List[ArtifactModel]:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        
+        stmt = select(ArtifactModel).join(
+            case_acquisition_links,
+            ArtifactModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if artifact_type:
+            stmt = stmt.where(ArtifactModel.type == artifact_type)
+            
+        stmt = stmt.order_by(ArtifactModel.first_seen.desc()).offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case(
+        self,
+        case_id: UUID,
+        artifact_type: Optional[str] = None
+    ) -> int:
+        from app.persistence.models.investigation_models import case_acquisition_links
+        from sqlalchemy import func
+        
+        stmt = select(func.count(ArtifactModel.artifact_id)).join(
+            case_acquisition_links,
+            ArtifactModel.acquisition_id == case_acquisition_links.c.acquisition_id
+        ).where(case_acquisition_links.c.case_id == case_id)
+        
+        if artifact_type:
+            stmt = stmt.where(ArtifactModel.type == artifact_type)
+            
+        result = await self.session.execute(stmt)
+        return result.scalar_one()

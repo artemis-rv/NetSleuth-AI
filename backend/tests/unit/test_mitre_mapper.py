@@ -1,12 +1,12 @@
 import unittest
 from datetime import datetime
 
-from backend.app.engines.correlation.domain.input import M3InvestigationInput, EvidenceIndex, TelemetryCapability
-from backend.app.contracts.analysis import Finding, EvidenceReference
-from backend.app.contracts.network_intelligence import Flow, ProtocolEvent
-from backend.app.engines.correlation.mitre.repository import MitreKnowledgeRepository
-from backend.app.engines.correlation.mitre.mapper import MitreMapper
-from backend.app.engines.correlation.mitre.models import MappingStatus
+from app.engines.correlation.domain.input import M3InvestigationInput, EvidenceIndex, TelemetryCapability
+from app.contracts.analysis import Finding, EvidenceReference
+from app.contracts.network_intelligence import Flow, ProtocolEvent
+from app.engines.correlation.mitre.repository import MitreKnowledgeRepository
+from app.engines.correlation.mitre.mapper import MitreMapper
+from app.engines.correlation.mitre.models import MappingStatus
 
 class TestMitreMapper(unittest.TestCase):
     def setUp(self):

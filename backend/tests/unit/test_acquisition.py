@@ -44,14 +44,14 @@ import time
 import unittest
 from pathlib import Path
 
-from backend.app.contracts.network_intelligence import AcquisitionReference
-from backend.app.engines.acquisition import (
+from app.contracts.network_intelligence import AcquisitionReference
+from app.engines.acquisition import (
     AcquisitionError,
     AcquisitionErrorCode,
     AcquisitionService,
 )
-from backend.app.engines.acquisition.hasher import compute_sha256
-from backend.app.engines.acquisition.validator import validate
+from app.engines.acquisition.hasher import compute_sha256
+from app.engines.acquisition.validator import validate
 
 
 # ---------------------------------------------------------------------------
@@ -494,7 +494,7 @@ class TestPerformance(unittest.TestCase):
         completes without OOM error and returns a valid 64-char digest.
         The hasher.py uses _CHUNK_SIZE = 65536 (verified by code review).
         """
-        from backend.app.engines.acquisition.hasher import _CHUNK_SIZE
+        from app.engines.acquisition.hasher import _CHUNK_SIZE
         self.assertEqual(_CHUNK_SIZE, 65536, "Chunk size must remain 64 KiB")
 
         content = self._make_synthetic_pcap(10 * 1024 * 1024)  # 10 MB
