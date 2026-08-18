@@ -134,6 +134,8 @@ class CaseService:
 
         # Enforce status transitions
         if "status" in update_dict:
+            if current_user.role == "analyst":
+                raise ForbiddenError("Analysts are not permitted to modify case status or close investigation cases.")
             new_status = update_dict["status"]
             allowed_transitions = {
                 "open": ["investigating", "closed"],

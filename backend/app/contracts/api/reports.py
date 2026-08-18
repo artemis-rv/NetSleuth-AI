@@ -24,3 +24,8 @@ class ReportListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+class GenerateReportRequest(BaseModel):
+    format: str = "pdf"
+    title: Optional[str] = None
+

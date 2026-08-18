@@ -95,18 +95,6 @@ async def list_case_behaviors(
     await verify_case_access_direct(case_id, user, db)
     return await service.list_behaviors_by_case(case_id=case_id, page=page, page_size=page_size)
 
-@router.get("/cases/{case_id}/timeline", response_model=TimelineEventListResponse)
-async def list_case_timeline(
-    case_id: UUID = Path(...),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=100),
-    user: UserModel = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-    service: InvestigationService = Depends(get_investigation_service)
-):
-    await verify_case_access_direct(case_id, user, db)
-    return await service.list_timeline_by_case(case_id=case_id, page=page, page_size=page_size)
-
 @router.get("/cases/{case_id}/mitre", response_model=MitreMappingListResponse)
 async def list_case_mitre_mappings(
     case_id: UUID = Path(...),
@@ -129,12 +117,3 @@ async def get_case_attack_chain(
     await verify_case_access_direct(case_id, user, db)
     return await service.get_attack_chain_by_case(case_id=case_id)
 
-@router.get("/cases/{case_id}/graph", response_model=GraphResponse)
-async def get_case_graph(
-    case_id: UUID = Path(...),
-    user: UserModel = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-    service: InvestigationService = Depends(get_investigation_service)
-):
-    await verify_case_access_direct(case_id, user, db)
-    return await service.get_graph_by_case(case_id=case_id)

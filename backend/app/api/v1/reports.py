@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status
+from fastapi import APIRouter, Depends, Query, Path, Request, Response
+from fastapi.responses import Response as FastAPIResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
 from app.auth.dependencies import get_current_user, verify_case_access_direct, get_db
 from app.persistence.models.identity_models import UserModel
 from app.services.reports_service import ReportsService
-from app.contracts.api.reports import ReportListResponse, ReportResponse
+from app.contracts.api.reports import ReportListResponse, ReportResponse, GenerateReportRequest
 from app.services.audit_service import log_audit_event
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
@@ -25,6 +26,22 @@ async def list_case_reports(
     await verify_case_access_direct(case_id, user, db)
     return await service.list_reports_by_case(case_id=case_id, page=page, page_size=page_size)
 
+@router.post("/cases/{case_id}/reports/generate", response_model=ReportResponse)
+async def generate_report(
+    payload: GenerateReportRequest,
+    case_id: UUID = Path(...),
+    request: Request = None,
+    user: UserModel = Depends(get_current_user),
+    service: ReportsService = Depends(get_reports_service)
+):
+    return await service.generate_report(
+        case_id=case_id,
+        current_user=user,
+        format=payload.format,
+        title=payload.title,
+        http_request=request
+    )
+
 @router.get("/{report_id}", response_model=ReportResponse)
 async def get_report(
     report_id: UUID = Path(...),
@@ -33,9 +50,6 @@ async def get_report(
     service: ReportsService = Depends(get_reports_service)
 ):
     report = await service.get_report(report_id)
-    if not report:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
-        
     try:
         await verify_case_access_direct(report.case_id, user, db)
     except Exception as e:
@@ -43,3 +57,33 @@ async def get_report(
         raise e
         
     return report
+
+@router.post("/{report_id}/finalize", response_model=ReportResponse)
+async def finalize_report(
+    report_id: UUID = Path(...),
+    request: Request = None,
+    user: UserModel = Depends(get_current_user),
+    service: ReportsService = Depends(get_reports_service)
+):
+    return await service.finalize_report(
+        report_id=report_id,
+        current_user=user,
+        http_request=request
+    )
+
+@router.get("/{report_id}/export")
+async def export_report(
+    report_id: UUID = Path(...),
+    request: Request = None,
+    user: UserModel = Depends(get_current_user),
+    service: ReportsService = Depends(get_reports_service)
+):
+    artifact_bytes, media_type, filename = await service.export_report(
+        report_id=report_id,
+        current_user=user,
+        http_request=request
+    )
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"'
+    }
+    return FastAPIResponse(content=artifact_bytes, media_type=media_type, headers=headers)

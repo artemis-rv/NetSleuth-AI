@@ -94,3 +94,63 @@ class EvidenceStorageService:
                     os.remove(temp_path)
                 except OSError:
                     pass
+
+
+class ReportStorageService:
+    def __init__(self):
+        from app.config import settings
+        endpoint = settings.minio_endpoint
+        if not endpoint.startswith("http://") and not endpoint.startswith("https://"):
+            endpoint = f"http://{endpoint}"
+        self.endpoint_url = os.getenv("MINIO_URL", endpoint)
+        self.access_key = settings.minio_root_user
+        self.secret_key = settings.minio_root_password
+        self.bucket_name = settings.minio_bucket_reports
+        self.session = aioboto3.Session()
+
+    @asynccontextmanager
+    async def get_client(self):
+        async with self.session.client(
+            's3',
+            endpoint_url=self.endpoint_url,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+        ) as s3:
+            yield s3
+
+    async def initialize_bucket(self):
+        """Ensure the reports bucket exists."""
+        async with self.get_client() as s3:
+            try:
+                await s3.head_bucket(Bucket=self.bucket_name)
+            except Exception:
+                try:
+                    await s3.create_bucket(Bucket=self.bucket_name)
+                except Exception:
+                    pass
+
+    async def upload_report_bytes(self, data: bytes, object_key: str) -> None:
+        """Upload raw report bytes directly to MinIO."""
+        await self.initialize_bucket()
+        async with self.get_client() as s3:
+            await s3.put_object(Bucket=self.bucket_name, Key=object_key, Body=data)
+
+    async def get_report_bytes(self, object_key: str) -> bytes:
+        """Download report bytes directly from MinIO."""
+        import botocore.exceptions
+        from app.exceptions import InfrastructureError
+
+        async with self.get_client() as s3:
+            try:
+                response = await s3.get_object(Bucket=self.bucket_name, Key=object_key)
+                return await response["Body"].read()
+            except botocore.exceptions.ClientError as e:
+                raise InfrastructureError(f"Failed to retrieve report artifact from MinIO: {str(e)}")
+
+    async def copy_report(self, src_key: str, dest_key: str) -> None:
+        """Copy a report object within the reports bucket."""
+        await self.initialize_bucket()
+        async with self.get_client() as s3:
+            copy_source = {'Bucket': self.bucket_name, 'Key': src_key}
+            await s3.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=dest_key)
+
