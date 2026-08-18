@@ -59,5 +59,8 @@ backend/seed.py
 backend/seed_users.py
 seed.py
 seed_users.py
+**/seed.py
+**/seed_users.py
+
 
 
