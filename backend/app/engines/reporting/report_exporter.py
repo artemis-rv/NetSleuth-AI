@@ -21,14 +21,16 @@ class ReportExporter:
             return "report-v1.1.json"
         elif schema_version == "report-v1.2":
             return "report-v1.2.json"
+        elif schema_version == "report-v1.3":
+            return "report-v1.3.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 
     def export_json(self, report: Dict[str, Any], indent: int = 2) -> str:
         """
-        Exports a validated Report V1 or Report V1.1 dictionary as a deterministic, formatted JSON string.
+        Exports a validated Report V1, V1.1, V1.2, or V1.3 dictionary as a deterministic, formatted JSON string.
 
-        :param report: Dict adhering to docs/contracts/report-v1.json or docs/contracts/report-v1.1.json
+        :param report: Dict adhering to Report V1 contracts
         :param indent: Integer indentation level for JSON formatting (default: 2)
         :return: Formatted UTF-8 JSON string representation.
         """

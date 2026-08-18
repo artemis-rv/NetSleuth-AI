@@ -21,14 +21,16 @@ class HTMLReportRenderer:
             return "report-v1.1.json"
         elif schema_version == "report-v1.2":
             return "report-v1.2.json"
+        elif schema_version == "report-v1.3":
+            return "report-v1.3.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 
     def render(self, report: Dict[str, Any]) -> str:
         """
-        Renders a contract-valid Report V1 or Report V1.1 dictionary into a self-contained UTF-8 HTML document.
+        Renders a contract-valid Report V1 dictionary into a self-contained UTF-8 HTML document.
 
-        :param report: Dict adhering to docs/contracts/report-v1.json or docs/contracts/report-v1.1.json
+        :param report: Dict adhering to Report V1 contracts
         :return: HTML document string.
         """
         if not isinstance(report, dict):
@@ -419,6 +421,148 @@ class HTMLReportRenderer:
                         f'</tr>'
                     )
                 html_out.append('</tbody></table>')
+
+            # V1.3: Hypotheses
+            hypotheses = assessment.get("hypotheses", [])
+            if hypotheses:
+                html_out.extend([
+                    '<h3>Investigation Hypotheses</h3>',
+                    '<table>',
+                    '<thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Confidence</th><th>Statement</th><th>Evidence IDs</th><th>Finding IDs</th><th>Missing Evidence</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for h in hypotheses:
+                    st = e(h.get("status"))
+                    bclass = "badge-informational"
+                    if h.get("status") in ("SUPPORTED",):
+                        bclass = "badge-verified"
+                    elif h.get("status") in ("POTENTIAL", "PARTIALLY_SUPPORTED"):
+                        bclass = "badge-medium"
+                    elif h.get("status") in ("DISFAVORED", "REJECTED"):
+                        bclass = "badge-critical"
+                    elif h.get("status") == "UNRESOLVED":
+                        bclass = "badge-unverified"
+                        
+                    ev_ids = ", ".join([e(ev) for ev in h.get("supporting_evidence_ids", [])]) or "-"
+                    f_ids = ", ".join([e(f) for f in h.get("supporting_finding_ids", [])]) or "-"
+                    m_ev = ", ".join([e(me) for me in h.get("missing_evidence", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(h.get("hypothesis_id"))}</span></td>'
+                        f'<td>{e(h.get("hypothesis_type"))}</td>'
+                        f'<td><span class="badge {bclass}">{st}</span></td>'
+                        f'<td>{e(h.get("confidence"))}</td>'
+                        f'<td>{e(h.get("statement"))}</td>'
+                        f'<td>{ev_ids}</td>'
+                        f'<td>{f_ids}</td>'
+                        f'<td>{m_ev}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+
+            # V1.3: Hypothesis Validations
+            validations = assessment.get("hypothesis_validations", [])
+            if validations:
+                html_out.extend([
+                    '<h3>Hypothesis Validation</h3>',
+                    '<table>',
+                    '<thead><tr><th>ID</th><th>Hypothesis ID</th><th>Status</th><th>Confidence</th><th>Supporting Ev.</th><th>Contradicting Ev.</th><th>Validated At</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for v in validations:
+                    st = e(v.get("validation_status"))
+                    bclass = "badge-informational"
+                    if v.get("validation_status") == "VALIDATED":
+                        bclass = "badge-verified"
+                    elif v.get("validation_status") == "REJECTED":
+                        bclass = "badge-critical"
+                    elif v.get("validation_status") == "INCONCLUSIVE":
+                        bclass = "badge-unverified"
+
+                    s_ev = ", ".join([e(ev) for ev in v.get("supporting_evidence_ids", [])]) or "-"
+                    c_ev = ", ".join([e(ev) for ev in v.get("contradicting_evidence_ids", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(v.get("validation_id"))}</span></td>'
+                        f'<td><span class="code-block">{e(v.get("hypothesis_id"))}</span></td>'
+                        f'<td><span class="badge {bclass}">{st}</span></td>'
+                        f'<td>{e(v.get("confidence"))}</td>'
+                        f'<td>{s_ev}</td>'
+                        f'<td>{c_ev}</td>'
+                        f'<td>{e(v.get("validated_at"))}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+
+            # V1.3: Root Causes
+            root_causes = assessment.get("root_causes", [])
+            if root_causes:
+                html_out.extend([
+                    '<h3>Root Cause Analysis</h3>',
+                    '<table>',
+                    '<thead><tr><th>ID</th><th>Status</th><th>Confidence</th><th>Statement</th><th>Hypothesis IDs</th><th>Evidence IDs</th><th>Missing Evidence</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for rc in root_causes:
+                    st = e(rc.get("status"))
+                    bclass = "badge-informational"
+                    if rc.get("status") == "SUPPORTED":
+                        bclass = "badge-verified"
+                    elif rc.get("status") in ("POTENTIAL", "PARTIALLY_SUPPORTED"):
+                        bclass = "badge-medium"
+                    elif rc.get("status") == "UNRESOLVED":
+                        bclass = "badge-unverified"
+                        
+                    h_ids = ", ".join([e(hid) for hid in rc.get("supporting_hypothesis_ids", [])]) or "-"
+                    ev_ids = ", ".join([e(ev) for ev in rc.get("supporting_evidence_ids", [])]) or "-"
+                    m_ev = ", ".join([e(me) for me in rc.get("missing_evidence", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(rc.get("root_cause_id"))}</span></td>'
+                        f'<td><span class="badge {bclass}">{st}</span></td>'
+                        f'<td>{e(rc.get("confidence"))}</td>'
+                        f'<td>{e(rc.get("statement"))}</td>'
+                        f'<td>{h_ids}</td>'
+                        f'<td>{ev_ids}</td>'
+                        f'<td>{m_ev}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+
+            # V1.3: Impact Assessments
+            impacts = assessment.get("impact_assessments", [])
+            if impacts:
+                html_out.extend([
+                    '<h3>Impact Assessment</h3>',
+                    '<table>',
+                    '<thead><tr><th>ID</th><th>Category</th><th>Status</th><th>Confidence</th><th>Statement</th><th>Evidence IDs</th><th>Entities</th></tr></thead>',
+                    '<tbody>'
+                ])
+                for ia in impacts:
+                    st = e(ia.get("status"))
+                    bclass = "badge-informational"
+                    if ia.get("status") == "OBSERVED":
+                        bclass = "badge-critical"
+                    elif ia.get("status") == "INFERRED":
+                        bclass = "badge-high"
+                    elif ia.get("status") == "POTENTIAL":
+                        bclass = "badge-medium"
+
+                    ev_ids = ", ".join([e(ev) for ev in ia.get("supporting_evidence_ids", [])]) or "-"
+                    ent_ids = ", ".join([e(ent) for ent in ia.get("affected_entity_ids", [])]) or "-"
+                    html_out.append(
+                        f'<tr>'
+                        f'<td><span class="code-block">{e(ia.get("impact_id"))}</span></td>'
+                        f'<td>{e(ia.get("category"))}</td>'
+                        f'<td><span class="badge {bclass}">{st}</span></td>'
+                        f'<td>{e(ia.get("confidence"))}</td>'
+                        f'<td>{e(ia.get("statement"))}</td>'
+                        f'<td>{ev_ids}</td>'
+                        f'<td>{ent_ids}</td>'
+                        f'</tr>'
+                    )
+                html_out.append('</tbody></table>')
+
             html_out.append('</section>')
 
         # Provenance Section (if present)

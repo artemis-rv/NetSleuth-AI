@@ -1,0 +1,86 @@
+{
+  "schema_version": "report-v1.3",
+  "report_id": "RPT-CASE-1",
+  "case_id": "CASE-1",
+  "generated_at": "2026-08-18T12:00:00Z",
+  "generator_version": "NetSleuth-AI M4 v1.0",
+  "summary": {
+    "case_title": "Test Case",
+    "case_status": "open",
+    "total_findings": 0,
+    "total_timeline_events": 0,
+    "total_evidence_references": 2,
+    "verified_evidence_count": 2,
+    "mismatched_evidence_count": 0,
+    "unverified_evidence_count": 0
+  },
+  "findings": [],
+  "timeline": [],
+  "entities": [],
+  "relationships": [],
+  "evidence_integrity": [
+    {
+      "evidence_id": "EV-1",
+      "case_id": "CASE-1",
+      "evidence_type": "flow",
+      "verification_status": "verified"
+    },
+    {
+      "evidence_id": "EV-2",
+      "case_id": "CASE-1",
+      "evidence_type": "flow",
+      "verification_status": "verified"
+    }
+  ],
+  "assessment": {
+    "summary": "This is a summary",
+    "facts": [],
+    "hypotheses": [
+      {
+        "hypothesis_id": "HYP-1",
+        "statement": "Test hypothesis",
+        "hypothesis_type": "C2_COMMUNICATION",
+        "status": "POTENTIAL",
+        "confidence": 0.5,
+        "supporting_evidence_ids": ["EV-1"]
+      }
+    ],
+    "hypothesis_validations": [
+      {
+        "validation_id": "VAL-1",
+        "hypothesis_id": "HYP-1",
+        "validation_status": "VALIDATED",
+        "confidence": 0.8,
+        "validated_at": "2026-08-18T12:00:00Z"
+      }
+    ],
+    "root_causes": [
+      {
+        "root_cause_id": "RC-1",
+        "statement": "Test root cause",
+        "status": "SUPPORTED",
+        "confidence": 0.8,
+        "supporting_evidence_ids": ["EV-1"]
+      }
+    ],
+    "impact_assessments": [
+      {
+        "impact_id": "IMP-1",
+        "category": "SYSTEM_COMPROMISE",
+        "statement": "Test impact",
+        "status": "POTENTIAL",
+        "confidence": 0.5,
+        "supporting_evidence_ids": ["EV-1"]
+      }
+    ]
+  },
+  "llm_enrichment": {
+    "status": "SUCCESS",
+    "request_id": "req-1",
+    "case_id": "CASE-1",
+    "summary": "LLM text",
+    "mitre_explanations": [],
+    "investigator_answers": {},
+    "provenance": {}
+  }
+}

@@ -29,6 +29,8 @@ class M3ToM4EvidenceAdapter:
             self.validator.validate("investigation-case-v1.1.json", investigation_case_payload)
         elif schema_version == "investigation-case-v1.2":
             self.validator.validate("investigation-case-v1.2.json", investigation_case_payload)
+        elif schema_version == "investigation-case-v1.3":
+            self.validator.validate("investigation-case-v1.3.json", investigation_case_payload)
         else:
             raise ValueError(f"Unsupported or missing schema_version: {schema_version}")
 
@@ -105,6 +107,35 @@ class M3ToM4EvidenceAdapter:
                         linkages[ev_id] = M4EvidenceLinkage()
                     if statement:
                         linkages[ev_id].assessment_fact_statements.append(statement)
+
+            # 8. Extract Evidence Linkages from V1.3 Investigation Engines
+            for h in assessment.get("hypotheses", []):
+                for ev_id in h.get("supporting_evidence_ids", []):
+                    if ev_id not in linkages:
+                        linkages[ev_id] = M4EvidenceLinkage()
+                    # M4EvidenceLinkage might not have fields specifically for hypotheses.
+                    # As long as we extract the ID into `linkages`, referential integrity is preserved.
+                    # We will append the statement to fact statements as a generic way to link, or just ensure the key exists.
+                    # Looking at M4EvidenceLinkage definition, it just tracks finding_ids, relationship_ids, etc.
+                    # If we just ensure ev_id is in linkages, we preserve it.
+
+            for hv in assessment.get("hypothesis_validations", []):
+                for ev_id in hv.get("supporting_evidence_ids", []):
+                    if ev_id not in linkages:
+                        linkages[ev_id] = M4EvidenceLinkage()
+                for ev_id in hv.get("contradicting_evidence_ids", []):
+                    if ev_id not in linkages:
+                        linkages[ev_id] = M4EvidenceLinkage()
+
+            for rc in assessment.get("root_causes", []):
+                for ev_id in rc.get("supporting_evidence_ids", []):
+                    if ev_id not in linkages:
+                        linkages[ev_id] = M4EvidenceLinkage()
+
+            for ia in assessment.get("impact_assessments", []):
+                for ev_id in ia.get("supporting_evidence_ids", []):
+                    if ev_id not in linkages:
+                        linkages[ev_id] = M4EvidenceLinkage()
 
         return M4CaseEvidencePackage(
             case_id=case_id,

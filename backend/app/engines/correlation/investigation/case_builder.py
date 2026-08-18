@@ -2,6 +2,7 @@ from typing import Dict, Any
 from datetime import datetime, timezone
 
 from app.engines.correlation.domain.investigation import InvestigationContext
+from app.engines.correlation.domain.hypothesis import ValidationStatus
 from app.shared.contract_validation import ContractValidator
 
 class InvestigationCaseBuilder:
@@ -95,8 +96,17 @@ class InvestigationCaseBuilder:
         
 
 
+        has_v1_3_fields = any([
+            getattr(ctx, 'hypotheses', []),
+            getattr(ctx, 'hypothesis_validations', []),
+            getattr(ctx, 'root_causes', []),
+            getattr(ctx, 'impact_assessments', [])
+        ])
+        
+        schema_version = "investigation-case-v1.3" if has_v1_3_fields else "investigation-case-v1.2"
+
         doc = {
-            "schema_version": "investigation-case-v1.2",
+            "schema_version": schema_version,
             "case_id": case_id,
             "title": f"Investigation Case {case_id}",
             "description": "Automatically assembled investigation case.",
@@ -201,8 +211,109 @@ class InvestigationCaseBuilder:
             for ev_id in rel.get("evidence_ids", []):
                 if ev_id not in declared_ev_ids:
                     raise ValueError(f"Relationship '{rel['relationship_id']}' references undeclared evidence ID '{ev_id}'.")
+                    
+        # 7. Assessment (V1.3 extensions)
+        if has_v1_3_fields:
+            assessment_doc = {
+                "hypotheses": [],
+                "hypothesis_validations": [],
+                "root_causes": [],
+                "impact_assessments": []
+            }
+            
+            for h in ctx.hypotheses:
+                h_doc = {
+                    "hypothesis_id": h.hypothesis_id,
+                    "statement": h.statement,
+                    "hypothesis_type": h.hypothesis_type,
+                    "status": h.status.value,
+                    "confidence": float(h.confidence),
+                    "supporting_evidence_ids": list(h.supporting_evidence_ids)
+                }
+                if h.supporting_finding_ids: h_doc["supporting_finding_ids"] = list(h.supporting_finding_ids)
+                if h.related_entity_ids: h_doc["related_entity_ids"] = list(h.related_entity_ids)
+                if h.related_mitre_mapping_ids: h_doc["related_mitre_mapping_ids"] = list(h.related_mitre_mapping_ids)
+                if h.supporting_reasons: h_doc["supporting_reasons"] = list(h.supporting_reasons)
+                if h.missing_evidence: h_doc["missing_evidence"] = list(h.missing_evidence)
+                if h.first_seen: h_doc["first_seen"] = h.first_seen.isoformat().replace("+00:00", "Z")
+                if h.last_seen: h_doc["last_seen"] = h.last_seen.isoformat().replace("+00:00", "Z")
+                
+                # Check evidence integrity
+                for ev_id in h.supporting_evidence_ids:
+                    if ev_id not in declared_ev_ids:
+                        raise ValueError(f"Hypothesis '{h.hypothesis_id}' references undeclared evidence ID '{ev_id}'.")
+                
+                assessment_doc["hypotheses"].append(h_doc)
+                
+            for v in ctx.hypothesis_validations:
+                v_doc = {
+                    "validation_id": v.validation_id,
+                    "hypothesis_id": v.hypothesis_id,
+                    "validation_status": v.validation_status.value,
+                    "confidence": float(v.confidence),
+                    "validated_at": v.validated_at.isoformat().replace("+00:00", "Z")
+                }
+                if v.supporting_evidence_ids: v_doc["supporting_evidence_ids"] = list(v.supporting_evidence_ids)
+                if v.contradicting_evidence_ids: v_doc["contradicting_evidence_ids"] = list(v.contradicting_evidence_ids)
+                if v.supporting_reasons: v_doc["supporting_reasons"] = list(v.supporting_reasons)
+                if v.contradicting_reasons: v_doc["contradicting_reasons"] = list(v.contradicting_reasons)
+                if v.missing_evidence: v_doc["missing_evidence"] = list(v.missing_evidence)
+                
+                if v.validation_status in (ValidationStatus.VALIDATED, ValidationStatus.REJECTED):
+                    if not v.supporting_evidence_ids and not v.contradicting_evidence_ids:
+                        raise ValueError("Validation must have evidence when VALIDATED or REJECTED.")
+                
+                # Check evidence integrity
+                for ev_id in list(v.supporting_evidence_ids) + list(v.contradicting_evidence_ids):
+                    if ev_id not in declared_ev_ids:
+                        raise ValueError(f"Validation '{v.validation_id}' references undeclared evidence ID '{ev_id}'.")
+                        
+                assessment_doc["hypothesis_validations"].append(v_doc)
+                
+            for rc in ctx.root_causes:
+                rc_doc = {
+                    "root_cause_id": rc.root_cause_id,
+                    "statement": rc.statement,
+                    "status": rc.status.value,
+                    "confidence": float(rc.confidence),
+                    "supporting_evidence_ids": list(rc.supporting_evidence_ids)
+                }
+                if rc.supporting_hypothesis_ids: rc_doc["supporting_hypothesis_ids"] = list(rc.supporting_hypothesis_ids)
+                if rc.supporting_finding_ids: rc_doc["supporting_finding_ids"] = list(rc.supporting_finding_ids)
+                if rc.rationale: rc_doc["rationale"] = list(rc.rationale)
+                if rc.missing_evidence: rc_doc["missing_evidence"] = list(rc.missing_evidence)
+                
+                # Check evidence integrity
+                for ev_id in rc.supporting_evidence_ids:
+                    if ev_id not in declared_ev_ids:
+                        raise ValueError(f"RootCause '{rc.root_cause_id}' references undeclared evidence ID '{ev_id}'.")
+                        
+                assessment_doc["root_causes"].append(rc_doc)
+                
+            for imp in ctx.impact_assessments:
+                imp_doc = {
+                    "impact_id": imp.impact_id,
+                    "category": imp.category,
+                    "statement": imp.statement,
+                    "status": imp.status.value,
+                    "confidence": float(imp.confidence),
+                    "supporting_evidence_ids": list(imp.supporting_evidence_ids)
+                }
+                if imp.supporting_finding_ids: imp_doc["supporting_finding_ids"] = list(imp.supporting_finding_ids)
+                if imp.affected_entity_ids: imp_doc["affected_entity_ids"] = list(imp.affected_entity_ids)
+                if imp.rationale: imp_doc["rationale"] = list(imp.rationale)
+                if imp.missing_evidence: imp_doc["missing_evidence"] = list(imp.missing_evidence)
+                
+                # Check evidence integrity
+                for ev_id in imp.supporting_evidence_ids:
+                    if ev_id not in declared_ev_ids:
+                        raise ValueError(f"ImpactAssessment '{imp.impact_id}' references undeclared evidence ID '{ev_id}'.")
+                        
+                assessment_doc["impact_assessments"].append(imp_doc)
+                
+            doc["assessment"] = assessment_doc
 
-        # 7. MITRE Mappings
+        # 8. MITRE Mappings
         if hasattr(ctx, "mitre_mappings") and ctx.mitre_mappings:
             for m in ctx.mitre_mappings:
                 m_doc = {
@@ -246,6 +357,6 @@ class InvestigationCaseBuilder:
                 doc["mitre_mappings"].append(m_doc)
 
         # Validate output against schema
-        self.validator.validate("investigation-case-v1.2.json", doc)
+        self.validator.validate(f"{schema_version}.json", doc)
         
         return doc

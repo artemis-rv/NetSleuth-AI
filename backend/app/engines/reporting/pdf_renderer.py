@@ -21,6 +21,8 @@ class PDFReportRenderer:
             return "report-v1.1.json"
         elif schema_version == "report-v1.2":
             return "report-v1.2.json"
+        elif schema_version == "report-v1.3":
+            return "report-v1.3.json"
         else:
             raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
 
@@ -36,9 +38,9 @@ class PDFReportRenderer:
 
     def render(self, report: Dict[str, Any]) -> bytes:
         """
-        Renders a contract-valid Report V1 or Report V1.1 dictionary as binary PDF bytes (%PDF-1.4).
+        Renders a contract-valid Report V1 dictionary as binary PDF bytes (%PDF-1.4).
 
-        :param report: Dict adhering to docs/contracts/report-v1.json or docs/contracts/report-v1.1.json
+        :param report: Dict adhering to Report V1 contracts
         :return: Binary PDF document bytes.
         """
         if not isinstance(report, dict):
@@ -179,6 +181,73 @@ class PDFReportRenderer:
                     f"(Sources: {s_ids})"
                 )
             lines.append("")
+
+            # V1.3 Investigation Elements
+            hypotheses = assessment.get("hypotheses", [])
+            if hypotheses:
+                lines.append("--- INVESTIGATION HYPOTHESES ---")
+                for h in hypotheses:
+                    lines.append(
+                        f"[{self._pdf_escape(h.get('hypothesis_id'))}] Type: {self._pdf_escape(h.get('hypothesis_type'))}, "
+                        f"Status: {self._pdf_escape(h.get('status'))}, Confidence: {self._pdf_escape(h.get('confidence'))}"
+                    )
+                    lines.append(f"  Statement:       {self._pdf_escape(h.get('statement'))}")
+                    s_ev = ", ".join([self._pdf_escape(e) for e in h.get("supporting_evidence_ids", [])]) or "-"
+                    lines.append(f"  Evidence IDs:    {s_ev}")
+                    f_ids = ", ".join([self._pdf_escape(f) for f in h.get("supporting_finding_ids", [])]) or "-"
+                    lines.append(f"  Finding IDs:     {f_ids}")
+                    if h.get("missing_evidence"):
+                        m_ev = ", ".join([self._pdf_escape(me) for me in h.get("missing_evidence", [])])
+                        lines.append(f"  Missing Ev.:     {m_ev}")
+                lines.append("")
+
+            validations = assessment.get("hypothesis_validations", [])
+            if validations:
+                lines.append("--- HYPOTHESIS VALIDATION ---")
+                for v in validations:
+                    lines.append(
+                        f"[{self._pdf_escape(v.get('validation_id'))}] For Hypothesis: {self._pdf_escape(v.get('hypothesis_id'))}, "
+                        f"Status: {self._pdf_escape(v.get('validation_status'))}, Confidence: {self._pdf_escape(v.get('confidence'))}"
+                    )
+                    lines.append(f"  Validated At:    {self._pdf_escape(v.get('validated_at'))}")
+                    s_ev = ", ".join([self._pdf_escape(e) for e in v.get("supporting_evidence_ids", [])]) or "-"
+                    c_ev = ", ".join([self._pdf_escape(e) for e in v.get("contradicting_evidence_ids", [])]) or "-"
+                    lines.append(f"  Supporting Ev.:  {s_ev}")
+                    lines.append(f"  Contradicting Ev:{c_ev}")
+                lines.append("")
+
+            root_causes = assessment.get("root_causes", [])
+            if root_causes:
+                lines.append("--- ROOT CAUSE ANALYSIS ---")
+                for rc in root_causes:
+                    lines.append(
+                        f"[{self._pdf_escape(rc.get('root_cause_id'))}] Status: {self._pdf_escape(rc.get('status'))}, "
+                        f"Confidence: {self._pdf_escape(rc.get('confidence'))}"
+                    )
+                    lines.append(f"  Statement:       {self._pdf_escape(rc.get('statement'))}")
+                    h_ids = ", ".join([self._pdf_escape(hid) for hid in rc.get("supporting_hypothesis_ids", [])]) or "-"
+                    ev_ids = ", ".join([self._pdf_escape(e) for e in rc.get("supporting_evidence_ids", [])]) or "-"
+                    lines.append(f"  Hypothesis IDs:  {h_ids}")
+                    lines.append(f"  Evidence IDs:    {ev_ids}")
+                    if rc.get("missing_evidence"):
+                        m_ev = ", ".join([self._pdf_escape(me) for me in rc.get("missing_evidence", [])])
+                        lines.append(f"  Missing Ev.:     {m_ev}")
+                lines.append("")
+
+            impacts = assessment.get("impact_assessments", [])
+            if impacts:
+                lines.append("--- IMPACT ASSESSMENT ---")
+                for ia in impacts:
+                    lines.append(
+                        f"[{self._pdf_escape(ia.get('impact_id'))}] Category: {self._pdf_escape(ia.get('category'))}, "
+                        f"Status: {self._pdf_escape(ia.get('status'))}, Confidence: {self._pdf_escape(ia.get('confidence'))}"
+                    )
+                    lines.append(f"  Statement:       {self._pdf_escape(ia.get('statement'))}")
+                    ev_ids = ", ".join([self._pdf_escape(e) for e in ia.get("supporting_evidence_ids", [])]) or "-"
+                    ent_ids = ", ".join([self._pdf_escape(ent) for ent in ia.get("affected_entity_ids", [])]) or "-"
+                    lines.append(f"  Evidence IDs:    {ev_ids}")
+                    lines.append(f"  Entities:        {ent_ids}")
+                lines.append("")
 
         if provenance:
             lines.append("--- PROVENANCE ---")

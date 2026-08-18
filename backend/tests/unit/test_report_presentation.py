@@ -308,13 +308,13 @@ class TestReportPresentation(unittest.TestCase):
             }
         }
         report = self.engine.generate_report(v1_2_case, [])
-        self.assertEqual(report["schema_version"], "report-v1.1")
+        self.assertEqual(report["schema_version"], "report-v1.2")
 
         json_out = self.exporter.export_json(report)
         html_out = self.html_renderer.render(report)
         pdf_out = self.pdf_renderer.render(report)
 
-        self.assertIn('"schema_version": "report-v1.1"', json_out)
+        self.assertIn('"schema_version": "report-v1.2"', json_out)
         self.assertIn("T1071.004", html_out)
         self.assertIn(b"T1071.004", pdf_out)
 
