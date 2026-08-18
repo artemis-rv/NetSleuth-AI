@@ -28,6 +28,9 @@ SCOPE:
 
 import os
 from typing import List
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class _Settings:
@@ -136,7 +139,7 @@ class _Settings:
         """
         user = os.environ.get("MINIO_ROOT_USER")
         if not user and not self.is_production:
-            user = "netsleuth_dev"
+            user = "minioadmin"
         if not user or (self.is_production and user in ("minioadmin", "netsleuth_dev")):
             raise ValueError("MINIO_ROOT_USER must be set securely in production")
         return user
@@ -150,7 +153,7 @@ class _Settings:
         """
         password = os.environ.get("MINIO_ROOT_PASSWORD")
         if not password and not self.is_production:
-            password = "netsleuth_dev_secret"
+            password = "minioadmin"
         if not password or (self.is_production and password in ("minioadmin", "netsleuth_dev_secret")):
             raise ValueError("MINIO_ROOT_PASSWORD must be set securely in production")
         return password

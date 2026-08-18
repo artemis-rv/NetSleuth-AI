@@ -19,12 +19,14 @@ class AnalysisRepository:
         created_by: Optional[uuid.UUID] = None
     ) -> AnalysisJobModel:
         job = AnalysisJobModel(
+            analysis_id=uuid.uuid4(),
             case_id=case_id,
             acquisition_id=acquisition_id,
             status="queued",
             created_by=created_by,
         )
         self.session.add(job)
+        await self.session.flush()
         return job
 
     async def get_job(self, analysis_id: uuid.UUID) -> Optional[AnalysisJobModel]:

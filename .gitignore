@@ -47,3 +47,10 @@ sample_data/zeek_output/
 
 test_output.log
 debug_finding.txt
+
+# Local infra binaries and data
+infra/bin/
+infra/data/
+infra/pg/
+infra/pg.zip
+

@@ -15,7 +15,7 @@ Does NOT contain raw SQL queries, engine algorithms, or business logic.
 
 import logging
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict
+from typing import Any, AsyncGenerator, Dict, Optional
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -82,6 +82,16 @@ def create_app() -> FastAPI:
     # Request ID middleware
     application.add_middleware(RequestIdMiddleware)
 
+    def _cors_response(request: Request, status_code: int, content: Dict[str, Any], extra_headers: Optional[Dict[str, str]] = None) -> JSONResponse:
+        headers = extra_headers or {}
+        origin = request.headers.get("origin")
+        if origin and (origin in settings.cors_origins or "*" in settings.cors_origins):
+            headers["Access-Control-Allow-Origin"] = origin
+            headers["Access-Control-Allow-Credentials"] = "true"
+            headers["Access-Control-Allow-Methods"] = "*"
+            headers["Access-Control-Allow-Headers"] = "*"
+        return JSONResponse(status_code=status_code, content=content, headers=headers)
+
     # -------------------------------------------------------------------------
     # 2. Register Global Exception Handlers (Standardized Error Envelope)
     # -------------------------------------------------------------------------
@@ -96,16 +106,18 @@ def create_app() -> FastAPI:
         if exc.details:
             error_payload["details"] = exc.details
 
-        return JSONResponse(
+        return _cors_response(
+            request=request,
             status_code=exc.status_code,
             content={"error": error_payload},
-            headers={REQUEST_ID_HEADER: request_id},
+            extra_headers={REQUEST_ID_HEADER: request_id},
         )
 
     @application.exception_handler(RequestValidationError)
     async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
         request_id = _get_request_id(request)
-        return JSONResponse(
+        return _cors_response(
+            request=request,
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
                 "error": {
@@ -115,7 +127,7 @@ def create_app() -> FastAPI:
                     "details": exc.errors(),
                 }
             },
-            headers={REQUEST_ID_HEADER: request_id},
+            extra_headers={REQUEST_ID_HEADER: request_id},
         )
 
     @application.exception_handler(StarletteHTTPException)
@@ -131,7 +143,8 @@ def create_app() -> FastAPI:
         elif exc.status_code == status.HTTP_405_METHOD_NOT_ALLOWED:
             error_code = "METHOD_NOT_ALLOWED"
 
-        return JSONResponse(
+        return _cors_response(
+            request=request,
             status_code=exc.status_code,
             content={
                 "error": {
@@ -140,14 +153,15 @@ def create_app() -> FastAPI:
                     "request_id": request_id,
                 }
             },
-            headers={REQUEST_ID_HEADER: request_id},
+            extra_headers={REQUEST_ID_HEADER: request_id},
         )
 
     @application.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         request_id = _get_request_id(request)
         logger.exception("Unhandled server exception on %s [request_id=%s]: %s", request.url.path, request_id, exc)
-        return JSONResponse(
+        return _cors_response(
+            request=request,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "error": {
@@ -156,7 +170,7 @@ def create_app() -> FastAPI:
                     "request_id": request_id,
                 }
             },
-            headers={REQUEST_ID_HEADER: request_id},
+            extra_headers={REQUEST_ID_HEADER: request_id},
         )
 
     # -------------------------------------------------------------------------
