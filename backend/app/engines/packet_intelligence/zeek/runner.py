@@ -18,6 +18,7 @@ from pathlib import Path
 from app.contracts.network_intelligence import AcquisitionReference
 from .errors import ZeekRunnerError, ZeekRunnerErrorCode
 from .result import ZeekRunnerResult, ZeekRunnerStatus
+from .storage import ZeekStorage
 
 
 class ZeekRunner:
@@ -25,23 +26,23 @@ class ZeekRunner:
 
     def __init__(
         self,
-        output_root: str | os.PathLike = "sample_data/zeek_output",
         allowed_evidence_roots: list[str | os.PathLike] | None = None,
         timeout_seconds: float = 300.0,
         zeek_image: str = "zeek/zeek:lts",
+        storage: ZeekStorage | None = None,
     ) -> None:
         """Initialize the Zeek Runner.
 
         Parameters:
-            output_root: Root directory where isolated output folders are created.
             allowed_evidence_roots: Allowed directories for PCAP mounting.
                                     Prevents arbitrary host directory mounting.
             timeout_seconds: Maximum execution time for the Zeek process.
             zeek_image: Docker image to execute.
+            storage: ZeekStorage service for uploading results.
         """
-        self.output_root = Path(output_root).resolve()
         self.timeout_seconds = timeout_seconds
         self.zeek_image = zeek_image
+        self.storage = storage or ZeekStorage()
 
         # Default allowed roots: sample_data/evidence and system temp dir
         if allowed_evidence_roots is None:
@@ -75,97 +76,98 @@ class ZeekRunner:
         # Step 3: Validate input path
         pcap_path = self._validate_input_path(ref.capture_reference)
 
-        # Step 4: Prepare isolated output directory
-        output_dir = self.output_root / ref.acquisition_id
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        except OSError as exc:
-            raise ZeekRunnerError(
-                ZeekRunnerErrorCode.OUTPUT_DIR_ERROR,
-                f"Failed to create output directory {output_dir}: {exc}",
-            ) from exc
-
-        # Step 5: Execute Zeek via Docker
+        # Step 4 & 5: Prepare isolated temporary output directory and execute Zeek
         evidence_dir = pcap_path.parent
         relative_pcap = pcap_path.name
-
-        cmd = [
-            "docker",
-            "run",
-            "--rm",
-            "-v",
-            f"{evidence_dir}:/data/evidence:ro",
-            "-v",
-            f"{output_dir.resolve()}:/data/output",
-            "--workdir",
-            "/data/output",
-            self.zeek_image,
-            "zeek",
-            "-r",
-            f"/data/evidence/{relative_pcap}",
-            "LogAscii::use_json=T",
-        ]
-
-        start_time = time.perf_counter()
+        
         status = ZeekRunnerStatus.SUCCESS
         exit_code = 0
         stderr_tail = ""
+        generated_objects = []
+        prefix = f"zeek/{ref.acquisition_id}/"
 
-        try:
-            res = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_seconds,
-                shell=False,
-            )
-            exit_code = res.returncode
-            stderr_tail = "\n".join(res.stderr.splitlines()[-10:])
+        with tempfile.TemporaryDirectory(prefix="netsleuth_zeek_") as temp_dir_str:
+            output_dir = Path(temp_dir_str) / "output"
+            output_dir.mkdir(parents=True, exist_ok=True)
 
-            if exit_code != 0:
-                status = ZeekRunnerStatus.FAILED
-                # Zeek runtime errors are captured here
-                raise ZeekRunnerError(
-                    ZeekRunnerErrorCode.ZEEK_NONZERO_EXIT,
-                    f"Zeek process exited with non-zero code {exit_code}. Stderr: {res.stderr.strip()}",
-                )
+            cmd = [
+                "docker",
+                "run",
+                "--rm",
+                "-v",
+                f"{evidence_dir}:/data/evidence:ro",
+                "-v",
+                f"{output_dir.resolve()}:/data/output",
+                "--workdir",
+                "/data/output",
+                self.zeek_image,
+                "zeek",
+                "-r",
+                f"/data/evidence/{relative_pcap}",
+                "LogAscii::use_json=T",
+            ]
 
-        except subprocess.TimeoutExpired as exc:
-            status = ZeekRunnerStatus.TIMED_OUT
-            stderr_tail = exc.stderr.decode("utf-8", errors="ignore") if exc.stderr else ""
-            exit_code = None
-            raise ZeekRunnerError(
-                ZeekRunnerErrorCode.TIMEOUT,
-                f"Zeek execution timed out after {self.timeout_seconds} seconds.",
-            ) from exc
-        except subprocess.SubprocessError as exc:
-            status = ZeekRunnerStatus.FAILED
-            raise ZeekRunnerError(
-                ZeekRunnerErrorCode.DOCKER_PROCESS_FAILED,
-                f"Subprocess call failed: {exc}",
-            ) from exc
+            start_time = time.perf_counter()
 
-        finally:
-            duration = time.perf_counter() - start_time
-
-        # Step 6: Discover generated logs
-        generated_logs = []
-        if status == ZeekRunnerStatus.SUCCESS:
             try:
-                for entry in output_dir.iterdir():
-                    if entry.is_file():
-                        generated_logs.append(entry.name)
-            except OSError as exc:
+                res = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=self.timeout_seconds,
+                    shell=False,
+                )
+                exit_code = res.returncode
+                stderr_tail = "\n".join(res.stderr.splitlines()[-10:])
+
+                if exit_code != 0:
+                    status = ZeekRunnerStatus.FAILED
+                    # Zeek runtime errors are captured here
+                    raise ZeekRunnerError(
+                        ZeekRunnerErrorCode.ZEEK_NONZERO_EXIT,
+                        f"Zeek process exited with non-zero code {exit_code}. Stderr: {res.stderr.strip()}",
+                    )
+
+            except subprocess.TimeoutExpired as exc:
+                status = ZeekRunnerStatus.TIMED_OUT
+                stderr_tail = exc.stderr.decode("utf-8", errors="ignore") if exc.stderr else ""
+                exit_code = None
                 raise ZeekRunnerError(
-                    ZeekRunnerErrorCode.OUTPUT_DIR_ERROR,
-                    f"Failed to list output directory contents: {exc}",
+                    ZeekRunnerErrorCode.TIMEOUT,
+                    f"Zeek execution timed out after {self.timeout_seconds} seconds.",
                 ) from exc
+            except subprocess.SubprocessError as exc:
+                status = ZeekRunnerStatus.FAILED
+                raise ZeekRunnerError(
+                    ZeekRunnerErrorCode.DOCKER_PROCESS_FAILED,
+                    f"Subprocess call failed: {exc}",
+                ) from exc
+
+            finally:
+                duration = time.perf_counter() - start_time
+
+            # Step 6: Discover generated logs and upload to MinIO
+            if status == ZeekRunnerStatus.SUCCESS:
+                try:
+                    for entry in output_dir.iterdir():
+                        if entry.is_file():
+                            object_key = f"{prefix}{entry.name}"
+                            self.storage.upload_file(entry, object_key)
+                            generated_objects.append(object_key)
+                except OSError as exc:
+                    raise ZeekRunnerError(
+                        ZeekRunnerErrorCode.OUTPUT_DIR_ERROR,
+                        f"Failed to process temporary output directory contents: {exc}",
+                    ) from exc
+            
+            # Temporary directory gets deleted when exiting the 'with' block
 
         return ZeekRunnerResult(
             acquisition_id=ref.acquisition_id,
             status=status,
-            output_directory=output_dir,
-            generated_logs=sorted(generated_logs),
+            bucket=self.storage.bucket_name,
+            prefix=prefix,
+            generated_objects=sorted(generated_objects),
             exit_code=exit_code,
             execution_duration_s=round(duration, 3),
             zeek_image=self.zeek_image,

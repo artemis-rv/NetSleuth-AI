@@ -27,8 +27,9 @@ class ZeekRunnerResult:
 
     acquisition_id: str
     status: ZeekRunnerStatus
-    output_directory: Path
-    generated_logs: list[str]          # basenames of files actually created
+    bucket: str
+    prefix: str
+    generated_objects: list[str]       # keys of files uploaded to MinIO
     exit_code: int | None
     execution_duration_s: float
     zeek_image: str
