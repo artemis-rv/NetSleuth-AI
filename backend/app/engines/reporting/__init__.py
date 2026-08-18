@@ -11,6 +11,7 @@ from app.engines.reporting.report_engine import ReportEngine
 from app.engines.reporting.report_exporter import ReportExporter
 from app.engines.reporting.html_renderer import HTMLReportRenderer
 from app.engines.reporting.pdf_renderer import PDFReportRenderer
+from app.engines.reporting.text_renderer import TextReportRenderer
 
 __all__ = [
     "M4EvidenceReference",
@@ -25,5 +26,6 @@ __all__ = [
     "ReportEngine",
     "ReportExporter",
     "HTMLReportRenderer",
-    "PDFReportRenderer"
+    "PDFReportRenderer",
+    "TextReportRenderer"
 ]

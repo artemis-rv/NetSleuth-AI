@@ -13,6 +13,15 @@ class ReportExporter:
     def __init__(self, validator: ContractValidator):
         self.validator = validator
 
+    def _detect_report_version(self, report: Dict[str, Any]) -> str:
+        schema_version = report.get("schema_version")
+        if schema_version == "report-v1":
+            return "report-v1.json"
+        elif schema_version == "report-v1.1":
+            return "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
+
     def export_json(self, report: Dict[str, Any], indent: int = 2) -> str:
         """
         Exports a validated Report V1 or Report V1.1 dictionary as a deterministic, formatted JSON string.
@@ -28,14 +37,7 @@ class ReportExporter:
         report_copy = deepcopy(report)
 
         # 2. Version-aware contract validation
-        schema_version = report_copy.get("schema_version")
-        if schema_version == "report-v1":
-            schema_file = "report-v1.json"
-        elif schema_version == "report-v1.1":
-            schema_file = "report-v1.1.json"
-        else:
-            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
-
+        schema_file = self._detect_report_version(report_copy)
         self.validator.validate(schema_file, report_copy)
 
         # 3. Deterministic JSON serialization with sorted keys and UTF-8 string support

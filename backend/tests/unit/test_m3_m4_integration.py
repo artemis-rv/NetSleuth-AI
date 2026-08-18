@@ -16,6 +16,7 @@ from app.contracts.analysis import Finding, EvidenceReference
 from app.contracts.network_intelligence import Flow
 from app.engines.reporting.case_adapter import M3ToM4EvidenceAdapter
 from app.engines.reporting.report_engine import ReportEngine
+from app.engines.reporting.pdf_renderer import PDFReportRenderer
 from app.engines.correlation.domain.timeline import TimelineEvent
 from app.engines.correlation.domain.entity import Entity
 from app.engines.correlation.domain.evidence import EvidenceReference as DomainEvidenceReference
@@ -29,6 +30,7 @@ class TestM3M4Integration(unittest.TestCase):
         self.case_builder = InvestigationCaseBuilder(self.validator)
         self.adapter = M3ToM4EvidenceAdapter(self.validator)
         self.report_engine = ReportEngine(self.validator)
+        self.pdf_renderer = PDFReportRenderer(self.validator)
 
     def test_m3_to_m4_end_to_end_v1_2(self):
         # 1. Create upstream Finding and Flow 
@@ -126,7 +128,7 @@ class TestM3M4Integration(unittest.TestCase):
         # Mocking an empty EvidenceIntegrity list for this test
         report_doc = self.report_engine.generate_report(case_doc, [])
         self.assertIsNotNone(report_doc)
-        self.assertEqual(report_doc["schema_version"], "report-v1")
+        self.assertEqual(report_doc["schema_version"], "report-v1.1")
         self.assertEqual(report_doc["case_id"], "CASE-INT-001")
         # Attack Chain assertions
         self.assertIn("attack_chain", case_doc)
@@ -134,6 +136,18 @@ class TestM3M4Integration(unittest.TestCase):
         self.assertEqual(attack_chain["status"], "potential")
         self.assertEqual(len(attack_chain["stages"]), 1)
         self.assertEqual(attack_chain["stages"][0]["stage_id"], "stage-T1071.001")
+
+        # 7. Render PDF Report
+        pdf_bytes = self.pdf_renderer.render(report_doc)
+        self.assertIsInstance(pdf_bytes, bytes)
+        self.assertTrue(pdf_bytes.startswith(b"%PDF-1.4"))
+        self.assertTrue(pdf_bytes.rstrip().endswith(b"%%EOF"))
+        self.assertIn(b"CASE-INT-001", pdf_bytes)
+        self.assertIn(b"RPT-CASE-INT-001", pdf_bytes)
+        self.assertIn(b"T1071.001", pdf_bytes)
+        self.assertIn(b"19.2", pdf_bytes)
+        self.assertIn(b"stage-T1071.001", pdf_bytes)
+
 
 if __name__ == '__main__':
     unittest.main()

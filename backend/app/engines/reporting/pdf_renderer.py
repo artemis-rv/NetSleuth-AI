@@ -13,6 +13,15 @@ class PDFReportRenderer:
     def __init__(self, validator: ContractValidator):
         self.validator = validator
 
+    def _detect_report_version(self, report: Dict[str, Any]) -> str:
+        schema_version = report.get("schema_version")
+        if schema_version == "report-v1":
+            return "report-v1.json"
+        elif schema_version == "report-v1.1":
+            return "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
+
     def _pdf_escape(self, s: Any) -> str:
         if s is None:
             return "-"
@@ -25,9 +34,9 @@ class PDFReportRenderer:
 
     def render(self, report: Dict[str, Any]) -> bytes:
         """
-        Renders a contract-valid Report V1 dictionary as binary PDF bytes (%PDF-1.4).
+        Renders a contract-valid Report V1 or Report V1.1 dictionary as binary PDF bytes (%PDF-1.4).
 
-        :param report: Dict adhering to docs/contracts/report-v1.json
+        :param report: Dict adhering to docs/contracts/report-v1.json or docs/contracts/report-v1.1.json
         :return: Binary PDF document bytes.
         """
         if not isinstance(report, dict):
@@ -37,14 +46,7 @@ class PDFReportRenderer:
         report_data = deepcopy(report)
 
         # 2. Version-aware contract validation
-        schema_version = report_data.get("schema_version")
-        if schema_version == "report-v1":
-            schema_file = "report-v1.json"
-        elif schema_version == "report-v1.1":
-            schema_file = "report-v1.1.json"
-        else:
-            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
-
+        schema_file = self._detect_report_version(report_data)
         self.validator.validate(schema_file, report_data)
 
         # Build PDF text lines
@@ -201,6 +203,22 @@ class PDFReportRenderer:
                     if m.get("evidence_ids"):
                         ev_str = ", ".join([self._pdf_escape(ev) for ev in m.get("evidence_ids")])
                         lines.append(f"  Evidence:    {ev_str}")
+                    if m.get("first_seen"):
+                        lines.append(f"  First Seen:  {self._pdf_escape(m.get('first_seen'))}")
+                    if m.get("last_seen"):
+                        lines.append(f"  Last Seen:   {self._pdf_escape(m.get('last_seen'))}")
+                    if m.get("detection_strategy_ids"):
+                        ds_str = ", ".join([self._pdf_escape(ds) for ds in m.get("detection_strategy_ids")])
+                        lines.append(f"  Detection:   {ds_str}")
+                    if m.get("analytic_ids"):
+                        an_str = ", ".join([self._pdf_escape(an) for an in m.get("analytic_ids")])
+                        lines.append(f"  Analytics:   {an_str}")
+                    if m.get("data_component_ids"):
+                        dc_str = ", ".join([self._pdf_escape(dc) for dc in m.get("data_component_ids")])
+                        lines.append(f"  Components:  {dc_str}")
+                    if m.get("channels"):
+                        ch_str = ", ".join([self._pdf_escape(ch) for ch in m.get("channels")])
+                        lines.append(f"  Channels:    {ch_str}")
             else:
                 lines.append("No MITRE ATT&CK mappings recorded.")
             lines.append("")
@@ -240,8 +258,7 @@ class PDFReportRenderer:
         ]
 
         for l in lines:
-            safe_text = self._pdf_escape(l)
-            stream_cmds.append(f"({safe_text}) '")
+            stream_cmds.append(f"({l}) '")
 
         stream_cmds.append("ET")
         stream_data = "\n".join(stream_cmds).encode("latin-1", "replace")

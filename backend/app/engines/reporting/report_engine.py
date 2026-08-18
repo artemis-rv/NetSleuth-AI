@@ -14,6 +14,15 @@ class ReportEngine:
     def __init__(self, validator: ContractValidator):
         self.validator = validator
 
+    def _detect_case_version(self, case_data: Dict[str, Any]) -> tuple[str, str, str]:
+        schema_version = case_data.get("schema_version")
+        if schema_version == "investigation-case-v1.1":
+            return "investigation-case-v1.1.json", "report-v1", "report-v1.json"
+        elif schema_version == "investigation-case-v1.2":
+            return "investigation-case-v1.2.json", "report-v1.1", "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
+
     def _project_finding(self, f: Dict[str, Any]) -> Dict[str, Any]:
         pf: Dict[str, Any] = {
             "finding_id": f["finding_id"],
@@ -88,16 +97,7 @@ class ReportEngine:
 
         # 2. Schema version detection
         schema_version = case_data.get("schema_version")
-        if schema_version == "investigation-case-v1.1":
-            case_schema_file = "investigation-case-v1.1.json"
-            out_schema_version = "report-v1"
-            out_schema_file = "report-v1.json"
-        elif schema_version == "investigation-case-v1.2":
-            case_schema_file = "investigation-case-v1.2.json"
-            out_schema_version = "report-v1.1"
-            out_schema_file = "report-v1.1.json"
-        else:
-            raise ValueError(f"Unsupported or unknown InvestigationCase schema_version '{schema_version}'.")
+        case_schema_file, out_schema_version, out_schema_file = self._detect_case_version(case_data)
 
         # Validate upstream InvestigationCase schema
         self.validator.validate(case_schema_file, case_data)
@@ -190,7 +190,7 @@ class ReportEngine:
         }
 
         if case_data.get("assessment") is not None:
-            report_payload["assessment"] = case_data["assessment"]
+            report_payload["assessment"] = self._project_assessment(case_data["assessment"])
         if case_data.get("provenance") is not None:
             report_payload["provenance"] = case_data["provenance"]
 
@@ -248,3 +248,33 @@ class ReportEngine:
                 projected_stages.append(pst)
             pac["stages"] = projected_stages
         return pac
+
+    def _project_assessment(self, ass: Dict[str, Any]) -> Dict[str, Any]:
+        summary_text = ass.get("summary")
+        if not summary_text:
+            facts = ass.get("facts") or []
+            if facts and isinstance(facts, list) and len(facts) > 0 and isinstance(facts[0], dict):
+                summary_text = facts[0].get("statement") or "Investigation Assessment Summary."
+            else:
+                summary_text = "Investigation Assessment Summary."
+
+        pass_ass: Dict[str, Any] = {
+            "summary": summary_text
+        }
+
+        if "facts" in ass and ass["facts"] is not None:
+            projected_facts = []
+            for idx, fact in enumerate(ass["facts"]):
+                if isinstance(fact, dict):
+                    pf: Dict[str, Any] = {
+                        "fact_id": fact.get("fact_id") or f"FACT-{idx+1}",
+                        "statement": fact["statement"]
+                    }
+                    if fact.get("confidence") is not None:
+                        pf["confidence"] = fact["confidence"]
+                    if "source_ids" in fact and fact["source_ids"] is not None:
+                        pf["source_ids"] = fact["source_ids"]
+                    projected_facts.append(pf)
+            pass_ass["facts"] = projected_facts
+
+        return pass_ass

@@ -13,11 +13,20 @@ class HTMLReportRenderer:
     def __init__(self, validator: ContractValidator):
         self.validator = validator
 
+    def _detect_report_version(self, report: Dict[str, Any]) -> str:
+        schema_version = report.get("schema_version")
+        if schema_version == "report-v1":
+            return "report-v1.json"
+        elif schema_version == "report-v1.1":
+            return "report-v1.1.json"
+        else:
+            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
+
     def render(self, report: Dict[str, Any]) -> str:
         """
-        Renders a contract-valid Report V1 dictionary into a self-contained UTF-8 HTML document.
+        Renders a contract-valid Report V1 or Report V1.1 dictionary into a self-contained UTF-8 HTML document.
 
-        :param report: Dict adhering to docs/contracts/report-v1.json
+        :param report: Dict adhering to docs/contracts/report-v1.json or docs/contracts/report-v1.1.json
         :return: HTML document string.
         """
         if not isinstance(report, dict):
@@ -27,14 +36,7 @@ class HTMLReportRenderer:
         report_data = deepcopy(report)
 
         # 2. Version-aware contract validation
-        schema_version = report_data.get("schema_version")
-        if schema_version == "report-v1":
-            schema_file = "report-v1.json"
-        elif schema_version == "report-v1.1":
-            schema_file = "report-v1.1.json"
-        else:
-            raise ValueError(f"Unsupported or unknown report schema_version '{schema_version}'.")
-
+        schema_file = self._detect_report_version(report_data)
         self.validator.validate(schema_file, report_data)
 
         # Helper for HTML escaping
