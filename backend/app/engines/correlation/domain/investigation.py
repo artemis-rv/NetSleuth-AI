@@ -6,6 +6,9 @@ from .relationship import Relationship
 from .timeline import TimelineEvent
 from .finding import FindingReference
 from .evidence import EvidenceReference
+from .hypothesis import Hypothesis, HypothesisValidation
+from .root_cause import RootCause
+from .impact import ImpactAssessment
 
 @dataclass
 class InvestigationContext:
@@ -17,6 +20,10 @@ class InvestigationContext:
     timeline_events: List[TimelineEvent] = field(default_factory=list)
     findings: List[FindingReference] = field(default_factory=list)
     evidence_references: List[EvidenceReference] = field(default_factory=list)
+    hypotheses: List[Hypothesis] = field(default_factory=list)
+    hypothesis_validations: List[HypothesisValidation] = field(default_factory=list)
+    root_causes: List[RootCause] = field(default_factory=list)
+    impact_assessments: List[ImpactAssessment] = field(default_factory=list)
 
     def add_entity(self, entity: Entity):
         """Adds a new entity or updates the temporal bounds of an existing entity."""
