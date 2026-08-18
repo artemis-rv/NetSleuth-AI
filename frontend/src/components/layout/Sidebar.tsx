@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, Home, Search, Activity, Network, Box, Database, FileText, Settings, LogOut } from 'lucide-react';
+import { Shield, Home, Search, Activity, Network, Database, FileText, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../auth/auth-context';
 import { cn } from '../../lib/utils';
 
@@ -8,84 +8,153 @@ export function Sidebar() {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Dashboard', path: '/', icon: Home, roles: ['investigator', 'analyst', 'administrator'] },
-    { label: 'Cases', path: '/cases', icon: Box, roles: ['investigator', 'analyst', 'administrator'] },
-    { label: 'Investigation', path: '/investigation', icon: Search, roles: ['investigator', 'administrator'] },
-    { label: 'Network', path: '/network', icon: Network, roles: ['investigator', 'analyst', 'administrator'] },
-    { label: 'Timeline', path: '/timeline', icon: Activity, roles: ['investigator', 'analyst', 'administrator'] },
-    { label: 'Evidence', path: '/evidence', icon: Database, roles: ['investigator', 'administrator'] },
-    { label: 'Reports', path: '/reports', icon: FileText, roles: ['investigator', 'analyst', 'administrator'] },
+    {
+      label: 'Dashboard',
+      path: '/',
+      icon: Home,
+      roles: ['investigator', 'analyst', 'administrator'],
+      exact: true,
+    },
+    {
+      label: 'Investigations',
+      path: '/investigations',
+      icon: Search,
+      roles: ['investigator', 'analyst', 'administrator'],
+      exact: false,
+    },
+    {
+      label: 'Network',
+      path: '/network',
+      icon: Network,
+      roles: ['investigator', 'analyst', 'administrator'],
+      exact: false,
+      comingSoon: true,
+    },
+    {
+      label: 'Timeline',
+      path: '/timeline',
+      icon: Activity,
+      roles: ['investigator', 'analyst', 'administrator'],
+      exact: false,
+      comingSoon: true,
+    },
+    {
+      label: 'Evidence',
+      path: '/evidence',
+      icon: Database,
+      roles: ['investigator', 'administrator'],
+      exact: false,
+      comingSoon: true,
+    },
+    {
+      label: 'Reports',
+      path: '/reports',
+      icon: FileText,
+      roles: ['investigator', 'analyst', 'administrator'],
+      exact: false,
+      comingSoon: true,
+    },
   ];
 
   // Role-aware navigation filter
-  const visibleItems = navItems.filter(item => 
+  const visibleItems = navItems.filter((item) =>
     !user || item.roles.includes(user.role)
   );
 
   return (
     <aside className="w-64 border-r border-border-subtle bg-surface flex flex-col h-full flex-shrink-0">
-      <div className="h-14 flex items-center px-6 border-b border-border-subtle">
-        <Shield className="h-5 w-5 text-accent mr-2" />
+      {/* Logo */}
+      <div className="h-14 flex items-center px-6 border-b border-border-subtle flex-shrink-0">
+        <Shield className="h-5 w-5 text-accent mr-2" aria-hidden="true" />
         <span className="font-semibold text-primary tracking-tight">NetSleuth AI</span>
       </div>
-      
-      <nav className="flex-1 py-4 flex flex-col gap-1 overflow-y-auto px-3">
-        {visibleItems.map(item => {
-          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+
+      {/* Navigation */}
+      <nav className="flex-1 py-4 flex flex-col gap-0.5 overflow-y-auto px-3" aria-label="Main navigation">
+        {visibleItems.map((item) => {
+          const isActive = item.exact
+            ? location.pathname === item.path
+            : location.pathname === item.path ||
+              location.pathname.startsWith(item.path + '/');
           const Icon = item.icon;
           return (
             <Link
               key={item.path}
               to={item.path}
+              aria-current={isActive ? 'page' : undefined}
+              title={item.comingSoon ? 'Available in a future phase' : undefined}
               className={cn(
-                "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
-                isActive 
-                  ? "bg-surface-elevated text-primary font-medium" 
-                  : "text-secondary hover:bg-surface-elevated hover:text-primary"
+                'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
+                isActive
+                  ? 'bg-surface-elevated text-primary font-medium'
+                  : 'text-secondary hover:bg-surface-elevated hover:text-primary'
               )}
             >
-              <Icon className={cn("h-4 w-4 mr-3", isActive ? "text-accent" : "text-muted")} />
-              {item.label}
+              <Icon
+                className={cn('h-4 w-4 mr-3 flex-shrink-0', isActive ? 'text-accent' : 'text-muted')}
+                aria-hidden="true"
+              />
+              <span className="truncate">{item.label}</span>
+              {item.comingSoon && (
+                <span className="ml-auto text-[10px] text-muted border border-muted/30 rounded px-1 py-0.5 leading-none flex-shrink-0">
+                  soon
+                </span>
+              )}
             </Link>
           );
         })}
 
+        {/* Admin section */}
         {user?.role === 'administrator' && (
           <>
-            <div className="my-2 border-t border-border-subtle mx-3" />
+            <div className="my-2 border-t border-border-subtle mx-0" aria-hidden="true" />
             <Link
               to="/admin"
+              aria-current={location.pathname.startsWith('/admin') ? 'page' : undefined}
               className={cn(
-                "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
+                'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
                 location.pathname.startsWith('/admin')
-                  ? "bg-surface-elevated text-primary font-medium" 
-                  : "text-secondary hover:bg-surface-elevated hover:text-primary"
+                  ? 'bg-surface-elevated text-primary font-medium'
+                  : 'text-secondary hover:bg-surface-elevated hover:text-primary'
               )}
             >
-              <Settings className="h-4 w-4 mr-3 text-muted" />
+              <Settings
+                className={cn(
+                  'h-4 w-4 mr-3',
+                  location.pathname.startsWith('/admin') ? 'text-accent' : 'text-muted'
+                )}
+                aria-hidden="true"
+              />
               Settings
             </Link>
           </>
         )}
       </nav>
 
-      <div className="p-4 border-t border-border-subtle">
-        <div className="flex items-center mb-4 px-2">
-          <div className="h-8 w-8 rounded-full bg-surface-elevated flex items-center justify-center border border-border-subtle mr-3">
+      {/* User Footer */}
+      <div className="p-4 border-t border-border-subtle flex-shrink-0">
+        <div className="flex items-center mb-3 px-1">
+          <div
+            className="h-8 w-8 rounded-full bg-surface-elevated flex items-center justify-center border border-border-subtle mr-3 flex-shrink-0"
+            aria-hidden="true"
+          >
             <span className="text-xs font-medium text-primary">
-              {user?.username?.charAt(0).toUpperCase() || 'U'}
+              {user?.username?.charAt(0).toUpperCase() ?? 'U'}
             </span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-primary leading-none mb-1">{user?.username}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium text-primary leading-none mb-1 truncate">
+              {user?.username}
+            </span>
             <span className="text-xs text-muted leading-none capitalize">{user?.role}</span>
           </div>
         </div>
         <button
           onClick={logout}
-          className="flex w-full items-center px-2 py-1.5 text-sm text-secondary hover:text-primary transition-colors rounded-md hover:bg-surface-elevated"
+          className="flex w-full items-center px-2 py-1.5 text-sm text-secondary hover:text-primary transition-colors rounded-md hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          aria-label="Sign out"
         >
-          <LogOut className="h-4 w-4 mr-3 text-muted" />
+          <LogOut className="h-4 w-4 mr-3 text-muted flex-shrink-0" aria-hidden="true" />
           Sign out
         </button>
       </div>
