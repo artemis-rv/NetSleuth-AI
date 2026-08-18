@@ -40,7 +40,7 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   let data;
   try {
     data = await response.json();
-  } catch (e) {
+  } catch {
     data = null;
   }
 
