@@ -104,12 +104,8 @@ class ReportEngine:
             out_schema_file = "report-v1.json"
         elif schema_version == "investigation-case-v1.2":
             case_schema_file = "investigation-case-v1.2.json"
-            if llm_enrichment is not None:
-                out_schema_version = "report-v1.2"
-                out_schema_file = "report-v1.2.json"
-            else:
-                out_schema_version = "report-v1.1"
-                out_schema_file = "report-v1.1.json"
+            out_schema_version = "report-v1.2"
+            out_schema_file = "report-v1.2.json"
         elif schema_version == "investigation-case-v1.3":
             case_schema_file = "investigation-case-v1.3.json"
             out_schema_version = "report-v1.3"
