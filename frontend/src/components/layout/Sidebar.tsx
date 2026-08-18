@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, Home, Search, Activity, Network, Database, FileText, Settings, LogOut } from 'lucide-react';
+import { Shield, Home, Search, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../auth/auth-context';
 import { cn } from '../../lib/utils';
 
@@ -21,38 +21,6 @@ export function Sidebar() {
       icon: Search,
       roles: ['investigator', 'analyst', 'administrator'],
       exact: false,
-    },
-    {
-      label: 'Network',
-      path: '/network',
-      icon: Network,
-      roles: ['investigator', 'analyst', 'administrator'],
-      exact: false,
-      comingSoon: true,
-    },
-    {
-      label: 'Timeline',
-      path: '/timeline',
-      icon: Activity,
-      roles: ['investigator', 'analyst', 'administrator'],
-      exact: false,
-      comingSoon: true,
-    },
-    {
-      label: 'Evidence',
-      path: '/evidence',
-      icon: Database,
-      roles: ['investigator', 'administrator'],
-      exact: false,
-      comingSoon: true,
-    },
-    {
-      label: 'Reports',
-      path: '/reports',
-      icon: FileText,
-      roles: ['investigator', 'analyst', 'administrator'],
-      exact: false,
-      comingSoon: true,
     },
   ];
 
@@ -82,7 +50,6 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               aria-current={isActive ? 'page' : undefined}
-              title={item.comingSoon ? 'Available in a future phase' : undefined}
               className={cn(
                 'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
                 isActive
@@ -95,11 +62,6 @@ export function Sidebar() {
                 aria-hidden="true"
               />
               <span className="truncate">{item.label}</span>
-              {item.comingSoon && (
-                <span className="ml-auto text-[10px] text-muted border border-muted/30 rounded px-1 py-0.5 leading-none flex-shrink-0">
-                  soon
-                </span>
-              )}
             </Link>
           );
         })}

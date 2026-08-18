@@ -204,7 +204,7 @@ describe('CaseDetailPage', () => {
     });
   });
 
-  it('shows all tabs with non-overview tabs marked as soon', async () => {
+  it('shows all active tabs in CaseDetailPage', async () => {
     (caseApi.getCase as any).mockResolvedValue(mockCases[0]);
     render(
       <Wrapper initialPath="/investigations/abc-123">
@@ -216,10 +216,12 @@ describe('CaseDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('tab', { name: /overview/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /findings/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /evidence/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /reports/i })).toBeInTheDocument();
     });
-    // Non-active tabs should be disabled
+    // Tabs are active and enabled
     const findingsTab = screen.getByRole('tab', { name: /findings/i });
-    expect(findingsTab).toBeDisabled();
+    expect(findingsTab).not.toBeDisabled();
   });
 });
 

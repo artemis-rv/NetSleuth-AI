@@ -8,6 +8,8 @@ import { InvestigationsPage } from '../features/cases/pages/InvestigationsPage';
 import { CreateInvestigationPage } from '../features/cases/pages/CreateInvestigationPage';
 import { CaseDetailPage } from '../features/cases/pages/CaseDetailPage';
 
+import { AdminPage } from '../features/admin/pages/AdminPage';
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -38,15 +40,6 @@ export const router = createBrowserRouter([
             path: 'investigations/:caseId',
             element: <CaseDetailPage />,
           },
-          // These are now tab views inside investigations/:caseId
-          {
-            path: 'evidence',
-            element: <NotFoundPage />,
-          },
-          {
-            path: 'reports',
-            element: <NotFoundPage />,
-          },
           // Admin
           {
             path: 'admin',
@@ -54,7 +47,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <NotFoundPage />,
+                element: <AdminPage />,
               },
             ],
           },
