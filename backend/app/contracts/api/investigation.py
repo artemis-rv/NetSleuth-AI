@@ -16,14 +16,11 @@ class EntityBase(BaseModel):
 class EntityResponse(EntityBase):
     entity_id: UUID
     case_id: UUID
-    # DB column is 'label' — expose as 'name' to the frontend
-    name: Optional[str] = None
+    # V1.3 contract uses 'label' — aligned to contract
+    label: Optional[str] = None
+    first_seen: Optional[datetime] = None
+    last_seen: Optional[datetime] = None
     created_at: datetime
-
-    @field_validator('name', mode='before')
-    @classmethod
-    def _coerce_name(cls, v):
-        return v  # populated via model_validator below
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -32,10 +29,12 @@ class EntityResponse(EntityBase):
             data = {
                 'entity_id': obj.entity_id,
                 'case_id': obj.case_id,
-                'name': getattr(obj, 'label', None),
+                'label': getattr(obj, 'label', None),
                 'entity_type': obj.entity_type,
                 'risk_score': None,
                 'properties': getattr(obj, 'attributes', None),
+                'first_seen': getattr(obj, 'first_seen', None),
+                'last_seen': getattr(obj, 'last_seen', None),
                 'created_at': obj.created_at,
             }
             return cls(**data)
@@ -75,7 +74,7 @@ class RelationshipResponse(RelationshipBase):
                 'source_entity_id': obj.source_entity_id,
                 'target_entity_id': obj.target_entity_id,
                 'relationship_type': obj.relationship_type,
-                # DB column is 'strength' — expose as 'confidence'
+                # DB column is 'strength' — expose as 'confidence' per V1.3 contract
                 'confidence': getattr(obj, 'strength', None),
                 'properties': getattr(obj, 'attributes', None),
                 'created_at': obj.created_at,
@@ -97,10 +96,11 @@ class RelationshipListResponse(BaseModel):
 # ─────────────────────────────────────────────
 
 class BehaviorBase(BaseModel):
-    name: Optional[str] = None
+    # V1.3 contract uses 'label' — aligned to contract
+    label: Optional[str] = None
     description: Optional[str] = None
-    category: Optional[str] = None
-    # severity is not in the DB behaviors table — optional
+    # V1.3 contract uses 'behavior_type' — aligned to contract
+    behavior_type: Optional[str] = None
     severity: Optional[str] = None
     confidence: Optional[float] = None
 
@@ -116,11 +116,9 @@ class BehaviorResponse(BehaviorBase):
             data = {
                 'behavior_id': obj.behavior_id,
                 'case_id': obj.case_id,
-                # DB column is 'label' — expose as 'name'
-                'name': getattr(obj, 'label', None),
+                'label': getattr(obj, 'label', None),
                 'description': None,
-                # DB column is 'behavior_type' — expose as 'category'
-                'category': getattr(obj, 'behavior_type', None),
+                'behavior_type': getattr(obj, 'behavior_type', None),
                 'severity': None,
                 'confidence': getattr(obj, 'confidence', None),
                 'first_observed': getattr(obj, 'first_observed', None),
@@ -182,17 +180,25 @@ class TimelineEventListResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
-# MITRE
+# MITRE — V1.3 contract-aligned
 # ─────────────────────────────────────────────
 
 class MitreMappingBase(BaseModel):
-    # DB has a single 'tactic' column that stores the tactic name
-    # Expose as both tactic_id (empty fallback) and tactic_name for UI compat
     tactic_id: Optional[str] = None
     tactic_name: Optional[str] = None
     technique_id: str
     technique_name: Optional[str] = None
+    mapping_status: Optional[str] = None
     confidence: Optional[float] = None
+    behavior_id: Optional[UUID] = None
+    evidence_ids: Optional[List[str]] = None
+    source_finding_ids: Optional[List[str]] = None
+    detection_strategy_ids: Optional[List[str]] = None
+    analytic_ids: Optional[List[str]] = None
+    data_component_ids: Optional[List[str]] = None
+    channels: Optional[List[str]] = None
+    first_seen: Optional[datetime] = None
+    last_seen: Optional[datetime] = None
 
 class MitreMappingResponse(MitreMappingBase):
     mitre_mapping_id: UUID
@@ -206,11 +212,22 @@ class MitreMappingResponse(MitreMappingBase):
             data = {
                 'mitre_mapping_id': obj.mitre_mapping_id,
                 'case_id': obj.case_id,
-                'tactic_id': tactic or '',
+                # Prefer dedicated tactic_id column; fall back to tactic (name)
+                'tactic_id': getattr(obj, 'tactic_id', None) or tactic or '',
                 'tactic_name': tactic,
                 'technique_id': obj.technique_id,
                 'technique_name': getattr(obj, 'technique_name', None),
+                'mapping_status': getattr(obj, 'mapping_status', None),
                 'confidence': getattr(obj, 'confidence', None),
+                'behavior_id': getattr(obj, 'behavior_id', None),
+                'evidence_ids': getattr(obj, 'evidence_ids', None),
+                'source_finding_ids': getattr(obj, 'source_finding_ids', None),
+                'detection_strategy_ids': getattr(obj, 'detection_strategy_ids', None),
+                'analytic_ids': getattr(obj, 'analytic_ids', None),
+                'data_component_ids': getattr(obj, 'data_component_ids', None),
+                'channels': getattr(obj, 'channels', None),
+                'first_seen': getattr(obj, 'first_seen', None),
+                'last_seen': getattr(obj, 'last_seen', None),
                 'mapped_at': obj.mapped_at,
             }
             return cls(**data)
@@ -226,16 +243,19 @@ class MitreMappingListResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
-# Attack Chain
+# Attack Chain — V1.3 contract-aligned
 # ─────────────────────────────────────────────
 
 class AttackChainResponse(BaseModel):
-    # DB column is 'attack_chain_id' — expose consistently
-    chain_id: UUID
+    # M3-005 FIX: Use DB column name 'attack_chain_id' instead of 'chain_id'
+    attack_chain_id: UUID
     case_id: UUID
+    # M3-008 FIX: Expose status field
+    status: Optional[str] = None
     title: Optional[str] = None
     summary: Optional[str] = None
-    stages: Optional[Dict[str, Any]] = None
+    # M3-006 FIX: stages is a List (array), not a Dict
+    stages: Optional[List[Dict[str, Any]]] = None
     confidence: Optional[float] = None
     created_at: datetime
     updated_at: datetime
@@ -243,13 +263,22 @@ class AttackChainResponse(BaseModel):
     @classmethod
     def model_validate(cls, obj, **kwargs):
         if hasattr(obj, '_sa_instance_state'):
+            raw_stages = getattr(obj, 'stages', None)
+            # Normalize: if stages is stored as JSONB object with nested 'stages' key, unwrap
+            if isinstance(raw_stages, dict) and 'stages' in raw_stages:
+                stages_list = raw_stages.get('stages', [])
+            elif isinstance(raw_stages, list):
+                stages_list = raw_stages
+            else:
+                stages_list = []
+
             data = {
-                # DB column is 'attack_chain_id' — map to 'chain_id' for API
-                'chain_id': obj.attack_chain_id,
+                'attack_chain_id': obj.attack_chain_id,
                 'case_id': obj.case_id,
+                'status': getattr(obj, 'status', None),
                 'title': getattr(obj, 'title', None),
                 'summary': getattr(obj, 'summary', None),
-                'stages': getattr(obj, 'stages', None) or {},
+                'stages': stages_list,
                 'confidence': None,
                 'created_at': obj.created_at,
                 'updated_at': obj.updated_at,
@@ -267,3 +296,109 @@ class AttackChainResponse(BaseModel):
 class GraphResponse(BaseModel):
     nodes: List[EntityResponse]
     edges: List[RelationshipResponse]
+
+
+# ─────────────────────────────────────────────
+# V1.3 Assessment — Hypothesis
+# ─────────────────────────────────────────────
+
+class HypothesisResponse(BaseModel):
+    hypothesis_id: UUID
+    case_id: UUID
+    statement: str
+    hypothesis_type: str
+    status: str
+    confidence: float
+    supporting_evidence_ids: List[str]
+    supporting_finding_ids: Optional[List[str]] = None
+    related_entity_ids: Optional[List[str]] = None
+    related_mitre_mapping_ids: Optional[List[str]] = None
+    first_seen: Optional[datetime] = None
+    last_seen: Optional[datetime] = None
+    supporting_reasons: Optional[List[str]] = None
+    missing_evidence: Optional[List[str]] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class HypothesisListResponse(BaseModel):
+    items: List[HypothesisResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+# ─────────────────────────────────────────────
+# V1.3 Assessment — Hypothesis Validation
+# ─────────────────────────────────────────────
+
+class HypothesisValidationResponse(BaseModel):
+    validation_id: UUID
+    case_id: UUID
+    hypothesis_id: UUID
+    validation_status: str
+    supporting_evidence_ids: Optional[List[str]] = None
+    contradicting_evidence_ids: Optional[List[str]] = None
+    supporting_reasons: Optional[List[str]] = None
+    contradicting_reasons: Optional[List[str]] = None
+    missing_evidence: Optional[List[str]] = None
+    confidence: float
+    validated_at: datetime
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class HypothesisValidationListResponse(BaseModel):
+    items: List[HypothesisValidationResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+# ─────────────────────────────────────────────
+# V1.3 Assessment — Root Cause
+# ─────────────────────────────────────────────
+
+class RootCauseResponse(BaseModel):
+    root_cause_id: UUID
+    case_id: UUID
+    statement: str
+    status: str
+    confidence: float
+    supporting_hypothesis_ids: Optional[List[str]] = None
+    supporting_evidence_ids: List[str]
+    supporting_finding_ids: Optional[List[str]] = None
+    rationale: Optional[List[str]] = None
+    missing_evidence: Optional[List[str]] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class RootCauseListResponse(BaseModel):
+    items: List[RootCauseResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+# ─────────────────────────────────────────────
+# V1.3 Assessment — Impact Assessment
+# ─────────────────────────────────────────────
+
+class ImpactAssessmentResponse(BaseModel):
+    impact_id: UUID
+    case_id: UUID
+    category: str
+    statement: str
+    status: str
+    confidence: float
+    supporting_evidence_ids: List[str]
+    supporting_finding_ids: Optional[List[str]] = None
+    affected_entity_ids: Optional[List[str]] = None
+    rationale: Optional[List[str]] = None
+    missing_evidence: Optional[List[str]] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class ImpactAssessmentListResponse(BaseModel):
+    items: List[ImpactAssessmentResponse]
+    total: int
+    page: int
+    page_size: int

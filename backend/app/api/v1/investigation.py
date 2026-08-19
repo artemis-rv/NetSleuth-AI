@@ -12,7 +12,11 @@ from app.contracts.api.investigation import (
     TimelineEventListResponse,
     MitreMappingListResponse,
     AttackChainResponse,
-    GraphResponse
+    GraphResponse,
+    HypothesisListResponse,
+    HypothesisValidationListResponse,
+    RootCauseListResponse,
+    ImpactAssessmentListResponse,
 )
 from app.services.audit_service import log_audit_event
 
@@ -133,3 +137,55 @@ async def get_case_attack_chain(
     await verify_case_access_direct(case_id, user, db)
     return await service.get_attack_chain_by_case(case_id=case_id)
 
+
+# ─────────────────────────────────────────────
+# V1.3 Assessment Endpoints
+# ─────────────────────────────────────────────
+
+@router.get("/cases/{case_id}/hypotheses", response_model=HypothesisListResponse)
+async def list_case_hypotheses(
+    case_id: UUID = Path(...),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    service: InvestigationService = Depends(get_investigation_service)
+):
+    await verify_case_access_direct(case_id, user, db)
+    return await service.list_hypotheses_by_case(case_id=case_id, page=page, page_size=page_size)
+
+@router.get("/cases/{case_id}/hypothesis-validations", response_model=HypothesisValidationListResponse)
+async def list_case_hypothesis_validations(
+    case_id: UUID = Path(...),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    service: InvestigationService = Depends(get_investigation_service)
+):
+    await verify_case_access_direct(case_id, user, db)
+    return await service.list_hypothesis_validations_by_case(case_id=case_id, page=page, page_size=page_size)
+
+@router.get("/cases/{case_id}/root-causes", response_model=RootCauseListResponse)
+async def list_case_root_causes(
+    case_id: UUID = Path(...),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    service: InvestigationService = Depends(get_investigation_service)
+):
+    await verify_case_access_direct(case_id, user, db)
+    return await service.list_root_causes_by_case(case_id=case_id, page=page, page_size=page_size)
+
+@router.get("/cases/{case_id}/impact-assessments", response_model=ImpactAssessmentListResponse)
+async def list_case_impact_assessments(
+    case_id: UUID = Path(...),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    service: InvestigationService = Depends(get_investigation_service)
+):
+    await verify_case_access_direct(case_id, user, db)
+    return await service.list_impact_assessments_by_case(case_id=case_id, page=page, page_size=page_size)

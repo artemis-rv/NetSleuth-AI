@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, Path, Request, Response
 from fastapi.responses import Response as FastAPIResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 from uuid import UUID
 
 from app.auth.dependencies import get_current_user, verify_case_access_direct, get_db
@@ -79,8 +80,9 @@ async def finalize_report(
         http_request=request
     )
 
-@router.get("/{report_id}/export")
-async def export_report(
+@router.get("/cases/{case_id}/reports/{report_id}/pdf")
+async def get_case_report_pdf(
+    case_id: UUID = Path(...),
     report_id: UUID = Path(...),
     request: Request = None,
     user: UserModel = Depends(get_current_user),
@@ -89,9 +91,62 @@ async def export_report(
     artifact_bytes, media_type, filename = await service.export_report(
         report_id=report_id,
         current_user=user,
+        export_format="pdf",
+        case_id=case_id,
         http_request=request
     )
+    safe_filename = filename.encode('ascii', 'ignore').decode('ascii').replace(' ', '_')
+    if not safe_filename or safe_filename.startswith('.'):
+        safe_filename = f"Investigation_Report_{case_id}.pdf"
+
     headers = {
-        "Content-Disposition": f'attachment; filename="{filename}"'
+        "Content-Disposition": f'inline; filename="{safe_filename}"'
+    }
+    return FastAPIResponse(content=artifact_bytes, media_type="application/pdf", headers=headers)
+
+@router.get("/{report_id}/pdf")
+async def get_report_pdf(
+    report_id: UUID = Path(...),
+    request: Request = None,
+    user: UserModel = Depends(get_current_user),
+    service: ReportsService = Depends(get_reports_service)
+):
+    artifact_bytes, media_type, filename = await service.export_report(
+        report_id=report_id,
+        current_user=user,
+        export_format="pdf",
+        http_request=request
+    )
+    safe_filename = filename.encode('ascii', 'ignore').decode('ascii').replace(' ', '_')
+    if not safe_filename or safe_filename.startswith('.'):
+        safe_filename = f"Investigation_Report_{report_id}.pdf"
+
+    headers = {
+        "Content-Disposition": f'inline; filename="{safe_filename}"'
+    }
+    return FastAPIResponse(content=artifact_bytes, media_type="application/pdf", headers=headers)
+
+@router.get("/{report_id}/export")
+async def export_report(
+    report_id: UUID = Path(...),
+    format: Optional[str] = Query(None),
+    case_id: Optional[UUID] = Query(None),
+    request: Request = None,
+    user: UserModel = Depends(get_current_user),
+    service: ReportsService = Depends(get_reports_service)
+):
+    artifact_bytes, media_type, filename = await service.export_report(
+        report_id=report_id,
+        current_user=user,
+        export_format=format,
+        case_id=case_id,
+        http_request=request
+    )
+    safe_filename = filename.encode('ascii', 'ignore').decode('ascii').replace(' ', '_')
+    if not safe_filename or safe_filename.startswith('.'):
+        safe_filename = f"report_{report_id}.{format or 'json'}"
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{safe_filename}"'
     }
     return FastAPIResponse(content=artifact_bytes, media_type=media_type, headers=headers)

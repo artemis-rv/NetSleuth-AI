@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.persistence.repositories.investigation_repository import (
     EntityRepository, RelationshipRepository, BehaviorRepository,
-    TimelineEventRepository, MitreMappingRepository, AttackChainRepository
+    TimelineEventRepository, MitreMappingRepository, AttackChainRepository,
+    HypothesisRepository, HypothesisValidationRepository,
+    RootCauseRepository, ImpactAssessmentRepository
 )
 from app.contracts.api.investigation import (
     EntityListResponse, EntityResponse,
@@ -13,7 +15,11 @@ from app.contracts.api.investigation import (
     BehaviorListResponse, BehaviorResponse,
     TimelineEventListResponse, TimelineEventResponse,
     MitreMappingListResponse, MitreMappingResponse,
-    AttackChainResponse, GraphResponse
+    AttackChainResponse, GraphResponse,
+    HypothesisListResponse, HypothesisResponse,
+    HypothesisValidationListResponse, HypothesisValidationResponse,
+    RootCauseListResponse, RootCauseResponse,
+    ImpactAssessmentListResponse, ImpactAssessmentResponse,
 )
 
 class InvestigationService:
@@ -25,6 +31,10 @@ class InvestigationService:
         self.timeline_repo = TimelineEventRepository(db)
         self.mitre_repo = MitreMappingRepository(db)
         self.attack_chain_repo = AttackChainRepository(db)
+        self.hypothesis_repo = HypothesisRepository(db)
+        self.hypothesis_validation_repo = HypothesisValidationRepository(db)
+        self.root_cause_repo = RootCauseRepository(db)
+        self.impact_repo = ImpactAssessmentRepository(db)
 
     async def list_entities_by_case(self, case_id: UUID, page: int, page_size: int) -> EntityListResponse:
         skip = (page - 1) * page_size
@@ -111,4 +121,44 @@ class InvestigationService:
         return GraphResponse(
             nodes=[EntityResponse.model_validate(e) for e in entities],
             edges=[RelationshipResponse.model_validate(r) for r in relationships]
+        )
+
+    # ─────────────────────────────────────────────
+    # V1.3 Assessment Methods
+    # ─────────────────────────────────────────────
+
+    async def list_hypotheses_by_case(self, case_id: UUID, page: int, page_size: int) -> HypothesisListResponse:
+        skip = (page - 1) * page_size
+        items = await self.hypothesis_repo.list_by_case(case_id=case_id, skip=skip, limit=page_size)
+        total = await self.hypothesis_repo.count_by_case(case_id=case_id)
+        return HypothesisListResponse(
+            items=[HypothesisResponse.model_validate(h) for h in items],
+            total=total, page=page, page_size=page_size
+        )
+
+    async def list_hypothesis_validations_by_case(self, case_id: UUID, page: int, page_size: int) -> HypothesisValidationListResponse:
+        skip = (page - 1) * page_size
+        items = await self.hypothesis_validation_repo.list_by_case(case_id=case_id, skip=skip, limit=page_size)
+        total = await self.hypothesis_validation_repo.count_by_case(case_id=case_id)
+        return HypothesisValidationListResponse(
+            items=[HypothesisValidationResponse.model_validate(v) for v in items],
+            total=total, page=page, page_size=page_size
+        )
+
+    async def list_root_causes_by_case(self, case_id: UUID, page: int, page_size: int) -> RootCauseListResponse:
+        skip = (page - 1) * page_size
+        items = await self.root_cause_repo.list_by_case(case_id=case_id, skip=skip, limit=page_size)
+        total = await self.root_cause_repo.count_by_case(case_id=case_id)
+        return RootCauseListResponse(
+            items=[RootCauseResponse.model_validate(r) for r in items],
+            total=total, page=page, page_size=page_size
+        )
+
+    async def list_impact_assessments_by_case(self, case_id: UUID, page: int, page_size: int) -> ImpactAssessmentListResponse:
+        skip = (page - 1) * page_size
+        items = await self.impact_repo.list_by_case(case_id=case_id, skip=skip, limit=page_size)
+        total = await self.impact_repo.count_by_case(case_id=case_id)
+        return ImpactAssessmentListResponse(
+            items=[ImpactAssessmentResponse.model_validate(i) for i in items],
+            total=total, page=page, page_size=page_size
         )

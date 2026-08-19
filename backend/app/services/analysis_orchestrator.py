@@ -188,6 +188,17 @@ class AnalysisOrchestratorService:
             job = await self.analysis_repo.get_job(analysis_id)
             if not job:
                 return None
+            
+            findings_count = 0
+            if job.status == "completed":
+                from sqlalchemy import select
+                from app.persistence.models.analytics_models import FindingsPackageModel
+                stmt = select(FindingsPackageModel.findings_count).where(FindingsPackageModel.acquisition_id == job.acquisition_id)
+                res = await self.uow.session.execute(stmt)
+                fc = res.scalars().first()
+                if fc is not None:
+                    findings_count = fc
+
             return {
                 "analysis_id": job.analysis_id,
                 "case_id": job.case_id,
@@ -197,6 +208,7 @@ class AnalysisOrchestratorService:
                 "started_at": job.started_at,
                 "completed_at": job.completed_at,
                 "progress": job.progress,
+                "findings_count": findings_count,
                 "result_available": job.status == "completed",
                 "error_code": job.error_code,
                 "error_message": job.error_message,

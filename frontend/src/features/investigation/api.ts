@@ -1,4 +1,8 @@
 import { apiClient } from '../../api/client';
+export interface HypothesisListResponse { items: any[]; total: number; }
+export interface HypothesisValidationListResponse { items: any[]; total: number; }
+export interface RootCauseListResponse { items: any[]; total: number; }
+export interface ImpactAssessmentListResponse { items: any[]; total: number; }
 import type {
   TimelineEventListResponse,
   EntityListResponse,
@@ -103,4 +107,49 @@ export async function getGraph(caseId: string): Promise<GraphResponse> {
  */
 export async function getAttackChain(caseId: string): Promise<AttackChainResponse> {
   return apiClient<AttackChainResponse>(`/api/v1/cases/${caseId}/attack-chain`);
+}
+
+
+// ─────────────────────────────────────────────
+// V1.3 Assessment Endpoints
+// ─────────────────────────────────────────────
+
+export async function getHypotheses(
+  caseId: string,
+  filters: PaginationFilters = {},
+): Promise<HypothesisListResponse> {
+  const params: Record<string, string> = {};
+  if (filters.page !== undefined) params.page = String(filters.page);
+  if (filters.page_size !== undefined) params.page_size = String(filters.page_size);
+  return apiClient<HypothesisListResponse>(`/api/v1/cases/${caseId}/hypotheses`, { params });
+}
+
+export async function getHypothesisValidations(
+  caseId: string,
+  filters: PaginationFilters = {},
+): Promise<HypothesisValidationListResponse> {
+  const params: Record<string, string> = {};
+  if (filters.page !== undefined) params.page = String(filters.page);
+  if (filters.page_size !== undefined) params.page_size = String(filters.page_size);
+  return apiClient<HypothesisValidationListResponse>(`/api/v1/cases/${caseId}/hypothesis-validations`, { params });
+}
+
+export async function getRootCauses(
+  caseId: string,
+  filters: PaginationFilters = {},
+): Promise<RootCauseListResponse> {
+  const params: Record<string, string> = {};
+  if (filters.page !== undefined) params.page = String(filters.page);
+  if (filters.page_size !== undefined) params.page_size = String(filters.page_size);
+  return apiClient<RootCauseListResponse>(`/api/v1/cases/${caseId}/root-causes`, { params });
+}
+
+export async function getImpactAssessments(
+  caseId: string,
+  filters: PaginationFilters = {},
+): Promise<ImpactAssessmentListResponse> {
+  const params: Record<string, string> = {};
+  if (filters.page !== undefined) params.page = String(filters.page);
+  if (filters.page_size !== undefined) params.page_size = String(filters.page_size);
+  return apiClient<ImpactAssessmentListResponse>(`/api/v1/cases/${caseId}/impact-assessments`, { params });
 }
