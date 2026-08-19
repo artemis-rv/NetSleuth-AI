@@ -135,17 +135,34 @@ class CaseService:
             return CaseResponse.model_validate(case)
 
         # Enforce status transitions
-        if "status" in update_dict:
+        if "status" in update_dict and update_dict["status"] is not None:
             if current_user.role == "analyst":
                 raise ForbiddenError("Analysts are not permitted to modify case status or close investigation cases.")
-            new_status = update_dict["status"]
-            allowed_transitions = {
-                "open": ["investigating", "closed"],
-                "investigating": ["review", "closed"],
-                "review": ["closed", "investigating"],
-                "closed": ["open"]
+            raw_status = str(update_dict["status"]).strip().lower()
+            current_status = str(case.status).strip().lower() if case.status else "open"
+            
+            status_alias_map = {
+                "active": "active",
+                "investigating": "active",
+                "under_review": "under_review",
+                "review": "under_review",
+                "open": "open",
+                "closed": "closed",
+                "archived": "archived",
             }
-            if new_status != case.status and new_status not in allowed_transitions.get(case.status, []):
+            new_status = status_alias_map.get(raw_status, raw_status)
+            update_dict["status"] = new_status
+            
+            allowed_transitions = {
+                "open": ["active", "investigating", "closed"],
+                "active": ["under_review", "review", "closed"],
+                "investigating": ["under_review", "review", "closed"],
+                "under_review": ["closed", "active", "investigating"],
+                "review": ["closed", "active", "investigating"],
+                "closed": ["open", "archived"],
+                "archived": ["open", "closed"]
+            }
+            if new_status != current_status and new_status not in allowed_transitions.get(current_status, []):
                 raise ConflictError(f"Invalid status transition from {case.status} to {new_status}")
             
             if new_status == "closed":

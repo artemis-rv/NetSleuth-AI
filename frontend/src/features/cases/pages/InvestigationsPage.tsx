@@ -7,7 +7,7 @@ import { Button } from '../../../components/ui/Button';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Filter } from 'lucide-react';
 import { useAuth } from '../../../auth/auth-context';
-import { CASE_STATUSES, CASE_PRIORITIES } from '../types';
+import { CASE_STATUSES, CASE_PRIORITIES, CASE_STATUS_LABELS, CASE_PRIORITY_LABELS } from '../types';
 import type { CasesFilters } from '../types';
 
 export function InvestigationsPage() {
@@ -66,11 +66,11 @@ export function InvestigationsPage() {
             id="filter-status"
             value={status}
             onChange={(e) => { setStatus(e.target.value); handleFilterChange(); }}
-            className="h-8 rounded border border-border-subtle bg-surface-elevated px-2 py-0 text-xs text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+            className="h-8 rounded border border-border-subtle bg-surface-elevated px-2 py-0 text-xs text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-all duration-200"
           >
             <option value="">All</option>
             {CASE_STATUSES.map((s) => (
-              <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+              <option key={s} value={s}>{CASE_STATUS_LABELS[s] ?? s.replace(/_/g, ' ')}</option>
             ))}
           </select>
         </div>
@@ -81,11 +81,11 @@ export function InvestigationsPage() {
             id="filter-priority"
             value={priority}
             onChange={(e) => { setPriority(e.target.value); handleFilterChange(); }}
-            className="h-8 rounded border border-border-subtle bg-surface-elevated px-2 py-0 text-xs text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+            className="h-8 rounded border border-border-subtle bg-surface-elevated px-2 py-0 text-xs text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-all duration-200"
           >
             <option value="">All</option>
             {CASE_PRIORITIES.map((p) => (
-              <option key={p} value={p}>{p}</option>
+              <option key={p} value={p}>{CASE_PRIORITY_LABELS[p] ?? p}</option>
             ))}
           </select>
         </div>
@@ -96,7 +96,7 @@ export function InvestigationsPage() {
             id="filter-sort"
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value as CasesFilters['sort_by']); handleFilterChange(); }}
-            className="h-8 rounded border border-border-subtle bg-surface-elevated px-2 py-0 text-xs text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+            className="h-8 rounded border border-border-subtle bg-surface-elevated px-2 py-0 text-xs text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-all duration-200"
           >
             <option value="updated_at">Last Updated</option>
             <option value="created_at">Created</option>
