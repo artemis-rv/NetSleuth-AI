@@ -302,9 +302,9 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Sub-tab bar */}
+      {/* Tactile Sub-tab bar (No outer box) */}
       <div
-        className="flex items-center gap-1.5 p-1 bg-surface-elevated/30 border border-border-subtle rounded-lg overflow-x-auto"
+        className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2"
         role="tablist"
         aria-label="Investigation sub-sections"
       >
@@ -318,12 +318,15 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
               aria-selected={isActive}
               aria-controls={`investigation-subpanel-${t.id}`}
               onClick={() => setSub(t.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`relative px-5 py-2 text-xs rounded-lg whitespace-nowrap transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent overflow-hidden ${
                 isActive
-                  ? 'bg-surface-elevated text-primary font-semibold shadow-sm border border-border-subtle'
-                  : 'text-muted hover:text-primary hover:bg-surface-elevated/50 border border-transparent'
+                  ? 'text-primary font-bold bg-surface-elevated border border-border-subtle/80 shadow-[0_4px_12px_rgba(0,0,0,0.2)] ring-1 ring-accent/20'
+                  : 'text-muted font-medium hover:text-primary hover:bg-surface-elevated/40 border border-transparent'
               }`}
             >
+              {isActive && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-80 rounded-t-full shadow-[0_-2px_8px_rgba(59,130,246,0.6)]" />
+              )}
               {t.label}
             </button>
           );

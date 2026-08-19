@@ -119,16 +119,48 @@ export function TimelineSection({ caseId }: TimelineSectionProps) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-2">
-              <p className="text-xs text-muted">
-                Page {currentPage} of {totalPages} · {data.total.toLocaleString()} total
+            <div className="flex items-center justify-between pt-4 border-t border-border-subtle/30 mt-6">
+              <p className="text-[12px] text-muted">
+                Showing {((currentPage - 1) * (filters.page_size ?? 50)) + 1}–{Math.min(currentPage * (filters.page_size ?? 50), data.total)} of {data.total.toLocaleString()} total
               </p>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 mr-2">
+                  <span className="text-[10px] uppercase tracking-widest text-muted font-bold">PAGE</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    defaultValue={currentPage}
+                    key={`page-input-${currentPage}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const p = parseInt((e.target as HTMLInputElement).value);
+                        if (!isNaN(p) && p >= 1 && p <= totalPages) {
+                          setFilters((f) => ({ ...f, page: p }));
+                        } else {
+                          (e.target as HTMLInputElement).value = currentPage.toString();
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const p = parseInt(e.target.value);
+                      if (!isNaN(p) && p >= 1 && p <= totalPages && p !== currentPage) {
+                        setFilters((f) => ({ ...f, page: p }));
+                      } else {
+                        e.target.value = currentPage.toString();
+                      }
+                    }}
+                    className="w-12 h-7 px-1 text-center text-[12px] font-mono bg-surface/50 border border-border-subtle rounded text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    title="Type page number and press Enter"
+                    aria-label="Jump to page"
+                  />
+                  <span className="text-[10px] uppercase tracking-widest text-muted font-bold">OF {totalPages}</span>
+                </div>
                 <button
                   id="timeline-prev-page"
                   onClick={() => setFilters((f) => ({ ...f, page: Math.max(1, currentPage - 1) }))}
                   disabled={currentPage <= 1}
-                  className="p-1.5 rounded border border-border-subtle text-secondary hover:text-primary hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="p-1.5 rounded-md border border-border-subtle text-secondary hover:text-primary hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-surface/30 shadow-sm"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -137,7 +169,7 @@ export function TimelineSection({ caseId }: TimelineSectionProps) {
                   id="timeline-next-page"
                   onClick={() => setFilters((f) => ({ ...f, page: Math.min(totalPages, currentPage + 1) }))}
                   disabled={currentPage >= totalPages}
-                  className="p-1.5 rounded border border-border-subtle text-secondary hover:text-primary hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="p-1.5 rounded-md border border-border-subtle text-secondary hover:text-primary hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-surface/30 shadow-sm"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
