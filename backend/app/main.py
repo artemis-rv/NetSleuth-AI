@@ -13,6 +13,7 @@ Intentionally thin application assembly:
 Does NOT contain raw SQL queries, engine algorithms, or business logic.
 """
 
+# backend start 2
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Dict, Optional

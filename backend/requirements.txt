@@ -32,6 +32,8 @@ jmespath==1.1.0
 joblib==1.5.3
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
+langchain-core==1.6.0
+langchain-ollama==1.1.0
 Mako==1.4.1
 MarkupSafe==3.0.3
 multidict==6.7.1

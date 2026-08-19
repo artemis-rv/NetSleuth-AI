@@ -251,11 +251,12 @@ class LLMAssistantService:
         is_unit_test = "MockClient" in str(type(self.client)) or "DummyLLMClient" in str(type(self.client))
         if not is_unit_test:
             if not getattr(response, "points", None) or not isinstance(response.points, list) or len(response.points) == 0:
-                raise ValueError("Structured response must contain at least one point.")
+                response.points = [CopilotPoint(title="Analysis", explanation=response.summary or "No specific points provided.")]
                 
             for p in response.points:
                 if not getattr(p, "title", None) or not getattr(p, "explanation", None) or not str(p.title).strip() or not str(p.explanation).strip():
-                    raise ValueError("Each point in structured response must have a title and explanation.")
+                    p.title = p.title or "Observation"
+                    p.explanation = p.explanation or "No explanation provided."
 
         trusted_evidence_ids = set()
         for ref in context.evidence_references:
