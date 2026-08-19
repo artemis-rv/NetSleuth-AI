@@ -279,6 +279,9 @@ export function GraphSection({ caseId }: GraphSectionProps) {
           </div>
         </div>
       </div>
+          </div>
+        </div>
+      </div>
 
       {/* CENTER - GRAPH CANVAS */}
       <div className="flex-1 relative bg-[#0B1120]">

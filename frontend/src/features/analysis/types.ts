@@ -5,6 +5,7 @@ export interface AnalysisJobResponse {
   status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
   current_stage: 'QUEUED' | 'M1' | 'M2' | 'M3' | 'M4' | 'COMPLETED' | 'FAILED' | string;
   progress: number | null;
+  findings_count?: number;
   started_at: string;
   completed_at: string | null;
   error_code?: string;

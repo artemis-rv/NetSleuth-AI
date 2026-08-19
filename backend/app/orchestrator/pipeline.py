@@ -34,6 +34,8 @@ from app.engines.correlation.persistence_service import M3PersistenceService
 # M4
 from app.engines.reporting.report_engine import ReportEngine
 from app.engines.reporting.persistence_service import M4PersistenceService
+from app.shared.storage.minio_service import ReportStorageService
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -312,28 +314,47 @@ class ForensicPipelineOrchestrator:
         llm_dict = llm_enrichment.model_dump(mode="json") if llm_enrichment else None
         m4_report = self.m4_engine.generate_report(m3_case_dict, [], llm_enrichment=llm_dict)
 
-        # Persist M4 report metadata to PostgreSQL
+        # Persist M4 report metadata to PostgreSQL and JSON to MinIO
         try:
             logger.info("Persisting M4 Report...")
             async with self.uow:
                 report_title = m4_report.get("title", f"Investigation Report — {case_id}")
-                report_sha256 = m4_report.get("integrity", {}).get("sha256") or "0" * 64
-                report_schema = m4_report.get("schema_version", "report-v1.3")
+                report_bytes = json.dumps(m4_report, indent=2, default=str).encode('utf-8')
+                report_sha256 = hashlib.sha256(report_bytes).hexdigest()
+                
+                if "integrity" not in m4_report or not isinstance(m4_report["integrity"], dict):
+                    m4_report["integrity"] = {}
+                m4_report["integrity"]["sha256"] = report_sha256
+                m4_report["integrity"]["verification"] = "VERIFIED"
+                
+                # Re-encode with updated integrity sha256
+                report_bytes = json.dumps(m4_report, indent=2, default=str).encode('utf-8')
+                report_sha256 = hashlib.sha256(report_bytes).hexdigest()
+                
+                object_key = f"{case_id}/report.json"
+                
+                # 1. Upload to MinIO
+                report_storage = ReportStorageService()
+                await report_storage.upload_report_bytes(
+                    data=report_bytes,
+                    object_key=object_key
+                )
+                
+                # 2. Persist to Postgres
                 await self.m4_persistence.persist_report(
                     case_id=str(case_id),
                     title=report_title,
                     report_type="forensic_investigation",
                     format="json",
                     minio_bucket="netsleuth-reports",
-                    object_key=f"{case_id}/report.json",
+                    object_key=object_key,
                     hash_sha256=report_sha256,
                     generator_id="m4-report-engine"
                 )
             logger.info("M4 Persistence Complete.")
         except Exception as m4_err:
-            # M4 persistence failure must NOT erase already-persisted M3 forensic data.
-            # Log and continue — analysis is still complete from a forensic standpoint.
-            logger.warning(f"M4 report persistence failed (non-fatal): {m4_err}")
+            logger.error(f"M4 report persistence failed: {m4_err}")
+            raise RuntimeError(f"M4 report persistence failed: {m4_err}") from m4_err
 
         logger.info("Forensic Pipeline E2E execution successful.")
         return {

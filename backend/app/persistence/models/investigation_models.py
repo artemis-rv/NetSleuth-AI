@@ -85,6 +85,7 @@ class AttackChainModel(Base):
 
     attack_chain_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False, unique=True)
+    status = Column(String, nullable=False, default="none")
     title = Column(String, nullable=True)
     summary = Column(String, nullable=True)
     stages = Column(JSONB, nullable=True)
@@ -99,12 +100,23 @@ class MitreMappingModel(Base):
     mitre_mapping_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
     attack_chain_id = Column(UUID(as_uuid=True), ForeignKey("investigation.attack_chains.attack_chain_id", ondelete="RESTRICT"), nullable=True)
+    behavior_id = Column(UUID(as_uuid=True), ForeignKey("investigation.behaviors.behavior_id", ondelete="RESTRICT"), nullable=True)
     technique_id = Column(String, nullable=False)
     tactic = Column(String, nullable=False)
+    tactic_id = Column(String, nullable=True)
     technique_name = Column(String, nullable=True)
+    mapping_status = Column(String, nullable=True)
     attack_version = Column(String, nullable=True)
     justification = Column(String, nullable=True)
     confidence = Column(Float, nullable=True)
+    evidence_ids = Column(ARRAY(String), nullable=True)
+    source_finding_ids = Column(ARRAY(String), nullable=True)
+    detection_strategy_ids = Column(ARRAY(String), nullable=True)
+    analytic_ids = Column(ARRAY(String), nullable=True)
+    data_component_ids = Column(ARRAY(String), nullable=True)
+    channels = Column(ARRAY(String), nullable=True)
+    first_seen = Column(TIMESTAMP(timezone=True), nullable=True)
+    last_seen = Column(TIMESTAMP(timezone=True), nullable=True)
     mapped_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
 
 
@@ -141,6 +153,81 @@ class TimelineEventModel(Base):
     finding_id = Column(UUID(as_uuid=True), nullable=True)  # No hard FK across schema for this specific optional link in timeline, wait, in DB-6 is it an FK? Let's check. DB-6 didn't list it as an FK for timeline events finding_id, but it is conceptually linked. Actually, I didn't add the constraint in Alembic. Let's leave as UUID.
     attributes = Column(JSONB, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
+# ─────────────────────────────────────────────
+# V1.3 Assessment Models
+# ─────────────────────────────────────────────
+
+class HypothesisModel(Base):
+    __tablename__ = "hypotheses"
+    __table_args__ = {"schema": "investigation"}
+
+    hypothesis_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
+    statement = Column(String, nullable=False)
+    hypothesis_type = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="POTENTIAL")
+    confidence = Column(Float, nullable=False)
+    supporting_evidence_ids = Column(ARRAY(String), nullable=False)
+    supporting_finding_ids = Column(ARRAY(String), nullable=True)
+    related_entity_ids = Column(ARRAY(String), nullable=True)
+    related_mitre_mapping_ids = Column(ARRAY(String), nullable=True)
+    first_seen = Column(TIMESTAMP(timezone=True), nullable=True)
+    last_seen = Column(TIMESTAMP(timezone=True), nullable=True)
+    supporting_reasons = Column(ARRAY(String), nullable=True)
+    missing_evidence = Column(ARRAY(String), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
+class HypothesisValidationModel(Base):
+    __tablename__ = "hypothesis_validations"
+    __table_args__ = {"schema": "investigation"}
+
+    validation_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
+    hypothesis_id = Column(UUID(as_uuid=True), ForeignKey("investigation.hypotheses.hypothesis_id", ondelete="RESTRICT"), nullable=False)
+    validation_status = Column(String, nullable=False)
+    supporting_evidence_ids = Column(ARRAY(String), nullable=True)
+    contradicting_evidence_ids = Column(ARRAY(String), nullable=True)
+    supporting_reasons = Column(ARRAY(String), nullable=True)
+    contradicting_reasons = Column(ARRAY(String), nullable=True)
+    missing_evidence = Column(ARRAY(String), nullable=True)
+    confidence = Column(Float, nullable=False)
+    validated_at = Column(TIMESTAMP(timezone=True), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
+class RootCauseModel(Base):
+    __tablename__ = "root_causes"
+    __table_args__ = {"schema": "investigation"}
+
+    root_cause_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
+    statement = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="POTENTIAL")
+    confidence = Column(Float, nullable=False)
+    supporting_hypothesis_ids = Column(ARRAY(String), nullable=True)
+    supporting_evidence_ids = Column(ARRAY(String), nullable=False)
+    supporting_finding_ids = Column(ARRAY(String), nullable=True)
+    rationale = Column(ARRAY(String), nullable=True)
+    missing_evidence = Column(ARRAY(String), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
+class ImpactAssessmentModel(Base):
+    __tablename__ = "impact_assessments"
+    __table_args__ = {"schema": "investigation"}
+
+    impact_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("investigation.investigation_cases.case_id", ondelete="RESTRICT"), nullable=False)
+    category = Column(String, nullable=False)
+    statement = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="POTENTIAL")
+    confidence = Column(Float, nullable=False)
+    supporting_evidence_ids = Column(ARRAY(String), nullable=False)
+    supporting_finding_ids = Column(ARRAY(String), nullable=True)
+    affected_entity_ids = Column(ARRAY(String), nullable=True)
+    rationale = Column(ARRAY(String), nullable=True)
+    missing_evidence = Column(ARRAY(String), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+
 
 # Investigation Link Tables
 relationship_finding_links = Table(

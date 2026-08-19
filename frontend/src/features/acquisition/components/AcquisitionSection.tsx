@@ -177,62 +177,57 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
                         </div>
                         <div>
                           <p className="text-sm font-medium text-primary break-all">{acq.file_name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-muted">{(acq.file_size / (1024 * 1024)).toFixed(2)} MB</span>
-                            <span className="text-muted text-xs">•</span>
-                            <span className="text-xs text-muted uppercase tracking-wider">{acq.format}</span>
-                          </div>
+                          <p className="text-xs text-muted">
+                            Size: {(acq.file_size_bytes / (1024 * 1024)).toFixed(2)} MB | Uploaded: {new Date(acq.created_at).toLocaleString()}
+                          </p>
                         </div>
                       </div>
+                      <Badge variant={acq.status === 'COMPLETED' ? 'success' : acq.status === 'FAILED' ? 'danger' : 'warning'}>
+                        {acq.status}
+                      </Badge>
                     </div>
-                    
-                    <div className="space-y-2 bg-background rounded p-3 border border-border-subtle">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Shield className="h-4 w-4 text-secondary" />
-                        <h4 className="text-xs font-medium text-primary">Cryptographic Integrity & Actions</h4>
+
+                    {ev && (
+                      <div className="bg-background p-3 rounded border border-border-subtle space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-muted">SHA-256 Hash</span>
+                          <Badge variant={ev.verification_status === 'VERIFIED' ? 'success' : 'warning'} className="text-[10px]">
+                            {ev.verification_status}
+                          </Badge>
+                        </div>
+                        <p className="font-mono text-primary break-all bg-surface p-1.5 rounded text-[11px]">
+                          {ev.calculated_hash || ev.expected_hash}
+                        </p>
                       </div>
-                      
-                      {ev ? (
-                        <>
-                          <div className="mb-2">
-                            <p className="text-[10px] uppercase tracking-wider text-muted mb-0.5">SHA-256 Hash</p>
-                            <p className="text-xs font-mono text-secondary break-all">
-                              {ev.sha256 || 'Pending computation...'}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <EvidenceVerificationBadge status={ev.integrity_status} />
-                            
-                            <div className="flex items-center gap-2">
-                              {ev.integrity_status === 'pending' && (
-                                <Button 
-                                  variant="secondary" 
-                                  size="sm" 
-                                  onClick={() => handleVerify(ev.evidence_id)}
-                                  disabled={verifyMutation.isPending}
-                                >
-                                  {verifyMutation.isPending ? <><Spinner size={14} className="mr-2" /> Verifying</> : 'Verify Integrity'}
-                                </Button>
-                              )}
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => handleAnalyzeFile(acq.acquisition_id)}
-                                disabled={analyzingAcqId === acq.acquisition_id}
-                              >
-                                {analyzingAcqId === acq.acquisition_id ? (
-                                  <><Spinner size={14} className="mr-2" /> Starting...</>
-                                ) : (
-                                  <><Play className="h-3.5 w-3.5 mr-1" /> Analyze File</>
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        </>
+                    )}
+                  </div>
+
+                  <div className="flex sm:flex-col justify-end gap-2 border-t sm:border-t-0 sm:border-l border-border-subtle pt-3 sm:pt-0 sm:pl-4 min-w-[140px]">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => handleStartAnalysis(acq.acquisition_id)}
+                      disabled={analyzingAcqId === acq.acquisition_id || acq.status !== 'COMPLETED'}
+                      className="w-full"
+                    >
+                      {analyzingAcqId === acq.acquisition_id ? (
+                        <><Spinner size={12} className="mr-1" /> Analyzing...</>
                       ) : (
-                        <p className="text-xs text-muted">Evidence record is being generated...</p>
+                        'Start Analysis'
                       )}
-                    </div>
+                    </Button>
+                    
+                    {ev && ev.verification_status !== 'VERIFIED' && (
+                      <Button 
+                        variant="secondary" 
+                        size="sm"
+                        onClick={() => handleVerify(ev.evidence_id)}
+                        disabled={verifyingEvId === ev.evidence_id}
+                        className="w-full"
+                      >
+                        {verifyingEvId === ev.evidence_id ? <Spinner size={12} /> : 'Verify Hash'}
+                      </Button>
+                    )}
                   </div>
                 </div>
               );

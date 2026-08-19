@@ -112,7 +112,7 @@ export function EntitiesSection({ caseId }: EntitiesSectionProps) {
                           {entity.entity_type.replace(/_/g, ' ')}
                         </span>
                         <span className="text-sm text-primary font-mono font-medium truncate">
-                          {entity.name || (entity as { label?: string }).label || entity.entity_id}
+                          {entity.label || entity.entity_id}
                         </span>
                       </div>
                       <EntityDetailExpand entity={entity} />

@@ -205,7 +205,37 @@ class ZeekRunner:
             ) from exc
 
     def _get_zeek_version(self) -> str:
-        """Inspect/run image to retrieve Zeek version."""
+        """Inspect/run image to retrieve Zeek version. Pulls the image if not present."""
+        
+        # Ensure the image is present locally
+        try:
+            subprocess.run(
+                ["docker", "image", "inspect", self.zeek_image],
+                capture_output=True,
+                check=True,
+                shell=False
+            )
+        except subprocess.CalledProcessError:
+            # Pull the image if it does not exist locally
+            try:
+                subprocess.run(
+                    ["docker", "pull", self.zeek_image],
+                    capture_output=True,
+                    timeout=300,
+                    check=True,
+                    shell=False
+                )
+            except subprocess.TimeoutExpired as exc:
+                raise ZeekRunnerError(
+                    ZeekRunnerErrorCode.TIMEOUT,
+                    f"Timeout pulling Zeek image {self.zeek_image}",
+                ) from exc
+            except subprocess.CalledProcessError as exc:
+                raise ZeekRunnerError(
+                    ZeekRunnerErrorCode.IMAGE_UNAVAILABLE,
+                    f"Failed to pull Zeek image {self.zeek_image}: {exc.stderr.decode('utf-8', errors='ignore').strip()}",
+                ) from exc
+
         try:
             res = subprocess.run(
                 ["docker", "run", "--rm", self.zeek_image, "zeek", "--version"],

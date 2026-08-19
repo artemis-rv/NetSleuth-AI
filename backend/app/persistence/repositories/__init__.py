@@ -3,7 +3,10 @@ from app.persistence.repositories.intelligence_repository import FlowRepository,
 from app.persistence.repositories.analytics_repository import FindingsPackageRepository, FindingRepository, ModelRegistryRepository
 from app.persistence.repositories.investigation_repository import (
     InvestigationCaseRepository, EntityRepository, RelationshipRepository,
-    BehaviorRepository, TimelineEventRepository, MitreMappingRepository
+    BehaviorRepository, TimelineEventRepository, MitreMappingRepository,
+    AttackChainRepository,
+    HypothesisRepository, HypothesisValidationRepository,
+    RootCauseRepository, ImpactAssessmentRepository
 )
 from app.persistence.repositories.custody_repository import EvidenceItemRepository, CustodyEventRepository, ReportRepository
 from app.persistence.repositories.identity_repository import UserRepository, CaseAccessRepository, AuditRepository
@@ -14,6 +17,9 @@ __all__ = [
     "FindingsPackageRepository", "FindingRepository", "ModelRegistryRepository",
     "InvestigationCaseRepository", "EntityRepository", "RelationshipRepository",
     "BehaviorRepository", "TimelineEventRepository", "MitreMappingRepository",
+    "AttackChainRepository",
+    "HypothesisRepository", "HypothesisValidationRepository",
+    "RootCauseRepository", "ImpactAssessmentRepository",
     "EvidenceItemRepository", "CustodyEventRepository", "ReportRepository",
     "UserRepository", "CaseAccessRepository", "AuditRepository"
 ]
