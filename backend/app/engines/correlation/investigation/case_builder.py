@@ -88,8 +88,12 @@ class InvestigationCaseBuilder:
         severities = {"critical": 4, "high": 3, "medium": 2, "low": 1}
         max_sev = 2
         for f in ctx.findings:
-            if f.severity in severities:
-                max_sev = max(max_sev, severities[f.severity])
+            sev = getattr(f, "severity", None)
+            if not sev:
+                risk = getattr(f, "risk_score", 0.5)
+                sev = "critical" if risk >= 0.9 else ("high" if risk >= 0.7 else ("medium" if risk >= 0.4 else "low"))
+            if sev in severities:
+                max_sev = max(max_sev, severities[sev])
         
         sev_map = {4: "critical", 3: "high", 2: "medium", 1: "low"}
         severity = sev_map[max_sev]
@@ -135,14 +139,9 @@ class InvestigationCaseBuilder:
         
         # 1. Findings
         for f in ctx.findings:
-            act = f.activity_class.value if hasattr(f.activity_class, "value") else str(f.activity_class)
             doc["findings"].append({
                 "finding_id": f.finding_id,
-                "role": "primary",
-                "activity": act,
-                "confidence_score": getattr(f, "classification_confidence", 0.8),
-                "risk_score": getattr(f, "risk_score", 0.5),
-                "severity": getattr(f, "severity", "high" if getattr(f, "risk_score", 0) > 0.6 else "medium"),
+                "role": "primary"
             })
             
         # 2. Timeline
