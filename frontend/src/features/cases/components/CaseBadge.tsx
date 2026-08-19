@@ -6,20 +6,20 @@ interface CaseStatusBadgeProps {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  OPEN: 'bg-info/15 text-info border-info/30',
-  ACTIVE: 'bg-success/15 text-success border-success/30',
-  UNDER_REVIEW: 'bg-warning/15 text-warning border-warning/30',
-  CLOSED: 'bg-muted/20 text-muted border-muted/30',
-  ARCHIVED: 'bg-muted/10 text-muted border-muted/20',
+  OPEN: 'bg-gradient-to-r from-info/25 to-info/10 text-info border-info/40 shadow-[0_0_10px_rgba(59,130,246,0.15)]',
+  ACTIVE: 'bg-gradient-to-r from-success/25 to-success/10 text-success border-success/40 shadow-[0_0_10px_rgba(16,185,129,0.15)]',
+  UNDER_REVIEW: 'bg-gradient-to-r from-warning/25 to-warning/10 text-warning border-warning/40 shadow-[0_0_10px_rgba(245,158,11,0.15)]',
+  CLOSED: 'bg-gradient-to-r from-muted/25 to-muted/10 text-muted border-muted/40',
+  ARCHIVED: 'bg-gradient-to-r from-surface-elevated/80 to-surface-elevated/40 text-muted border-border-subtle',
 };
 
 export function CaseStatusBadge({ status, className }: CaseStatusBadgeProps) {
   const normalized = status ? status.toUpperCase() : '';
-  const style = STATUS_STYLES[normalized] ?? 'bg-muted/15 text-muted border-muted/30';
+  const style = STATUS_STYLES[normalized] ?? 'bg-gradient-to-r from-muted/20 to-muted/5 text-muted border-muted/30';
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium tracking-wide',
+        'inline-flex items-center rounded-md border px-2.5 py-0.5 text-[11px] uppercase font-bold tracking-widest backdrop-blur-sm',
         style,
         className
       )}
@@ -36,20 +36,20 @@ interface CasePriorityBadgeProps {
 }
 
 const PRIORITY_STYLES: Record<string, string> = {
-  CRITICAL: 'bg-danger/15 text-danger border-danger/30',
-  HIGH: 'bg-warning/15 text-warning border-warning/30',
-  MEDIUM: 'bg-info/15 text-info border-info/30',
-  LOW: 'bg-muted/15 text-muted border-muted/30',
+  CRITICAL: 'bg-gradient-to-r from-danger/25 to-danger/10 text-danger border-danger/40 shadow-[0_0_10px_rgba(239,68,68,0.15)] text-shadow-sm',
+  HIGH: 'bg-gradient-to-r from-warning/25 to-warning/10 text-warning border-warning/40 shadow-[0_0_10px_rgba(245,158,11,0.15)]',
+  MEDIUM: 'bg-gradient-to-r from-info/25 to-info/10 text-info border-info/40 shadow-[0_0_10px_rgba(59,130,246,0.15)]',
+  LOW: 'bg-gradient-to-r from-muted/25 to-muted/10 text-muted border-muted/40',
 };
 
 export function CasePriorityBadge({ priority, className }: CasePriorityBadgeProps) {
   if (!priority) return null;
   const normalized = priority.toUpperCase();
-  const style = PRIORITY_STYLES[normalized] ?? 'bg-muted/15 text-muted border-muted/30';
+  const style = PRIORITY_STYLES[normalized] ?? 'bg-gradient-to-r from-muted/20 to-muted/5 text-muted border-muted/30';
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium tracking-wide',
+        'inline-flex items-center rounded-md border px-2.5 py-0.5 text-[11px] uppercase font-bold tracking-widest backdrop-blur-sm',
         style,
         className
       )}

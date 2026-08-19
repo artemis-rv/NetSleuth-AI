@@ -40,6 +40,10 @@ export const router = createBrowserRouter([
             path: 'investigations/:caseId',
             element: <CaseDetailPage />,
           },
+          {
+            path: 'investigations/:caseId/:tab',
+            element: <CaseDetailPage />,
+          },
           // Admin
           {
             path: 'admin',

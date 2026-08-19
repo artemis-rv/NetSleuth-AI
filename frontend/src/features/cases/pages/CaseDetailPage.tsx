@@ -302,35 +302,37 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Tactile Sub-tab bar (No outer box) */}
-      <div
-        className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2"
-        role="tablist"
-        aria-label="Investigation sub-sections"
-      >
-        {INVESTIGATION_SUBTABS.map((t) => {
-          const isActive = sub === t.id;
-          return (
-            <button
-              key={t.id}
-              role="tab"
-              id={`investigation-subtab-${t.id}`}
-              aria-selected={isActive}
-              aria-controls={`investigation-subpanel-${t.id}`}
-              onClick={() => setSub(t.id)}
-              className={`relative px-5 py-2 text-xs rounded-lg whitespace-nowrap transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent overflow-hidden ${
-                isActive
-                  ? 'text-primary font-bold bg-surface-elevated border border-border-subtle/80 shadow-[0_4px_12px_rgba(0,0,0,0.2)] ring-1 ring-accent/20'
-                  : 'text-muted font-medium hover:text-primary hover:bg-surface-elevated/40 border border-transparent'
-              }`}
-            >
-              {isActive && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-80 rounded-t-full shadow-[0_-2px_8px_rgba(59,130,246,0.6)]" />
-              )}
-              {t.label}
-            </button>
-          );
-        })}
+      {/* Segmented Control Sub-tab bar (With outer box) */}
+      <div className="flex">
+        <div
+          className="inline-flex items-center gap-1 p-1 bg-surface-elevated/30 border border-border-subtle rounded-xl overflow-x-auto no-scrollbar shadow-sm"
+          role="tablist"
+          aria-label="Investigation sub-sections"
+        >
+          {INVESTIGATION_SUBTABS.map((t) => {
+            const isActive = sub === t.id;
+            return (
+              <button
+                key={t.id}
+                role="tab"
+                id={`investigation-subtab-${t.id}`}
+                aria-selected={isActive}
+                aria-controls={`investigation-subpanel-${t.id}`}
+                onClick={() => setSub(t.id)}
+                className={`relative px-4 py-1.5 text-xs rounded-lg whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  isActive
+                    ? 'text-primary font-semibold bg-surface border border-border-subtle/80 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'
+                    : 'text-muted font-medium hover:text-primary hover:bg-surface/50 border border-transparent'
+                }`}
+              >
+                {isActive && (
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-70 rounded-t-full shadow-[0_-2px_6px_rgba(59,130,246,0.5)]" />
+                )}
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Sub-tab panel */}
@@ -351,17 +353,9 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
 
 // ─── Main page ───────────────────────────────────────────────────────────────
 export function CaseDetailPage() {
-  const { caseId } = useParams<{ caseId: string }>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = (searchParams.get('tab') as TabId) || 'overview';
+  const { caseId, tab } = useParams<{ caseId: string, tab?: string }>();
+  const activeTab = (tab as TabId) || 'overview';
   const [editing, setEditing] = useState(false);
-
-  const handleTabChange = (tab: TabId) => {
-    setSearchParams((prev) => {
-      prev.set('tab', tab);
-      return prev;
-    });
-  };
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
 
@@ -409,16 +403,8 @@ export function CaseDetailPage() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-6">
       {/* Compact Case Header */}
-      <div className="mb-6">
-        {/* Top Row: Back & Edit */}
-        <div className="flex items-center justify-between mb-3">
-          <Link
-            to="/investigations"
-            className="inline-flex items-center text-[12px] font-medium text-muted hover:text-accent transition-colors group"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
-            Investigations
-          </Link>
+      <div className="mb-6 flex flex-col gap-3">
+        <div className="flex justify-end">
           <Button
             variant="secondary"
             size="sm"
@@ -471,7 +457,6 @@ export function CaseDetailPage() {
           </div>
         </div>
       </div>
-
       {/* Edit Form */}
       {editing && (
         <Card className="mb-8 border-border-subtle bg-surface-elevated/30">
@@ -491,37 +476,7 @@ export function CaseDetailPage() {
       {/* Tabs */}
       {!editing && (
         <>
-          <div
-            className="flex items-end gap-1.5 border-b border-border-subtle mb-6 overflow-x-auto scrollbar-hide sticky top-0 bg-background/95 backdrop-blur-md z-30 pt-2"
-            role="tablist"
-            aria-label="Case sections"
-          >
-            {TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  id={`tab-${tab.id}`}
-                  aria-selected={isActive}
-                  aria-controls={`panel-${tab.id}`}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`relative flex items-center gap-2 px-4 h-[52px] text-[14px] font-medium whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-t-[5px] border border-b-0 ${
-                    isActive
-                      ? 'bg-surface-elevated border-border-subtle text-primary shadow-sm'
-                      : 'border-transparent bg-transparent text-muted hover:text-primary hover:bg-surface-elevated/30'
-                  }`}
-                >
-                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-accent' : 'text-muted'}`} aria-hidden="true" />
-                  <span>{tab.label}</span>
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-accent" aria-hidden="true" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+
 
           <div
             role="tabpanel"
@@ -529,7 +484,7 @@ export function CaseDetailPage() {
             aria-labelledby={`tab-${activeTab}`}
             className="min-h-[500px]"
           >
-            {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={handleTabChange} />}
+            {activeTab === 'overview' && <CaseOverview caseData={caseData} />}
             {activeTab === 'findings' && <FindingsSection caseId={caseData.case_id} />}
             {activeTab === 'network' && <NetworkSection caseId={caseData.case_id} />}
             {activeTab === 'timeline' && <InvestigationTabGroup caseId={caseData.case_id} />}
