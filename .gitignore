@@ -35,6 +35,43 @@ htmlcov/
 Thumbs.db
 
 # Build artifacts
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+*.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing and cache
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Infrastructure — never commit local secrets or generated data
+# .env.example is intentionally NOT ignored (it contains only placeholders)
+# docker-compose.yml is intentionally NOT ignored (it is infrastructure-as-code)
+# MinIO data is stored in a Docker named volume (not a repo directory)
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
 *.egg-info/
 
 # Evidence files — never commit capture data
@@ -43,6 +80,7 @@ sample_data/evidence/*.pcapng
 
 # Zeek dynamic outputs — never commit runtime outputs
 sample_data/zeek_output/
+backend/sample_data/zeek_output/
 
 
 test_output.log
