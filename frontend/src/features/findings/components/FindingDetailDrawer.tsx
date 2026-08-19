@@ -60,17 +60,43 @@ export function FindingDetailDrawer({ findingId, onClose }: FindingDetailDrawerP
 
       {/* Drawer */}
       <aside
-        className="fixed right-0 top-0 h-full w-full max-w-lg bg-surface border-l border-border-subtle z-50 overflow-y-auto shadow-2xl"
+        className="fixed right-0 top-0 h-full w-full max-w-[480px] bg-surface border-l border-border-subtle z-50 overflow-y-auto shadow-2xl transition-transform"
         role="dialog"
         aria-modal="true"
         aria-label="Finding detail"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-surface border-b border-border-subtle px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-sm font-semibold text-primary">Finding Detail</h2>
+        <div className="sticky top-0 bg-surface/95 backdrop-blur-md border-b border-border-subtle px-6 py-5 flex items-start justify-between z-10 shadow-sm">
+          <div className="space-y-1.5 pr-4">
+            <h2 className="text-[11px] font-bold text-muted uppercase tracking-widest flex items-center gap-2">
+              <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+              Finding
+            </h2>
+            {data ? (
+              <>
+                <p className="text-[14px] font-mono font-medium text-primary leading-tight">
+                  {data.activity.replace(/_/g, ' ')}
+                </p>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                    data.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                    data.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                    data.severity === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                    data.severity === 'LOW' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                  }`}>
+                    {data.severity}
+                  </span>
+                  <span className="text-[11px] text-muted font-mono">Risk {data.risk_score?.toFixed(2) ?? '—'}</span>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm font-semibold text-primary">Loading detail...</p>
+            )}
+          </div>
           <button
             onClick={onClose}
-            className="rounded p-1 hover:bg-surface-elevated text-muted hover:text-primary transition-colors"
+            className="rounded p-1 hover:bg-surface-elevated text-muted hover:text-primary transition-colors mt-0.5"
             aria-label="Close finding detail"
           >
             <X className="h-4 w-4" />
@@ -171,19 +197,20 @@ export function FindingDetailDrawer({ findingId, onClose }: FindingDetailDrawerP
 
               {/* Feature Metrics */}
               {data.feature_attribution && Object.keys(data.feature_attribution).length > 0 && (
-                <Section title="Feature Metrics" icon={Layers}>
-                  <div className="space-y-1">
+                <Section title="Feature Attribution" icon={Layers}>
+                  <div className="space-y-0.5 mt-1 border border-border-subtle rounded-md overflow-hidden bg-surface-elevated/30">
                     {Object.entries(data.feature_attribution)
                       .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
-                      .slice(0, 10)
                       .map(([feat, score]) => {
                         const isDecimal = score % 1 !== 0;
-                        const formatted = isDecimal ? score.toFixed(2) : Math.round(score).toLocaleString();
+                        const formatted = isDecimal ? score.toFixed(3) : Math.round(score).toLocaleString();
+                        const sign = score > 0 ? '+' : '';
+                        const colorClass = score > 0 ? 'text-orange-400' : 'text-blue-400';
                         return (
-                          <div key={feat} className="flex justify-between py-0.5">
-                            <span className="text-xs text-muted font-mono truncate max-w-[60%]">{feat}</span>
-                            <span className="text-xs tabular-nums font-medium text-emerald-400">
-                              {formatted}
+                          <div key={feat} className="flex justify-between items-center py-1.5 px-3 border-b border-border-subtle/50 last:border-0 hover:bg-surface-elevated/50 transition-colors">
+                            <span className="text-[11px] text-secondary font-mono truncate pr-4">{feat}</span>
+                            <span className={`text-[11px] tabular-nums font-medium font-mono ${colorClass}`}>
+                              {sign}{formatted}
                             </span>
                           </div>
                         );
