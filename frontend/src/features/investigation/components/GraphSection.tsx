@@ -61,10 +61,11 @@ export function GraphSection({ caseId }: GraphSectionProps) {
       let matchesType = true;
       if (filterType !== 'ALL') {
         const typeGroups: Record<string, string[]> = {
-          'HOST': ['host', 'internal_ip'],
-          'EXTERNAL': ['external_ip', 'domain'],
+          'IP': ['ip', 'host', 'internal_ip', 'external_ip'],
+          'DOMAIN': ['domain'],
           'USER': ['user'],
-          'FILE': ['file', 'hash'],
+          'ARTIFACT': ['artifact', 'file', 'hash'],
+          'FINDING': ['finding'],
         };
         const group = typeGroups[filterType] || [];
         matchesType = group.includes(n.entity_type.toLowerCase());
@@ -239,10 +240,11 @@ export function GraphSection({ caseId }: GraphSectionProps) {
               onChange={e => setFilterType(e.target.value)}
             >
               <option value="ALL">All Types</option>
-              <option value="HOST">Internal Hosts</option>
-              <option value="EXTERNAL">External IPs & Domains</option>
+              <option value="IP">IP Addresses</option>
+              <option value="DOMAIN">Domains</option>
+              <option value="ARTIFACT">Files & Artifacts</option>
+              <option value="FINDING">Findings / Alerts</option>
               <option value="USER">Users</option>
-              <option value="FILE">Files & Hashes</option>
             </select>
           </div>
 
