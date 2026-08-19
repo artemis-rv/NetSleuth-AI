@@ -10,7 +10,7 @@ import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import { ErrorState } from '../../../components/feedback/ErrorState';
 import { ApiError } from '../../../api/errors';
-import type { CaseResponse } from '../types';
+import type { CaseResponse, InvestigationGoal } from '../types';
 
 // FE-2
 import { AcquisitionSection } from '../../acquisition/components/AcquisitionSection';
@@ -94,17 +94,19 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [draftNote, setDraftNote] = useState('');
 
+  const normalizedGoals: InvestigationGoal[] = (caseData.investigation_goals || []).map((g, idx) => 
+    typeof g === 'string' ? { id: String(idx + 1), description: g, completed: false } : g
+  );
+
   const toggleGoal = (goalId: string) => {
-    if (!caseData.investigation_goals) return;
-    const newGoals = caseData.investigation_goals.map(g => 
+    const newGoals = normalizedGoals.map(g => 
       g.id === goalId ? { ...g, completed: !g.completed } : g
     );
     updateCase.mutate({ investigation_goals: newGoals });
   };
 
   const saveNote = (goalId: string) => {
-    if (!caseData.investigation_goals) return;
-    const newGoals = caseData.investigation_goals.map(g => 
+    const newGoals = normalizedGoals.map(g => 
       g.id === goalId ? { ...g, note: draftNote.trim() || null } : g
     );
     updateCase.mutate({ investigation_goals: newGoals }, {
@@ -122,7 +124,7 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3" aria-label="Investigation goals">
-          {caseData.investigation_goals?.map((goal) => (
+          {normalizedGoals.map((goal) => (
             <div key={goal.id} className="flex flex-col gap-2 p-3 rounded-lg border border-border-subtle bg-surface-elevated/50 transition-colors hover:bg-surface-elevated">
               <div className="flex items-start gap-3">
                 <button

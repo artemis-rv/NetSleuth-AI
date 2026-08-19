@@ -43,7 +43,7 @@ describe('AcquisitionSection', () => {
   it('renders upload UI when no acquisition exists', () => {
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={undefined} evidence={undefined} />
+        <AcquisitionSection caseId="case-1" acquisitions={[]} evidenceList={[]} />
       </Wrapper>
     );
 
@@ -61,7 +61,7 @@ describe('AcquisitionSection', () => {
 
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={undefined} evidence={undefined} />
+        <AcquisitionSection caseId="case-1" acquisitions={[]} evidenceList={[]} />
       </Wrapper>
     );
 
@@ -92,12 +92,12 @@ describe('AcquisitionSection', () => {
 
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={acquisition} evidence={undefined} />
+        <AcquisitionSection caseId="case-1" acquisitions={[acquisition]} evidenceList={[]} />
       </Wrapper>
     );
 
     expect(screen.getByText('test.pcap')).toBeInTheDocument();
-    expect(screen.getByText(/1\.00\s*MB •/)).toBeInTheDocument();
+    expect(screen.getByText(/1\.00\s*MB/)).toBeInTheDocument();
     expect(screen.getByText('pcap')).toBeInTheDocument();
   });
 
@@ -119,7 +119,7 @@ describe('AcquisitionSection', () => {
 
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={acquisition as any} evidence={evidence as any} />
+        <AcquisitionSection caseId="case-1" acquisitions={[acquisition as any]} evidenceList={[evidence as any]} />
       </Wrapper>
     );
 
