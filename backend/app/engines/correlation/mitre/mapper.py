@@ -62,7 +62,7 @@ class MitreMapper:
         if not valid_evidence:
             return []
             
-        behavior = self.repo.get_behavior_mapping(finding.activity_class)
+        behavior = self.repo.get_behavior_mapping(finding.activity_class.value)
         if not behavior:
             return []
             
@@ -152,8 +152,8 @@ class MitreMapper:
                 
         elif behavior_id == "SUSPICIOUS_WEB_ACTIVITY":
             if tech_id == "T1071.001":
-                if not input_ctx.telemetry_capabilities.http:
-                    return MappingStatus.INSUFFICIENT_EVIDENCE, "No HTTP telemetry to support suspicious web activity."
+                if not input_ctx.telemetry_capabilities.http and not input_ctx.telemetry_capabilities.tls:
+                    return MappingStatus.INSUFFICIENT_EVIDENCE, "No HTTP/TLS telemetry to support suspicious web activity."
                 if finding.risk_score > 0.80 or finding.anomaly_score > 0.9:
                     return MappingStatus.SUPPORTED, "Correlated web C2 evidence supports technique mapping."
                 return MappingStatus.POTENTIAL, "Unusual HTTP observed, but insufficient severity to confirm web C2."

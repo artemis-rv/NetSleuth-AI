@@ -148,6 +148,7 @@ class TimelineEventBase(BaseModel):
     description: Optional[str] = None
     event_timestamp: datetime
     source_id: Optional[UUID] = None
+    finding_id: Optional[UUID] = None
 
 class TimelineEventResponse(TimelineEventBase):
     timeline_event_id: UUID
@@ -174,6 +175,8 @@ class MitreMappingBase(BaseModel):
     technique_id: str
     technique_name: Optional[str] = None
     confidence: Optional[float] = None
+    rationale: Optional[str] = None
+    finding_ids: Optional[List[str]] = None
 
 class MitreMappingResponse(MitreMappingBase):
     mitre_mapping_id: UUID
@@ -192,6 +195,8 @@ class MitreMappingResponse(MitreMappingBase):
                 'technique_id': obj.technique_id,
                 'technique_name': getattr(obj, 'technique_name', None),
                 'confidence': getattr(obj, 'confidence', None),
+                'rationale': getattr(obj, 'justification', None),
+                'finding_ids': [str(fid) for fid in getattr(obj, 'finding_ids', [])],
                 'mapped_at': obj.mapped_at,
             }
             return cls(**data)

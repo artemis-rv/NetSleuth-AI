@@ -245,11 +245,13 @@ class M3PersistenceService:
                     "tactic": m.get("tactic", m.get("tactic_name", "")),
                     "technique_name": m.get("technique_name"),
                     "attack_version": m.get("attack_version", "19.2"),
-                    "justification": m.get("justification"),
-                    "confidence": m.get("confidence"),
+                    "justification": m.get("rationale"),
+                    "confidence": m.get("mapping_confidence"),
                 })
-                # Link to findings referenced by this mapping
-                for f_id in m.get("finding_ids", []):
+                # Link to finding referenced by this mapping
+                source_finding_ids = m.get("source_finding_ids", [])
+                if source_finding_ids and len(source_finding_ids) > 0:
+                    f_id = source_finding_ids[0]
                     f_uuid = self._to_uuid(f_id)
                     mitre_finding_link_records.append({
                         "mitre_mapping_id": m_uuid,

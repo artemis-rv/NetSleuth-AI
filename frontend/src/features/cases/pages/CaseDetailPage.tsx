@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target } from 'lucide-react';
 import { useCaseQuery } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
@@ -19,6 +19,7 @@ import { useAcquisitions, useEvidence } from '../../acquisition/hooks';
 
 // FE-3
 import { FindingsSection } from '../../findings/components/FindingsSection';
+import { FindingDetailDrawer } from '../../findings/components/FindingDetailDrawer';
 import { NetworkSection } from '../../network/components/NetworkSection';
 
 // FE-4/5
@@ -239,7 +240,15 @@ export function CaseDetailPage() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [editing, setEditing] = useState(false);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const globalFindingId = searchParams.get('finding');
+
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
+
+  function handleCloseFinding() {
+    searchParams.delete('finding');
+    setSearchParams(searchParams, { replace: true });
+  }
 
   if (isLoading) {
     return (
@@ -386,6 +395,12 @@ export function CaseDetailPage() {
           </div>
         </>
       )}
+
+      {/* Global Finding Detail Drawer */}
+      <FindingDetailDrawer
+        findingId={globalFindingId}
+        onClose={handleCloseFinding}
+      />
     </div>
   );
 }

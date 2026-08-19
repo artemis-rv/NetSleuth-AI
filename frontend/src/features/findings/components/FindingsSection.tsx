@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useFindingsQuery } from '../hooks';
 import { FindingRow } from './FindingRow';
 import { FindingFilters } from './FindingFilters';
-import { FindingDetailDrawer } from './FindingDetailDrawer';
 import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import type { FindingListItem, FindingsFilters } from '../types';
@@ -14,7 +14,7 @@ interface FindingsSectionProps {
 
 export function FindingsSection({ caseId }: FindingsSectionProps) {
   const [filters, setFilters] = useState<FindingsFilters>({ page: 1, page_size: 25 });
-  const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data, isLoading, isError, error } = useFindingsQuery(caseId, filters);
 
@@ -22,7 +22,8 @@ export function FindingsSection({ caseId }: FindingsSectionProps) {
   const currentPage = filters.page ?? 1;
 
   function handleRowClick(finding: FindingListItem) {
-    setSelectedFindingId(finding.finding_id);
+    searchParams.set('finding', finding.finding_id);
+    setSearchParams(searchParams);
   }
 
   return (
@@ -120,12 +121,6 @@ export function FindingsSection({ caseId }: FindingsSectionProps) {
           )}
         </>
       )}
-
-      {/* Detail drawer */}
-      <FindingDetailDrawer
-        findingId={selectedFindingId}
-        onClose={() => setSelectedFindingId(null)}
-      />
     </div>
   );
 }

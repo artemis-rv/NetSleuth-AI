@@ -4,7 +4,7 @@ import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import { Card, CardContent } from '../../../components/ui/Card';
 import type { MitreMappingResponse } from '../types';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 function confidenceColor(conf: number | null): string {
   if (conf === null) return 'bg-slate-700/60 border-slate-600/40 text-slate-400';
@@ -33,6 +33,7 @@ interface MitreSectionProps {
 }
 
 export function MitreSection({ caseId }: MitreSectionProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data, isLoading, isError, error } = useMitreQuery(caseId, { page: 1, page_size: 100 });
   const { data: timelineData, isLoading: timelineLoading } = useTimelineQuery(caseId, { page: 1, page_size: 100 });
 
@@ -159,15 +160,27 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                     )}
                   </div>
                   
-                  {(tech.finding_ids?.length || 0) > 0 && (
-                    <div className="flex items-center gap-3 text-[11px] text-muted">
-                      <span className="flex items-center gap-1">
+                  {tech.finding_ids && tech.finding_ids.length > 0 && (
+                    <div className="text-[11px] text-muted flex items-center gap-3">
+                      <span 
+                        className="flex items-center gap-1.5 hover:text-accent cursor-pointer transition-colors"
+                        onClick={() => {
+                          searchParams.set('finding', tech.finding_ids![0]);
+                          setSearchParams(searchParams);
+                        }}
+                      >
                         <Activity className="h-3 w-3" />
-                        {tech.finding_ids!.length} finding{tech.finding_ids!.length !== 1 ? 's' : ''}
+                        {tech.finding_ids.length} finding{tech.finding_ids.length !== 1 ? 's' : ''}
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span 
+                        className="flex items-center gap-1.5 hover:text-accent cursor-pointer transition-colors"
+                        onClick={() => {
+                          searchParams.set('finding', tech.finding_ids![0]);
+                          setSearchParams(searchParams);
+                        }}
+                      >
                         <LinkIcon className="h-3 w-3" />
-                        {tech.finding_ids!.length} evidence ref{tech.finding_ids!.length !== 1 ? 's' : ''}
+                        {tech.finding_ids.length} evidence ref{tech.finding_ids.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   )}
@@ -238,7 +251,13 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                             {m.finding_ids.map(fId => (
                               <div key={fId} className="flex items-center gap-1.5">
                                 <FileText className="h-3 w-3 text-muted" />
-                                <span className="text-xs text-secondary font-mono hover:text-accent cursor-pointer transition-colors flex items-center gap-1">
+                                <span 
+                                  className="text-xs text-secondary font-mono hover:text-accent cursor-pointer transition-colors flex items-center gap-1"
+                                  onClick={() => {
+                                    searchParams.set('finding', fId);
+                                    setSearchParams(searchParams);
+                                  }}
+                                >
                                   {formatShortId(fId)}
                                   <ExternalLink className="h-2.5 w-2.5" />
                                 </span>
