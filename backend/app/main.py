@@ -159,6 +159,9 @@ def create_app() -> FastAPI:
     @application.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         request_id = _get_request_id(request)
+        import traceback
+        print("GLOBAL EXCEPTION HANDLER CAUGHT AN EXCEPTION:", flush=True)
+        traceback.print_exc()
         logger.exception("Unhandled server exception on %s [request_id=%s]: %s", request.url.path, request_id, exc)
         return _cors_response(
             request=request,

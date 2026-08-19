@@ -404,49 +404,67 @@ export function CaseDetailPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-6">
-      {/* Breadcrumb */}
-      <div className="mb-4">
-        <Link
-          to="/investigations"
-          className="inline-flex items-center text-[13px] font-medium text-muted hover:text-primary transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" aria-hidden="true" />
-          Back to Investigations
-        </Link>
-      </div>
-
-      {/* Case Header */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4 border-b border-border-subtle pb-6">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2 flex-wrap">
-            <CaseStatusBadge status={caseData.status} />
-            <CasePriorityBadge priority={caseData.priority} />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary leading-tight mt-1">
-            {caseData.title}
-          </h1>
-          {caseData.description && (
-            <p className="text-sm text-secondary mt-3 leading-relaxed max-w-4xl">{caseData.description}</p>
-          )}
-          <div className="flex items-center gap-2 mt-4">
-            <span className="text-[11px] uppercase tracking-wider text-muted font-semibold">Case ID</span>
-            <span className="text-[13px] text-primary font-mono bg-surface-elevated px-2 py-0.5 rounded border border-border-subtle">{caseData.case_id}</span>
-          </div>
-        </div>
-        <div className="flex-shrink-0 flex gap-2">
+      {/* Compact Case Header */}
+      <div className="mb-6">
+        {/* Top Row: Back & Edit */}
+        <div className="flex items-center justify-between mb-3">
+          <Link
+            to="/investigations"
+            className="inline-flex items-center text-[12px] font-medium text-muted hover:text-accent transition-colors group"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
+            Investigations
+          </Link>
           <Button
             variant="secondary"
             size="sm"
-            className="border-border-subtle bg-surface hover:bg-surface-elevated text-primary"
+            className="border-border-subtle bg-surface hover:bg-surface-elevated text-primary h-7 px-3 text-xs shadow-sm transition-all"
             onClick={() => setEditing((prev) => !prev)}
             aria-label={editing ? 'Cancel editing' : 'Edit case'}
           >
             {editing ? (
-              <><X className="h-4 w-4 mr-1.5 text-muted" aria-hidden="true" /> Cancel</>
+              <><X className="h-3.5 w-3.5 mr-1.5 text-muted" aria-hidden="true" /> Cancel</>
             ) : (
-              <><Edit2 className="h-4 w-4 mr-1.5 text-muted" aria-hidden="true" /> Edit</>
+              <><Edit2 className="h-3.5 w-3.5 mr-1.5 text-muted" aria-hidden="true" /> Edit</>
             )}
           </Button>
+        </div>
+
+        {/* Identity Card */}
+        <div className="relative bg-surface-elevated/20 border border-border-subtle rounded-lg p-4 md:p-5 overflow-hidden shadow-sm">
+          {/* Accent Bar */}
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent/60"></div>
+
+          <div className="flex flex-col gap-3 ml-1">
+            {/* Badges & Title */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <CaseStatusBadge status={caseData.status} />
+                <CasePriorityBadge priority={caseData.priority} />
+              </div>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white leading-none shadow-sm">
+                {caseData.title}
+              </h1>
+            </div>
+
+            {/* Description */}
+            {caseData.description && (
+              <p className="text-[14px] text-secondary/90 truncate max-w-4xl font-medium" title={caseData.description}>
+                {caseData.description}
+              </p>
+            )}
+
+            {/* Case ID */}
+            <div className="flex items-center gap-2.5 mt-1">
+              <span className="text-[10px] uppercase tracking-widest text-muted font-bold flex items-center gap-1.5">
+                <Shield className="h-3 w-3" aria-hidden="true" />
+                Case ID
+              </span>
+              <span className="text-[11px] text-secondary font-mono bg-background/60 px-2 py-0.5 rounded border border-border-subtle shadow-inner">
+                {caseData.case_id}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -470,7 +488,7 @@ export function CaseDetailPage() {
       {!editing && (
         <>
           <div
-            className="flex items-end gap-1.5 border-b border-border-subtle mb-6 overflow-x-auto scrollbar-hide"
+            className="flex items-end gap-1.5 border-b border-border-subtle mb-6 overflow-x-auto scrollbar-hide sticky top-0 bg-background/95 backdrop-blur-md z-30 pt-2"
             role="tablist"
             aria-label="Case sections"
           >
