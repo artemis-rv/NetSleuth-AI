@@ -254,7 +254,22 @@ class MitreMappingRepository:
     async def list_by_case(self, case_id: UUID, skip: int = 0, limit: int = 50) -> List[MitreMappingModel]:
         stmt = select(MitreMappingModel).where(MitreMappingModel.case_id == case_id).order_by(MitreMappingModel.mapped_at.desc()).offset(skip).limit(limit)
         result = await self.session.execute(stmt)
-        return list(result.scalars().all())
+        mappings = list(result.scalars().all())
+        
+        if mappings:
+            from app.persistence.models.investigation_models import mitre_finding_links
+            mapping_ids = [m.mitre_mapping_id for m in mappings]
+            link_stmt = select(mitre_finding_links.c.mitre_mapping_id, mitre_finding_links.c.finding_id).where(mitre_finding_links.c.mitre_mapping_id.in_(mapping_ids))
+            link_result = await self.session.execute(link_stmt)
+            
+            finding_map = {m_id: [] for m_id in mapping_ids}
+            for row in link_result.all():
+                finding_map[row.mitre_mapping_id].append(str(row.finding_id))
+                
+            for m in mappings:
+                m.finding_ids = finding_map[m.mitre_mapping_id]
+                
+        return mappings
 
     async def count_by_case(self, case_id: UUID) -> int:
         from sqlalchemy import func

@@ -353,13 +353,14 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
 export function CaseDetailPage() {
   const { caseId } = useParams<{ caseId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const defaultTab = (searchParams.get('tab') as TabId) || 'overview';
-  const [activeTab, setActiveTab] = useState<TabId>(defaultTab);
+  const activeTab = (searchParams.get('tab') as TabId) || 'overview';
   const [editing, setEditing] = useState(false);
 
   const handleTabChange = (tab: TabId) => {
-    setActiveTab(tab);
-    setSearchParams({ tab });
+    setSearchParams((prev) => {
+      prev.set('tab', tab);
+      return prev;
+    });
   };
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');

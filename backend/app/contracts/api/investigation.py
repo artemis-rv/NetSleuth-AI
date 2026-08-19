@@ -198,6 +198,7 @@ class MitreMappingResponse(MitreMappingBase):
     mitre_mapping_id: UUID
     case_id: UUID
     mapped_at: datetime
+    finding_ids: Optional[list[str]] = None
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -212,6 +213,7 @@ class MitreMappingResponse(MitreMappingBase):
                 'technique_name': getattr(obj, 'technique_name', None),
                 'confidence': getattr(obj, 'confidence', None),
                 'mapped_at': obj.mapped_at,
+                'finding_ids': getattr(obj, 'finding_ids', [])
             }
             return cls(**data)
         return super().model_validate(obj, **kwargs)

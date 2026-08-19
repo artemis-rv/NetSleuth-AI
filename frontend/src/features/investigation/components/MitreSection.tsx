@@ -171,6 +171,7 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                         <span 
                           className="flex items-center gap-1.5 hover:text-accent cursor-pointer transition-colors bg-background/50 px-2 py-1 rounded-md border border-border-subtle/40"
                           onClick={() => {
+                            searchParams.set('tab', 'findings');
                             searchParams.set('finding', tech.finding_ids![0]);
                             setSearchParams(searchParams);
                           }}
@@ -181,6 +182,7 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                         <span 
                           className="flex items-center gap-1.5 hover:text-accent cursor-pointer transition-colors bg-background/50 px-2 py-1 rounded-md border border-border-subtle/40"
                           onClick={() => {
+                            searchParams.set('tab', 'findings');
                             searchParams.set('finding', tech.finding_ids![0]);
                             setSearchParams(searchParams);
                           }}
@@ -264,6 +266,7 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                                 <span 
                                   className="text-[11px] text-secondary font-mono hover:text-accent cursor-pointer transition-colors flex items-center gap-1 font-bold"
                                   onClick={() => {
+                                    searchParams.set('tab', 'findings');
                                     searchParams.set('finding', fId);
                                     setSearchParams(searchParams);
                                   }}

@@ -3,7 +3,8 @@ import { AlertCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useEndpointContextsQuery } from '../hooks';
 import { EndpointFilters } from './EndpointFilters';
 import { EndpointContextRow } from './EndpointContextRow';
-import { EndpointDetailDrawer } from './EndpointDetailDrawer'; // Updated import
+import { EndpointDetailDrawer } from './EndpointDetailDrawer';
+import { FlowDetailDrawer } from './FlowDetailDrawer';
 import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import type { FlowsFilters } from '../types';
@@ -15,6 +16,7 @@ interface NetworkSectionProps {
 export function NetworkSection({ caseId }: NetworkSectionProps) {
   const [filters, setFilters] = useState<FlowsFilters>({ page: 1, page_size: 50, sort_by: 'risk_score' });
   const [selectedEndpointIp, setSelectedEndpointIp] = useState<string | null>(null);
+  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
 
   const { data, isLoading, isError, error } = useEndpointContextsQuery(caseId, filters);
 
@@ -70,7 +72,7 @@ export function NetworkSection({ caseId }: NetworkSectionProps) {
             <EndpointContextRow
               key={endpoint.ip}
               endpoint={endpoint}
-              onSelectFlow={handleSelectEndpoint}
+              onSelectFlow={(flowId) => setSelectedFlowId(flowId)}
               onSelectFinding={handleSelectFinding}
             />
           ))}
@@ -104,12 +106,20 @@ export function NetworkSection({ caseId }: NetworkSectionProps) {
         </div>
       )}
 
-      {/* Endpoint Detail Drawer */}
+      {/* Detail Drawers */}
       {selectedEndpointIp && (
         <EndpointDetailDrawer
           caseId={caseId}
           endpointIp={selectedEndpointIp}
           onClose={() => setSelectedEndpointIp(null)}
+        />
+      )}
+      
+      {selectedFlowId && (
+        <FlowDetailDrawer
+          caseId={caseId}
+          flowId={selectedFlowId}
+          onClose={() => setSelectedFlowId(null)}
         />
       )}
     </div>
