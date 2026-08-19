@@ -99,8 +99,10 @@ async def export_report(
         tb = _tb.format_exc()
         from fastapi.responses import JSONResponse
         return JSONResponse(status_code=500, content={"error": str(exc), "traceback": tb})
+    import urllib.parse
+    encoded_filename = urllib.parse.quote(filename)
     headers = {
-        "Content-Disposition": f'attachment; filename="{filename}"'
+        "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
     }
     return FastAPIResponse(content=artifact_bytes, media_type=media_type, headers=headers)
 
