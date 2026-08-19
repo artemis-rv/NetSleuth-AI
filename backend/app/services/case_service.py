@@ -143,7 +143,7 @@ class CaseService:
                 "review": ["closed", "investigating"],
                 "closed": ["open"]
             }
-            if new_status not in allowed_transitions.get(case.status, []):
+            if new_status != case.status and new_status not in allowed_transitions.get(case.status, []):
                 raise ConflictError(f"Invalid status transition from {case.status} to {new_status}")
             
             if new_status == "closed":

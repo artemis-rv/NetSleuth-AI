@@ -239,54 +239,22 @@ def get_analysis_orchestrator(session: Session) -> AnalysisOrchestratorService:
     from app.engines.reporting.report_engine import ReportEngine
     from app.contracts.analysis import FindingsPackage, Finding, EvidenceReference, ActivityClass
 
-    class DummyM2Engine:
-        def analyze(self, package):
-            findings = []
-            flow_ids = [f.flow_id for f in package.flows]
-            event_ids = [e.event_id for e in package.protocol_events]
-            
-            if flow_ids or event_ids:
-                findings.append(Finding(
-                    finding_id=f"F-C2-{package.acquisition_id[:8]}",
-                    acquisition_id=package.acquisition_id,
-                    activity_class=ActivityClass.C2_MALWARE_COMMUNICATION,
-                    anomaly_score=0.92,
-                    anomaly_detected=True,
-                    classification_confidence=0.88,
-                    risk_score=0.90,
-                    model_version="1.0",
-                    evidence_references=[EvidenceReference(
-                        flow_ids=flow_ids[:2] if flow_ids else [],
-                        event_ids=event_ids[:2] if event_ids else [],
-                        rationale="Potential command and control beaconing detected."
-                    )]
-                ))
-                if len(flow_ids) > 1:
-                    findings.append(Finding(
-                        finding_id=f"F-SCAN-{package.acquisition_id[:8]}",
-                        acquisition_id=package.acquisition_id,
-                        activity_class=ActivityClass.SCANNING_RECONNAISSANCE,
-                        anomaly_score=0.85,
-                        anomaly_detected=True,
-                        classification_confidence=0.80,
-                        risk_score=0.82,
-                        model_version="1.0",
-                        evidence_references=[EvidenceReference(
-                            flow_ids=flow_ids[1:3],
-                            rationale="Port scanning activity detected across endpoints."
-                        )]
-                    ))
-            return FindingsPackage(
-                acquisition_id=package.acquisition_id,
-                source_package_id=package.package_id,
-                analysis_engine_version="dummy-1.0",
-                findings=findings
-            )
 
     validator = ContractValidator()
+    
+    # Initialize real M2 Analysis Engine from artifacts directory
+    from app.engines.analysis.engine import M2AnalysisEngine
+    import os
+    
+    # Resolve artifacts path relative to the current file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    artifacts_dir = os.path.join(current_dir, "..", "engines", "analysis", "artifacts")
+    
+    m2_engine = M2AnalysisEngine.from_directory(artifacts_dir)
+    
     pipeline_orchestrator = ForensicPipelineOrchestrator(
         uow=UnitOfWork(session_factory=lambda: session),
-        m2_engine=DummyM2Engine(),
+        m2_engine=m2_engine,
         m3_builder=InvestigationCaseBuilder(validator=validator),
         m4_engine=ReportEngine(validator=validator),
         m1_persistence=None
