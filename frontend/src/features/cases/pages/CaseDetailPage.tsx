@@ -344,8 +344,6 @@ export function CaseDetailPage() {
   };
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
-  const { data: acquisitions } = useAcquisitions(caseId ?? '');
-  const { data: evidence } = useEvidence(caseId ?? '');
 
   if (isLoading) {
     return (
@@ -430,12 +428,6 @@ export function CaseDetailPage() {
             )}
           </Button>
         </div>
-        {/* Acquisition & Evidence Status */}
-        <AcquisitionSection
-          caseId={caseData.case_id}
-          acquisitions={acquisitions?.items || []}
-          evidenceList={evidence?.items || []}
-        />
       </div>
 
       {/* Edit Form */}
