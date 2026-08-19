@@ -53,7 +53,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
       // 1. Search filter
       const q = searchQuery.toLowerCase();
       const matchesSearch = !q || 
-        n.name.toLowerCase().includes(q) || 
+        (n.label || '').toLowerCase().includes(q) || 
         n.entity_id.toLowerCase().includes(q) ||
         (n.properties && JSON.stringify(n.properties).toLowerCase().includes(q));
         
@@ -113,7 +113,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
         position: { x: 0, y: 0 },
         hidden: isHidden ? true : undefined,
         data: {
-          label: entity.name,
+          label: entity.label,
           typeLabel: entity.entity_type.replace(/_/g, ' '),
           riskScore: entity.risk_score,
           entityType: entity.entity_type,
@@ -353,7 +353,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                       </span>
                     )}
                   </div>
-                  <h3 className="text-base font-bold text-primary font-mono break-all">{selectedNode.name}</h3>
+                  <h3 className="text-base font-bold text-primary font-mono break-all">{selectedNode.label}</h3>
                 </div>
               </div>
 
@@ -435,14 +435,14 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                   <div className="text-xs space-y-2 bg-surface border border-border-subtle rounded p-3">
                     <div className="flex flex-col gap-1">
                       <span className="text-muted">Source</span>
-                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.source_entity_id)?.name || selectedEdge.source_entity_id}</span>
+                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.source_entity_id)?.label || selectedEdge.source_entity_id}</span>
                     </div>
                     <div className="w-full flex justify-center py-1 text-muted">
                       ↓
                     </div>
                     <div className="flex flex-col gap-1">
                       <span className="text-muted">Target</span>
-                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.target_entity_id)?.name || selectedEdge.target_entity_id}</span>
+                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.target_entity_id)?.label || selectedEdge.target_entity_id}</span>
                     </div>
                   </div>
                 </div>

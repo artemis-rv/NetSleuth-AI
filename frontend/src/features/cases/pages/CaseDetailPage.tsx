@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, Plus, Save } from 'lucide-react';
+import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, Plus, Save, FileText } from 'lucide-react';
 import { useCaseQuery, useUpdateCaseMutation } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
 import { CaseStatusBadge, CasePriorityBadge } from '../components/CaseBadge';
@@ -344,6 +344,11 @@ export function CaseDetailPage() {
   };
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
+<<<<<<< HEAD
+=======
+  const { data: acquisitions } = useAcquisitions(caseId ?? '');
+  const { data: evidence } = useEvidence(caseId ?? '');
+>>>>>>> dabf976 (fix: resolve frontend JSX syntax error and unit test assertions)
 
   if (isLoading) {
     return (
@@ -428,6 +433,12 @@ export function CaseDetailPage() {
             )}
           </Button>
         </div>
+        {/* Acquisition & Evidence Status */}
+        <AcquisitionSection
+          caseId={caseData.case_id}
+          acquisitions={acquisitions?.items || []}
+          evidenceList={evidence?.items || []}
+        />
       </div>
 
       {/* Edit Form */}

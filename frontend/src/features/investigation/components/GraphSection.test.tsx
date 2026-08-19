@@ -23,9 +23,9 @@ vi.mock('../../findings/hooks', () => ({
 
 const mockGraphData = {
   nodes: [
-    { entity_id: 'n1', case_id: 'c1', name: '192.168.1.5', entity_type: 'internal_ip', risk_score: 0.85, properties: {}, created_at: '2026-01-01T00:00:00Z' },
-    { entity_id: 'n2', case_id: 'c1', name: 'evil.com', entity_type: 'domain', risk_score: 0.95, properties: {}, created_at: '2026-01-01T00:00:00Z' },
-    { entity_id: 'n3', case_id: 'c1', name: 'normal.com', entity_type: 'domain', risk_score: 0.1, properties: {}, created_at: '2026-01-01T00:00:00Z' }
+    { entity_id: 'n1', case_id: 'c1', label: '192.168.1.5', entity_type: 'internal_ip', risk_score: 0.85, properties: {}, created_at: '2026-01-01T00:00:00Z' },
+    { entity_id: 'n2', case_id: 'c1', label: 'evil.com', entity_type: 'domain', risk_score: 0.95, properties: {}, created_at: '2026-01-01T00:00:00Z' },
+    { entity_id: 'n3', case_id: 'c1', label: 'normal.com', entity_type: 'domain', risk_score: 0.1, properties: {}, created_at: '2026-01-01T00:00:00Z' }
   ],
   edges: [
     { relationship_id: 'e1', case_id: 'c1', source_entity_id: 'n1', target_entity_id: 'n2', relationship_type: 'connected_to', confidence: 0.9, properties: {}, created_at: '2026-01-01T00:00:00Z' }

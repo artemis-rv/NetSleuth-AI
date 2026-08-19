@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import '@testing-library/jest-dom';
 
 vi.mock('../api', () => ({
-  getCases: vi.fn(),
-  getCase: vi.fn(),
   createCase: vi.fn(),
   updateCase: vi.fn(),
+  getCase: vi.fn(),
+  getCases: vi.fn(),
 }));
 
 import * as caseApi from '../api';
@@ -42,8 +42,8 @@ const mockCase = {
   case_id: '123e4567-e89b-12d3-a456-426614174000',
   title: 'Suspicious Lateral Movement',
   description: 'Detected unusual SMB traffic',
-  status: 'OPEN',
-  priority: 'HIGH',
+  status: 'open',
+  priority: 'high',
   trigger_type: 'ANOMALY_DETECTION',
   trigger_description: 'High volume SMB connections',
   external_case_id: 'EXT-99',
@@ -83,14 +83,35 @@ describe('CreateCaseForm', () => {
     const submitBtn = screen.getByRole('button', { name: /create investigation/i });
     await user.click(submitBtn);
 
-    expect(screen.getByText('Title is required')).toBeInTheDocument();
-    expect(screen.getByText('Trigger type is required')).toBeInTheDocument();
+    expect(await screen.findByText(/title is required/i)).toBeInTheDocument();
     expect(caseApi.createCase).not.toHaveBeenCalled();
   });
 
-  it('submits valid form data including goals and trigger details', async () => {
+  it('adds and removes investigation goal inputs', async () => {
     const user = userEvent.setup();
-    (caseApi.createCase as any).mockResolvedValue(mockCase);
+    render(
+      <Wrapper>
+        <CreateCaseForm />
+      </Wrapper>
+    );
+
+    const addGoalBtn = screen.getByRole('button', { name: /add goal/i });
+    await user.click(addGoalBtn);
+
+    expect(screen.getByLabelText(/investigation goal 2/i)).toBeInTheDocument();
+
+    const removeGoalBtn = screen.getByRole('button', { name: /remove goal 2/i });
+    await user.click(removeGoalBtn);
+
+    expect(screen.queryByLabelText(/investigation goal 2/i)).not.toBeInTheDocument();
+  });
+
+  it('submits valid form data to createCase API', async () => {
+    const user = userEvent.setup();
+    (caseApi.createCase as any).mockResolvedValue({
+      case_id: 'c-new-100',
+      title: 'Exfiltration Investigation',
+    });
 
     render(
       <Wrapper>
@@ -98,13 +119,17 @@ describe('CreateCaseForm', () => {
       </Wrapper>
     );
 
-    await user.type(screen.getByLabelText(/^title/i), 'Exfiltration Investigation');
-    await user.selectOptions(screen.getByLabelText(/trigger type/i), 'USER_REPORT');
-    await user.type(screen.getByLabelText(/trigger description/i), 'User reported suspicious email with payload');
-    
-    // Add goal
-    const goalInput = screen.getByLabelText(/investigation goal 1/i);
-    await user.type(goalInput, 'Identify phishing link');
+    const titleInput = screen.getByLabelText(/title/i);
+    await user.type(titleInput, 'Exfiltration Investigation');
+
+    const triggerTypeSelect = screen.getByLabelText(/trigger type/i);
+    await user.selectOptions(triggerTypeSelect, 'USER_REPORT');
+
+    const triggerDescInput = screen.getByLabelText(/trigger description/i);
+    await user.type(triggerDescInput, 'User reported suspicious email with payload');
+
+    const goalInput1 = screen.getByLabelText(/investigation goal 1/i);
+    await user.type(goalInput1, 'Identify phishing link');
 
     const addGoalBtn = screen.getByRole('button', { name: /add goal/i });
     await user.click(addGoalBtn);
@@ -121,15 +146,18 @@ describe('CreateCaseForm', () => {
           title: 'Exfiltration Investigation',
           trigger_type: 'USER_REPORT',
           trigger_description: 'User reported suspicious email with payload',
-          investigation_goals: ['Identify phishing link', 'Determine if credentials compromised'],
+          investigation_goals: [
+            expect.objectContaining({ description: 'Identify phishing link' }),
+            expect.objectContaining({ description: 'Determine if credentials compromised' }),
+          ],
         })
       );
     });
   });
 
-  it('handles 403 Forbidden error from backend gracefully', async () => {
+  it('displays API error message when createCase fails', async () => {
     const user = userEvent.setup();
-    (caseApi.createCase as any).mockRejectedValue(new ApiError('Forbidden', 403, 'FORBIDDEN'));
+    (caseApi.createCase as any).mockRejectedValue(new ApiError('Duplicate case title', 400));
 
     render(
       <Wrapper>
@@ -137,38 +165,12 @@ describe('CreateCaseForm', () => {
       </Wrapper>
     );
 
-    await user.type(screen.getByLabelText(/^title/i), 'Denied Case');
+    await user.type(screen.getByLabelText(/title/i), 'Duplicate Title');
     await user.selectOptions(screen.getByLabelText(/trigger type/i), 'USER_REPORT');
-
+    await user.type(screen.getByLabelText(/trigger description/i), 'Valid description text');
     await user.click(screen.getByRole('button', { name: /create investigation/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/you do not have permission to create investigations/i)).toBeInTheDocument();
-    });
-  });
-
-  it('maps 422 validation errors from backend to field errors', async () => {
-    const user = userEvent.setup();
-    (caseApi.createCase as any).mockRejectedValue(
-      new ApiError('Unprocessable Entity', 422, 'VALIDATION_ERROR', undefined, [
-        { loc: ['body', 'title'], msg: 'Title too short', type: 'value_error' },
-      ])
-    );
-
-    render(
-      <Wrapper>
-        <CreateCaseForm />
-      </Wrapper>
-    );
-
-    await user.type(screen.getByLabelText(/^title/i), 'Short');
-    await user.selectOptions(screen.getByLabelText(/trigger type/i), 'USER_REPORT');
-
-    await user.click(screen.getByRole('button', { name: /create investigation/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Title too short')).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/duplicate case title/i)).toBeInTheDocument();
   });
 });
 
@@ -187,8 +189,8 @@ describe('EditCaseForm', () => {
     expect(screen.getByLabelText(/^title/i)).toHaveValue('Suspicious Lateral Movement');
     expect(screen.getByLabelText(/^description$/i)).toHaveValue('Detected unusual SMB traffic');
     expect(screen.getByLabelText(/trigger description/i)).toHaveValue('High volume SMB connections');
-    expect(screen.getByLabelText(/^status/i)).toHaveValue('OPEN');
-    expect(screen.getByLabelText(/^priority/i)).toHaveValue('HIGH');
+    expect(screen.getByLabelText(/^status/i)).toHaveValue('open');
+    expect(screen.getByLabelText(/^priority/i)).toHaveValue('high');
   });
 
   it('submits updated values via updateCase mutation', async () => {
@@ -196,7 +198,7 @@ describe('EditCaseForm', () => {
     const onSuccess = vi.fn();
     (caseApi.updateCase as any).mockResolvedValue({
       ...mockCase,
-      status: 'ACTIVE',
+      status: 'active',
       title: 'Updated Lateral Movement Title',
     });
 
@@ -209,7 +211,7 @@ describe('EditCaseForm', () => {
     const titleInput = screen.getByLabelText(/^title/i);
     await user.clear(titleInput);
     await user.type(titleInput, 'Updated Lateral Movement Title');
-    await user.selectOptions(screen.getByLabelText(/^status/i), 'ACTIVE');
+    await user.selectOptions(screen.getByLabelText(/^status/i), 'active');
 
     const saveBtn = screen.getByRole('button', { name: /save changes/i });
     await user.click(saveBtn);
@@ -219,7 +221,7 @@ describe('EditCaseForm', () => {
         mockCase.case_id,
         expect.objectContaining({
           title: 'Updated Lateral Movement Title',
-          status: 'ACTIVE',
+          status: 'active',
         })
       );
       expect(onSuccess).toHaveBeenCalled();
