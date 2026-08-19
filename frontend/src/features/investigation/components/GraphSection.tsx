@@ -15,6 +15,8 @@ import {
 import '@xyflow/react/dist/style.css';
 import { AlertCircle, Search, Eye, EyeOff, Server, Globe, User, FileText } from 'lucide-react';
 import { useGraphQuery } from '../hooks';
+import { useFindingsQuery } from '../../findings/hooks';
+import type { FindingListItem } from '../../findings/types';
 import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import { GraphNode, type GraphNodeData } from './GraphNode';
@@ -30,6 +32,7 @@ interface GraphSectionProps {
 
 export function GraphSection({ caseId }: GraphSectionProps) {
   const { data: graphData, isLoading, isError, error } = useGraphQuery(caseId);
+  const { data: findingsData } = useFindingsQuery(caseId, { page_size: 1000 });
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -50,7 +53,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
       // 1. Search filter
       const q = searchQuery.toLowerCase();
       const matchesSearch = !q || 
-        (n.value && n.value.toLowerCase().includes(q)) || 
+        n.name.toLowerCase().includes(q) || 
         n.entity_id.toLowerCase().includes(q) ||
         (n.properties && JSON.stringify(n.properties).toLowerCase().includes(q));
         
@@ -110,7 +113,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
         position: { x: 0, y: 0 },
         hidden: isHidden ? true : undefined,
         data: {
-          label: entity.value || entity.entity_type,
+          label: entity.name,
           typeLabel: entity.entity_type.replace(/_/g, ' '),
           riskScore: entity.risk_score,
           entityType: entity.entity_type,
@@ -276,6 +279,9 @@ export function GraphSection({ caseId }: GraphSectionProps) {
           </div>
         </div>
       </div>
+          </div>
+        </div>
+      </div>
 
       {/* CENTER - GRAPH CANVAS */}
       <div className="flex-1 relative bg-[#0B1120]">
@@ -350,7 +356,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                       </span>
                     )}
                   </div>
-                  <h3 className="text-base font-bold text-primary font-mono break-all">{selectedNode.value || selectedNode.entity_type}</h3>
+                  <h3 className="text-base font-bold text-primary font-mono break-all">{selectedNode.name}</h3>
                 </div>
               </div>
 
@@ -361,31 +367,58 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                     onClick={() => setHideUnrelated(!hideUnrelated)}
                     className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-surface border border-border-subtle rounded hover:border-accent transition-colors text-xs text-secondary hover:text-primary"
                   >
-                    {hideUnrelated ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                    {hideUnrelated ? 'Show All' : 'Focus Only'}
+                    {hideUnrelated ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    {hideUnrelated ? 'Show All' : 'Focus Node'}
                   </button>
                 </div>
 
-                {/* Properties */}
+                {/* Identity */}
                 <div className="space-y-2">
-                  <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted border-b border-border-subtle pb-1">Properties</h4>
-                  <div className="text-xs space-y-1.5 font-mono">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted border-b border-border-subtle pb-1">Identity</h4>
+                  <div className="text-xs space-y-1.5">
                     <div className="flex justify-between">
-                      <span className="text-muted">Entity ID</span>
-                      <span className="text-secondary truncate max-w-[60%]">{selectedNode.entity_id}</span>
+                      <span className="text-muted">Canonical ID</span>
+                      <span className="text-secondary font-mono truncate max-w-[150px]" title={selectedNode.entity_id}>{selectedNode.entity_id.split('-')[0]}...</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted">Type</span>
-                      <span className="text-secondary">{selectedNode.entity_type}</span>
+                      <span className="text-muted">First Seen</span>
+                      <span className="text-secondary font-mono">{new Date(selectedNode.created_at).toISOString().split('T')[0]}</span>
                     </div>
-                    {selectedNode.properties && Object.entries(selectedNode.properties).map(([k, v]) => (
-                      <div key={k} className="flex justify-between">
-                        <span className="text-muted truncate max-w-[40%]">{k}</span>
-                        <span className="text-secondary truncate max-w-[55%]">{String(v)}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
+
+                {/* Properties */}
+                {selectedNode.properties && Object.keys(selectedNode.properties).length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted border-b border-border-subtle pb-1">Properties</h4>
+                    <div className="bg-surface border border-border-subtle rounded-md p-2">
+                      <pre className="text-[10px] text-secondary font-mono whitespace-pre-wrap break-all">
+                        {JSON.stringify(selectedNode.properties, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Related Findings */}
+                {findingsData?.items && (
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted border-b border-border-subtle pb-1">Related Findings</h4>
+                    <div className="space-y-1.5">
+                      {findingsData.items
+                        .filter((f: FindingListItem) => JSON.stringify(f).includes(selectedNode.entity_id))
+                        .slice(0, 5)
+                        .map((f: FindingListItem) => (
+                        <div key={f.finding_id} className="text-xs flex items-center justify-between bg-surface border border-border-subtle rounded px-2 py-1.5">
+                          <span className="text-secondary truncate">{f.activity.replace(/_/g, ' ')}</span>
+                          <span className="text-[10px] text-muted font-mono">{f.finding_id.split('-')[0]}</span>
+                        </div>
+                      ))}
+                      {findingsData.items.filter((f: FindingListItem) => JSON.stringify(f).includes(selectedNode.entity_id)).length === 0 && (
+                        <span className="text-xs text-muted italic">No direct findings linked.</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -396,7 +429,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                 <span className="text-[10px] font-mono bg-accent/10 text-accent px-1.5 py-0.5 rounded font-semibold uppercase mb-2 inline-block">
                   Relationship
                 </span>
-                <h3 className="text-base font-bold text-primary font-mono">{selectedEdge.relationship_type}</h3>
+                <h3 className="text-base font-bold text-primary capitalize">{selectedEdge.relationship_type.replace(/_/g, ' ')}</h3>
               </div>
               
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -405,14 +438,14 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                   <div className="text-xs space-y-2 bg-surface border border-border-subtle rounded p-3">
                     <div className="flex flex-col gap-1">
                       <span className="text-muted">Source</span>
-                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.source_entity_id)?.value || selectedEdge.source_entity_id}</span>
+                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.source_entity_id)?.name || selectedEdge.source_entity_id}</span>
                     </div>
                     <div className="w-full flex justify-center py-1 text-muted">
                       ↓
                     </div>
                     <div className="flex flex-col gap-1">
                       <span className="text-muted">Target</span>
-                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.target_entity_id)?.value || selectedEdge.target_entity_id}</span>
+                      <span className="text-primary font-mono break-all">{graphData.nodes.find(n => n.entity_id === selectedEdge.target_entity_id)?.name || selectedEdge.target_entity_id}</span>
                     </div>
                   </div>
                 </div>
