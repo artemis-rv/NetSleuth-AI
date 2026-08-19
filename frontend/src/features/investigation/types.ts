@@ -62,10 +62,13 @@ export interface TimelineEventResponse {
   timeline_event_id: string;
   case_id: string;
   event_type: string;
+  title?: string | null;
   // Nullable — DB column allows NULL, backend Optional[str]
   description: string | null;
   event_timestamp: string;
   source_id: string | null;
+  finding_id?: string | null;
+  attributes?: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -84,6 +87,9 @@ export interface MitreMappingResponse {
   technique_id: string;
   technique_name: string;
   confidence: number | null;
+  rationale?: string | null;
+  justification?: string | null;
+  finding_ids?: string[];
   mapped_at: string;
 }
 

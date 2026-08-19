@@ -14,7 +14,9 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AlertCircle, Search, Eye, EyeOff, Server, Globe, User, FileText } from 'lucide-react';
-import { useGraphQuery, useFindingsQuery } from '../hooks';
+import { useGraphQuery } from '../hooks';
+import { useFindingsQuery } from '../../findings/hooks';
+import type { FindingListItem } from '../../findings/types';
 import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import { GraphNode, type GraphNodeData } from './GraphNode';
@@ -32,8 +34,8 @@ export function GraphSection({ caseId }: GraphSectionProps) {
   const { data: graphData, isLoading, isError, error } = useGraphQuery(caseId);
   const { data: findingsData } = useFindingsQuery(caseId, { page_size: 1000 });
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
@@ -103,13 +105,13 @@ export function GraphSection({ caseId }: GraphSectionProps) {
 
     const flowNodes: Node[] = filteredEntities.map(entity => {
       const isFocused = entity.entity_id === selectedNodeId;
-      const isHidden = hideUnrelated && selectedNodeId && !connectedToSelected.has(entity.entity_id);
+      const isHidden = Boolean(hideUnrelated && selectedNodeId && !connectedToSelected.has(entity.entity_id));
       
       return {
         id: entity.entity_id,
         type: 'custom',
         position: { x: 0, y: 0 },
-        hidden: isHidden,
+        hidden: isHidden ? true : undefined,
         data: {
           label: entity.name,
           typeLabel: entity.entity_type.replace(/_/g, ' '),
@@ -121,9 +123,9 @@ export function GraphSection({ caseId }: GraphSectionProps) {
     });
 
     const flowEdges: Edge[] = filteredRelationships.map(rel => {
-      const isHidden = hideUnrelated && selectedNodeId && 
+      const isHidden = Boolean(hideUnrelated && selectedNodeId && 
         rel.source_entity_id !== selectedNodeId && 
-        rel.target_entity_id !== selectedNodeId;
+        rel.target_entity_id !== selectedNodeId);
         
       const isFocused = rel.relationship_id === selectedEdgeId || 
         rel.source_entity_id === selectedNodeId || 
@@ -134,7 +136,7 @@ export function GraphSection({ caseId }: GraphSectionProps) {
         source: rel.source_entity_id,
         target: rel.target_entity_id,
         label: isFocused ? rel.relationship_type.replace(/_/g, ' ') : undefined,
-        hidden: isHidden,
+        hidden: isHidden ? true : undefined,
         animated: isFocused,
         style: {
           stroke: isFocused ? '#3b82f6' : '#475569',
@@ -400,15 +402,15 @@ export function GraphSection({ caseId }: GraphSectionProps) {
                     <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted border-b border-border-subtle pb-1">Related Findings</h4>
                     <div className="space-y-1.5">
                       {findingsData.items
-                        .filter(f => f.properties?.entity_id === selectedNode.entity_id || JSON.stringify(f).includes(selectedNode.entity_id))
+                        .filter((f: FindingListItem) => JSON.stringify(f).includes(selectedNode.entity_id))
                         .slice(0, 5)
-                        .map(f => (
+                        .map((f: FindingListItem) => (
                         <div key={f.finding_id} className="text-xs flex items-center justify-between bg-surface border border-border-subtle rounded px-2 py-1.5">
-                          <span className="text-secondary truncate">{f.title || f.activity.replace(/_/g, ' ')}</span>
+                          <span className="text-secondary truncate">{f.activity.replace(/_/g, ' ')}</span>
                           <span className="text-[10px] text-muted font-mono">{f.finding_id.split('-')[0]}</span>
                         </div>
                       ))}
-                      {findingsData.items.filter(f => f.properties?.entity_id === selectedNode.entity_id || JSON.stringify(f).includes(selectedNode.entity_id)).length === 0 && (
+                      {findingsData.items.filter((f: FindingListItem) => JSON.stringify(f).includes(selectedNode.entity_id)).length === 0 && (
                         <span className="text-xs text-muted italic">No direct findings linked.</span>
                       )}
                     </div>

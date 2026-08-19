@@ -136,7 +136,6 @@ export function NetworkSection({ caseId }: NetworkSectionProps) {
 
       {selectedFlowId && (
         <FlowDetailDrawer
-          caseId={caseId}
           flowId={selectedFlowId}
           onClose={() => setSelectedFlowId(null)}
         />

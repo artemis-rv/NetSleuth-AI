@@ -24,9 +24,10 @@ export function EditCaseForm({ caseData, onSuccess, onCancel }: EditCaseFormProp
   const [triggerType, setTriggerType] = useState(caseData.trigger_type);
   const [triggerDescription, setTriggerDescription] = useState(caseData.trigger_description ?? '');
   const [reportedBy, setReportedBy] = useState(caseData.reported_by ?? '');
-  const [goals, setGoals] = useState<string[]>(
-    caseData.investigation_goals?.length ? caseData.investigation_goals : ['']
-  );
+  const [goals, setGoals] = useState<string[]>(() => {
+    if (!caseData.investigation_goals?.length) return [''];
+    return caseData.investigation_goals.map((g) => (typeof g === 'string' ? g : g.description || ''));
+  });
   const [error, setError] = useState('');
   const [titleError, setTitleError] = useState('');
 

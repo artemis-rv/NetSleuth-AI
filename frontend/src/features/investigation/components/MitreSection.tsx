@@ -4,7 +4,7 @@ import { Spinner } from '../../../components/ui/Spinner';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import { Card, CardContent } from '../../../components/ui/Card';
 import type { MitreMappingResponse } from '../types';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 function confidenceColor(conf: number | null): string {
   if (conf === null) return 'bg-slate-700/60 border-slate-600/40 text-slate-400';
@@ -248,7 +248,7 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                       <td className="px-4 py-3">
                         {m.finding_ids && m.finding_ids.length > 0 ? (
                           <div className="flex flex-col gap-1">
-                            {m.finding_ids.map(fId => (
+                            {m.finding_ids.map((fId: string) => (
                               <div key={fId} className="flex items-center gap-1.5">
                                 <FileText className="h-3 w-3 text-muted" />
                                 <span 
@@ -275,7 +275,7 @@ export function MitreSection({ caseId }: MitreSectionProps) {
                               <Clock className="h-3 w-3" />
                               {formatDate(relatedEvent.event_timestamp)}
                             </span>
-                            <span className="text-xs text-secondary truncate max-w-[200px]" title={relatedEvent.description}>
+                            <span className="text-xs text-secondary truncate max-w-[200px]" title={relatedEvent.description ?? undefined}>
                               {relatedEvent.description}
                             </span>
                           </div>

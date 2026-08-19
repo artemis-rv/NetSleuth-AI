@@ -1,21 +1,25 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GraphSection } from './GraphSection';
-import { useGraphQuery, useTimelineQuery, useFindingsQuery } from '../hooks';
+import { useGraphQuery, useTimelineQuery } from '../hooks';
+import { useFindingsQuery } from '../../findings/hooks';
 
 // Mock the hooks
 vi.mock('../hooks', () => ({
   useGraphQuery: vi.fn(),
   useTimelineQuery: vi.fn(),
+}));
+
+vi.mock('../../findings/hooks', () => ({
   useFindingsQuery: vi.fn()
 }));
 
 // Mock ResizeObserver for React Flow
-global.ResizeObserver = class {
+(globalThis as any).ResizeObserver = class {
   observe() {}
   unobserve() {}
   disconnect() {}
-} as any;
+};
 
 const mockGraphData = {
   nodes: [

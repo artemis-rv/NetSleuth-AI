@@ -19,7 +19,7 @@ export interface CaseResponse {
   external_case_id?: string | null;
   external_system?: string | null;
   reported_by?: string | null;
-  investigation_goals?: InvestigationGoal[] | null;
+  investigation_goals?: Array<InvestigationGoal | string> | null;
   opened_at: string;
   closed_at?: string | null;
   created_by?: string | null;
@@ -31,7 +31,7 @@ export interface CreateCaseRequest {
   trigger_type: string;
   description?: string | null;
   trigger_description?: string | null;
-  investigation_goals?: InvestigationGoal[] | null;
+  investigation_goals?: Array<InvestigationGoal | string> | null;
   external_case_id?: string | null;
   external_system?: string | null;
   reported_by?: string | null;
@@ -44,7 +44,7 @@ export interface UpdateCaseRequest {
   priority?: string | null;
   trigger_type?: string | null;
   trigger_description?: string | null;
-  investigation_goals?: InvestigationGoal[] | null;
+  investigation_goals?: Array<InvestigationGoal | string> | null;
   external_case_id?: string | null;
   external_system?: string | null;
   reported_by?: string | null;

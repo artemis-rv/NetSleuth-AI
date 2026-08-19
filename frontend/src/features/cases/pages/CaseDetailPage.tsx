@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, MessageSquare, Plus, Save } from 'lucide-react';
+import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, Plus, Save } from 'lucide-react';
 import { useCaseQuery, useUpdateCaseMutation } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
 import { CaseStatusBadge, CasePriorityBadge } from '../components/CaseBadge';
@@ -202,7 +202,6 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
   const { data: evidence } = useEvidence(caseData.case_id);
 
   const activeAcquisition = acquisitions?.items?.[0];
-  const activeEvidence = evidence?.items?.[0];
 
   return (
     <div className="space-y-6">
