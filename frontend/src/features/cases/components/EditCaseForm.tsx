@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { useUpdateCaseMutation } from '../hooks';
-import { TRIGGER_TYPES, CASE_PRIORITIES, CASE_STATUSES } from '../types';
+import { TRIGGER_TYPES, CASE_PRIORITIES, CASE_STATUSES, CASE_STATUS_LABELS, CASE_PRIORITY_LABELS, ALLOWED_STATUS_TRANSITIONS } from '../types';
 import type { CaseResponse, UpdateCaseRequest } from '../types';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -116,11 +116,23 @@ export function EditCaseForm({ caseData, onSuccess, onCancel }: EditCaseFormProp
                 id="edit-status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="flex h-10 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent transition-all duration-200"
               >
-                {CASE_STATUSES.map((s) => (
-                  <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                ))}
+                {CASE_STATUSES.map((s) => {
+                  const currentNorm = (caseData?.status || '').toLowerCase();
+                  const allowed = ALLOWED_STATUS_TRANSITIONS[currentNorm] || [];
+                  const isCurrent = s === currentNorm;
+                  const isTransitionAllowed = allowed.includes(s) || allowed.length === 0;
+                  return (
+                    <option
+                      key={s}
+                      value={s}
+                      disabled={!isCurrent && !isTransitionAllowed}
+                    >
+                      {CASE_STATUS_LABELS[s] ?? s.replace(/_/g, ' ')}{isCurrent ? ' (Current)' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -131,11 +143,11 @@ export function EditCaseForm({ caseData, onSuccess, onCancel }: EditCaseFormProp
                 id="edit-priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="flex h-10 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent transition-all duration-200"
               >
                 <option value="">— Not set —</option>
                 {CASE_PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                  <option key={p} value={p}>{CASE_PRIORITY_LABELS[p] ?? p}</option>
                 ))}
               </select>
             </div>

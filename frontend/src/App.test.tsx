@@ -6,6 +6,7 @@ import App from './App';
 describe('App', () => {
   it('renders the login screen initially', () => {
     render(<App />);
-    expect(screen.getByText('Sign in to your account')).toBeInTheDocument();
+    expect(screen.getByText(/NetSleuth AI/i)).toBeInTheDocument();
+    expect(screen.getByText(/Secure Authentication/i)).toBeInTheDocument();
   });
 });

@@ -156,15 +156,19 @@ class InvestigationCaseBuilder:
                 if not last_observed and finding_timestamps:
                     last_observed = max(finding_timestamps).isoformat().replace("+00:00", "Z")
 
-            doc["findings"].append({
+            finding_entry = {
                 "finding_id": f.finding_id,
                 "role": "primary",
-                "activity": getattr(f, "finding_type", "suspicious_activity"),
-                "confidence_score": getattr(f, "confidence_score", 0.8),
-                "risk_score": 0.8,
-                "first_observed": first_observed,
-                "last_observed": last_observed
-            })
+            }
+            if schema_version == "investigation-case-v1.3":
+                finding_entry.update({
+                    "activity": getattr(f, "finding_type", "suspicious_activity"),
+                    "confidence_score": getattr(f, "confidence_score", 0.8),
+                    "risk_score": 0.8,
+                    "first_observed": first_observed,
+                    "last_observed": last_observed
+                })
+            doc["findings"].append(finding_entry)
             
         # 2. Timeline
         for t in ctx.timeline_events:

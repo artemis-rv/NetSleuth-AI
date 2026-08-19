@@ -66,7 +66,6 @@ export interface CasesFilters {
   sort_by?: 'created_at' | 'updated_at' | 'priority' | 'status';
 }
 
-// Enum-like constants matching backend values
 export const CASE_STATUSES = [
   'open',
   'active',
@@ -77,6 +76,16 @@ export const CASE_STATUSES = [
 
 export type CaseStatus = typeof CASE_STATUSES[number];
 
+export const CASE_STATUS_LABELS: Record<string, string> = {
+  open: 'Open',
+  active: 'Active',
+  investigating: 'Investigating',
+  under_review: 'Under Review',
+  review: 'Under Review',
+  closed: 'Closed',
+  archived: 'Archived',
+};
+
 export const CASE_PRIORITIES = [
   'critical',
   'high',
@@ -85,6 +94,23 @@ export const CASE_PRIORITIES = [
 ] as const;
 
 export type CasePriority = typeof CASE_PRIORITIES[number];
+
+export const CASE_PRIORITY_LABELS: Record<string, string> = {
+  critical: 'Critical',
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+};
+
+export const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  open: ['open', 'active', 'investigating', 'closed'],
+  active: ['active', 'under_review', 'review', 'closed'],
+  investigating: ['investigating', 'review', 'under_review', 'closed'],
+  under_review: ['under_review', 'review', 'closed', 'active', 'investigating'],
+  review: ['review', 'under_review', 'closed', 'investigating', 'active'],
+  closed: ['closed', 'open', 'archived'],
+  archived: ['archived', 'open', 'closed'],
+};
 
 export const TRIGGER_TYPES = [
   'USER_REPORT',
