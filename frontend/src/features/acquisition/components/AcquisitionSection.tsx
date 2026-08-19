@@ -19,6 +19,7 @@ export function AcquisitionSection({ caseId, acquisition, evidence }: Acquisitio
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isReuploading, setIsReuploading] = useState<boolean>(false);
 
   const uploadMutation = useUploadAcquisition(caseId);
   const verifyMutation = useVerifyEvidence();
@@ -69,14 +70,14 @@ export function AcquisitionSection({ caseId, acquisition, evidence }: Acquisitio
   const isUploading = uploadMutation.isPending;
   const isVerifying = verifyMutation.isPending;
 
-  // Render Upload UI if no acquisition exists
-  if (!acquisition) {
+  // Render Upload UI if no acquisition exists or we are reuploading
+  if (!acquisition || isReuploading) {
     return (
       <Card>
         <CardHeader className="pb-3 border-b border-border-subtle mb-4">
           <CardTitle className="text-base flex items-center gap-2">
             <Upload className="h-5 w-5 text-accent" aria-hidden="true" />
-            Evidence Acquisition
+            {isReuploading ? 'Reupload Evidence Acquisition' : 'Evidence Acquisition'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -124,6 +125,20 @@ export function AcquisitionSection({ caseId, acquisition, evidence }: Acquisitio
                   </div>
                 )}
               </div>
+            )}
+
+            {isReuploading && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setIsReuploading(false);
+                  setSelectedFile(null);
+                  setErrorMsg(null);
+                }}
+                className="mt-4"
+              >
+                Cancel Reupload
+              </Button>
             )}
           </div>
         </CardContent>
@@ -183,13 +198,33 @@ export function AcquisitionSection({ caseId, acquisition, evidence }: Acquisitio
                   <EvidenceVerificationBadge status={evidence.integrity_status} />
                   
                   {evidence.integrity_status === 'pending' && (
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={() => setIsReuploading(true)}
+                        disabled={isVerifying}
+                      >
+                        Reupload PCAP
+                      </Button>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={handleVerify}
+                        disabled={isVerifying}
+                      >
+                        {isVerifying ? <><Spinner size={14} className="mr-2" /> Verifying</> : 'Verify Integrity'}
+                      </Button>
+                    </div>
+                  )}
+                  {evidence.integrity_status !== 'pending' && (
                     <Button 
                       variant="secondary" 
                       size="sm" 
-                      onClick={handleVerify}
+                      onClick={() => setIsReuploading(true)}
                       disabled={isVerifying}
                     >
-                      {isVerifying ? <><Spinner size={14} className="mr-2" /> Verifying</> : 'Verify Integrity'}
+                      Reupload PCAP
                     </Button>
                   )}
                 </div>

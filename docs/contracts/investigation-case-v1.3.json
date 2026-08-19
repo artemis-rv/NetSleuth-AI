@@ -324,6 +324,31 @@
           "items": {
             "type": "string"
           }
+        },
+
+        "flow_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+
+        "protocol_event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+
+        "artifact_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        
+        "title": {
+          "type": "string"
         }
       }
     },

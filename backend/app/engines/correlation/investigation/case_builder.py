@@ -146,6 +146,7 @@ class InvestigationCaseBuilder:
                 "event_id": t.event_id,
                 "timestamp": t.timestamp.isoformat().replace("+00:00", "Z"),
                 "event_type": t.event_type if t.event_type in ["network", "dns", "http", "tls", "session", "flow", "artifact", "finding", "alert", "investigation", "evidence"] else "network",
+                "title": getattr(t, "title", None),
                 "description": t.description
             }
             # Map all entity references without truncation.
@@ -156,6 +157,12 @@ class InvestigationCaseBuilder:
                     t_doc["target_entity_id"] = t.entity_ids[1]
             if t.evidence_ids:
                 t_doc["evidence_ids"] = t.evidence_ids
+            if getattr(t, "flow_ids", None):
+                t_doc["flow_ids"] = t.flow_ids
+            if getattr(t, "protocol_event_ids", None):
+                t_doc["protocol_event_ids"] = t.protocol_event_ids
+            if getattr(t, "artifact_ids", None):
+                t_doc["artifact_ids"] = t.artifact_ids
             doc["timeline"].append(t_doc)
             
         # 3. Entities

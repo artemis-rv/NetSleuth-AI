@@ -144,15 +144,34 @@ class BehaviorListResponse(BaseModel):
 
 class TimelineEventBase(BaseModel):
     event_type: str
-    # Nullable in DB — must be Optional here
+    title: Optional[str] = None
     description: Optional[str] = None
     event_timestamp: datetime
     source_id: Optional[UUID] = None
+    attributes: Optional[Dict[str, Any]] = None
 
 class TimelineEventResponse(TimelineEventBase):
     timeline_event_id: UUID
     case_id: UUID
     created_at: datetime
+    
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        if hasattr(obj, '_sa_instance_state'):
+            data = {
+                'timeline_event_id': obj.timeline_event_id,
+                'case_id': obj.case_id,
+                'event_type': obj.event_type,
+                'title': obj.attributes.get("title") if obj.attributes else None,
+                'description': obj.description,
+                'event_timestamp': obj.event_timestamp,
+                'source_id': None, # Adjust if needed
+                'attributes': obj.attributes,
+                'created_at': obj.created_at
+            }
+            return cls(**data)
+        return super().model_validate(obj, **kwargs)
+
     model_config = ConfigDict(from_attributes=True)
 
 class TimelineEventListResponse(BaseModel):

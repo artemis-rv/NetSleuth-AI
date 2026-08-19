@@ -254,7 +254,7 @@ class ForensicPipelineOrchestrator:
                 ctx.entities.append(Entity(entity_id=art_ent_id, entity_type="artifact", value=art.value, attributes={"source_event_id": art.source_event_id, "flow_id": art.flow_id}))
                 seen_entity_ids.add(art_ent_id)
 
-        # 3. Extract Findings & Finding Timeline Events
+        # 3. Extract Findings References (for M3 input)
         for finding in m2_package.findings:
             ref = FindingReference(
                 finding_id=finding.finding_id,
@@ -263,33 +263,11 @@ class ForensicPipelineOrchestrator:
                 confidence_score=finding.classification_confidence
             )
             ctx.findings.append(ref)
-            ctx.timeline_events.append(TimelineEvent(
-                event_id=str(uuid.uuid4()),
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
-                event_type="finding",
-                description=f"Finding: {finding.activity_class.value} (Risk: {int(finding.risk_score * 100)}%)",
-                finding_ids=[finding.finding_id]
-            ))
 
-        # 4. Add Network Flow Timeline Events
-        for flow in m1_package.flows:
-            ctx.timeline_events.append(TimelineEvent(
-                event_id=str(uuid.uuid4()),
-                timestamp=flow.timestamp,
-                event_type="network",
-                description=f"Network Flow {flow.protocol.upper()}: {flow.source.ip}:{flow.source.port} -> {flow.destination.ip}:{flow.destination.port}",
-                evidence_ids=[flow.flow_id],
-                entity_ids=[f"ip:{flow.source.ip}", f"ip:{flow.destination.ip}"]
-            ))
-
-        if not ctx.timeline_events:
-            event_ts = m1_package.flows[0].timestamp if m1_package.flows else datetime.datetime.now(datetime.timezone.utc)
-            ctx.timeline_events.append(TimelineEvent(
-                event_id=str(uuid.uuid4()),
-                timestamp=event_ts,
-                event_type="network",
-                description="Network intelligence extracted from capture"
-            ))
+        # 4. Reconstruct Semantic Timeline
+        from app.engines.correlation.timeline.builder import TimelineReconstructor
+        timeline_reconstructor = TimelineReconstructor()
+        ctx.timeline_events = timeline_reconstructor.reconstruct(ctx, m1_package, m2_package)
 
         # 3b. M3 Deterministic Correlation
         from app.engines.correlation.correlation.correlation_engine import CorrelationEngine

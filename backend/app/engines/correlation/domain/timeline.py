@@ -7,10 +7,18 @@ class TimelineEvent:
     event_id: str
     timestamp: datetime
     event_type: str
+    title: str
     description: str
     entity_ids: List[str] = field(default_factory=list)
     finding_ids: List[str] = field(default_factory=list)
     evidence_ids: List[str] = field(default_factory=list)
+    flow_ids: List[str] = field(default_factory=list)
+    protocol_event_ids: List[str] = field(default_factory=list)
+    artifact_ids: List[str] = field(default_factory=list)
+    relationship_ids: List[str] = field(default_factory=list)
+    mitre_mapping_ids: List[str] = field(default_factory=list)
+    status: Optional[str] = None
+    provenance: Optional[str] = None
     source_reference: Optional[str] = None
 
     def __post_init__(self):

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target } from 'lucide-react';
 import { useCaseQuery } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
@@ -236,8 +236,15 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
 // ─── Main page ───────────────────────────────────────────────────────────────
 export function CaseDetailPage() {
   const { caseId } = useParams<{ caseId: string }>();
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const defaultTab = (searchParams.get('tab') as TabId) || 'overview';
+  const [activeTab, setActiveTab] = useState<TabId>(defaultTab);
   const [editing, setEditing] = useState(false);
+
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
 
@@ -357,7 +364,7 @@ export function CaseDetailPage() {
                 id={`tab-${tab.id}`}
                 aria-selected={activeTab === tab.id}
                 aria-controls={`panel-${tab.id}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   activeTab === tab.id
                     ? 'border-accent text-accent'
@@ -374,7 +381,7 @@ export function CaseDetailPage() {
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
           >
-            {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={setActiveTab} />}
+            {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={handleTabChange} />}
             {activeTab === 'findings' && <FindingsSection caseId={caseData.case_id} />}
             {activeTab === 'network' && <NetworkSection caseId={caseData.case_id} />}
             {activeTab === 'timeline' && <InvestigationTabGroup caseId={caseData.case_id} />}

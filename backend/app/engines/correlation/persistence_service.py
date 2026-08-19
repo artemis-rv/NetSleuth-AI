@@ -168,6 +168,13 @@ class M3PersistenceService:
                 if "source_entity_id" in t:
                     t_entity_uuid = entity_uuid_map.get(t["source_entity_id"])
                     
+                attributes = {}
+                if t.get("evidence_ids"): attributes["evidence_ids"] = t.get("evidence_ids")
+                if t.get("flow_ids"): attributes["flow_ids"] = t.get("flow_ids")
+                if t.get("protocol_event_ids"): attributes["protocol_event_ids"] = t.get("protocol_event_ids")
+                if t.get("artifact_ids"): attributes["artifact_ids"] = t.get("artifact_ids")
+                if t.get("title"): attributes["title"] = t.get("title")
+
                 timeline_records.append({
                     "timeline_event_id": t_uuid,
                     "case_id": case_uuid,
@@ -175,7 +182,7 @@ class M3PersistenceService:
                     "event_type": t.get("event_type", "network"),
                     "description": t.get("description"),
                     "entity_id": t_entity_uuid,
-                    "attributes": {"evidence_ids": t.get("evidence_ids")} if t.get("evidence_ids") else None
+                    "attributes": attributes if attributes else None
                 })
             await self.uow.session.execute(
                 pg_insert(TimelineEventModel).values(timeline_records).on_conflict_do_nothing()

@@ -66,7 +66,7 @@ export function CreateCaseForm() {
 
     try {
       const created = await mutation.mutateAsync(payload);
-      navigate(`/investigations/${created.case_id}`);
+      navigate(`/investigations/${created.case_id}?tab=network`);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 422 && err.details) {
@@ -235,6 +235,16 @@ export function CreateCaseForm() {
                   type="text"
                   value={goal}
                   onChange={(e) => handleGoalChange(idx, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (idx === goals.length - 1) {
+                        addGoal();
+                        // Focus will need a slight delay to allow React to render the new input,
+                        // or we can rely on the user tabbing. For simplicity, just add the goal.
+                      }
+                    }
+                  }}
                   placeholder={`e.g. Identify the source of lateral movement`}
                   aria-label={`Investigation goal ${idx + 1}`}
                   className="flex-1"
