@@ -1,6 +1,13 @@
 // Types derived from docs/api/openapi-v1.json
 // CaseResponse, CreateCaseRequest, UpdateCaseRequest, PaginatedResponse
 
+export interface InvestigationGoal {
+  id: string;
+  description: string;
+  completed: boolean;
+  note?: string | null;
+}
+
 export interface CaseResponse {
   case_id: string;
   title: string;
@@ -12,7 +19,7 @@ export interface CaseResponse {
   external_case_id?: string | null;
   external_system?: string | null;
   reported_by?: string | null;
-  investigation_goals?: string[] | null;
+  investigation_goals?: InvestigationGoal[] | null;
   opened_at: string;
   closed_at?: string | null;
   created_by?: string | null;
@@ -24,7 +31,7 @@ export interface CreateCaseRequest {
   trigger_type: string;
   description?: string | null;
   trigger_description?: string | null;
-  investigation_goals?: string[] | null;
+  investigation_goals?: InvestigationGoal[] | null;
   external_case_id?: string | null;
   external_system?: string | null;
   reported_by?: string | null;
@@ -37,7 +44,7 @@ export interface UpdateCaseRequest {
   priority?: string | null;
   trigger_type?: string | null;
   trigger_description?: string | null;
-  investigation_goals?: string[] | null;
+  investigation_goals?: InvestigationGoal[] | null;
   external_case_id?: string | null;
   external_system?: string | null;
   reported_by?: string | null;

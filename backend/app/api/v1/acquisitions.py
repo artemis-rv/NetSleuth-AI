@@ -10,11 +10,13 @@ from app.services.app_acquisition_service import AppAcquisitionService
 
 router = APIRouter(tags=["Acquisitions"])
 
-@router.post("/cases/{case_id}/acquisitions", response_model=AcquisitionUploadResponse, status_code=status.HTTP_201_CREATED)
+from typing import Optional, List
+
+@router.post("/cases/{case_id}/acquisitions", response_model=List[AcquisitionUploadResponse], status_code=status.HTTP_201_CREATED)
 async def upload_acquisition(
     http_request: Request,
     case_id: UUID = Depends(verify_case_access),
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     current_user: UserModel = Depends(RequireRole(["administrator", "investigator"])),
     db: AsyncSession = Depends(get_db)
 ):
@@ -23,7 +25,11 @@ async def upload_acquisition(
     Validates file, computes SHA-256, stores in MinIO, and creates metadata.
     """
     service = AppAcquisitionService(db)
-    return await service.upload_evidence(case_id, current_user, file, http_request)
+    results = []
+    for f in files:
+        res = await service.upload_evidence(case_id, current_user, f, http_request)
+        results.append(res)
+    return results
 
 @router.get("/cases/{case_id}/acquisitions", response_model=AcquisitionListResponse)
 async def list_acquisitions(

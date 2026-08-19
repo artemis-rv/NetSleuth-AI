@@ -23,12 +23,14 @@ class CaseService:
             # Analysts are not allowed to create cases according to requirements
             raise ForbiddenError("Analysts are not permitted to create investigation cases.")
 
+        goals_data = [g.model_dump() for g in request_data.investigation_goals] if request_data.investigation_goals else None
+
         new_case = InvestigationCaseModel(
             title=request_data.title,
             description=request_data.description,
             trigger_type=request_data.trigger_type,
             trigger_description=request_data.trigger_description,
-            investigation_goals=request_data.investigation_goals,
+            investigation_goals=goals_data,
             external_case_id=request_data.external_case_id,
             external_system=request_data.external_system,
             reported_by=request_data.reported_by,

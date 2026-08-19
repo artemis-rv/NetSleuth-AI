@@ -19,7 +19,7 @@ class InvestigationCaseModel(Base):
     external_case_id = Column(String, nullable=True)
     external_system = Column(String, nullable=True)
     reported_by = Column(String, nullable=True)
-    investigation_goals = Column(ARRAY(String), nullable=True)
+    investigation_goals = Column(JSONB, nullable=True)
     opened_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
     closed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     created_by = Column(UUID(as_uuid=True), nullable=True)

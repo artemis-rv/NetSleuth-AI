@@ -60,7 +60,14 @@ export function CreateCaseForm() {
     };
     if (description.trim()) payload.description = description.trim();
     if (triggerDescription.trim()) payload.trigger_description = triggerDescription.trim();
-    if (filteredGoals.length > 0) payload.investigation_goals = filteredGoals;
+    if (filteredGoals.length > 0) {
+      payload.investigation_goals = filteredGoals.map(g => ({
+        id: crypto.randomUUID(),
+        description: g,
+        completed: false,
+        note: null
+      }));
+    }
     if (priority) payload.priority = priority;
     if (reportedBy.trim()) payload.reported_by = reportedBy.trim();
 

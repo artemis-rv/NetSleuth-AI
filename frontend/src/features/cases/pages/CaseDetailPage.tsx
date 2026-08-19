@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target } from 'lucide-react';
-import { useCaseQuery } from '../hooks';
+import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, MessageSquare, Plus, Save } from 'lucide-react';
+import { useCaseQuery, useUpdateCaseMutation } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
 import { CaseStatusBadge, CasePriorityBadge } from '../components/CaseBadge';
 import { Button } from '../../../components/ui/Button';
@@ -88,6 +88,114 @@ type InvestigationSubTabId = (typeof INVESTIGATION_SUBTABS)[number]['id'];
 
 
 
+// ─── Investigation Goals Checklist ─────────────────────────────────────────────
+function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
+  const updateCase = useUpdateCaseMutation(caseData.case_id);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [draftNote, setDraftNote] = useState('');
+
+  const toggleGoal = (goalId: string) => {
+    if (!caseData.investigation_goals) return;
+    const newGoals = caseData.investigation_goals.map(g => 
+      g.id === goalId ? { ...g, completed: !g.completed } : g
+    );
+    updateCase.mutate({ investigation_goals: newGoals });
+  };
+
+  const saveNote = (goalId: string) => {
+    if (!caseData.investigation_goals) return;
+    const newGoals = caseData.investigation_goals.map(g => 
+      g.id === goalId ? { ...g, note: draftNote.trim() || null } : g
+    );
+    updateCase.mutate({ investigation_goals: newGoals }, {
+      onSuccess: () => setEditingNoteId(null)
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Target className="h-4 w-4 text-accent" aria-hidden="true" />
+          Investigation Goals
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-3" aria-label="Investigation goals">
+          {caseData.investigation_goals?.map((goal) => (
+            <div key={goal.id} className="flex flex-col gap-2 p-3 rounded-lg border border-border-subtle bg-surface-elevated/50 transition-colors hover:bg-surface-elevated">
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  onClick={() => toggleGoal(goal.id)}
+                  className="mt-0.5 flex-shrink-0 text-muted hover:text-accent transition-colors"
+                  aria-label={goal.completed ? "Mark incomplete" : "Mark complete"}
+                >
+                  {goal.completed ? (
+                    <CheckSquare className="h-5 w-5 text-accent" />
+                  ) : (
+                    <Square className="h-5 w-5" />
+                  )}
+                </button>
+                <div className="flex-1">
+                  <span className={`text-sm leading-relaxed ${goal.completed ? 'text-muted line-through' : 'text-primary'}`}>
+                    {goal.description}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="pl-8 flex flex-col gap-2">
+                {editingNoteId === goal.id ? (
+                  <div className="flex gap-2 items-start mt-1">
+                    <textarea
+                      value={draftNote}
+                      onChange={(e) => setDraftNote(e.target.value)}
+                      placeholder="Add a note..."
+                      className="flex-1 text-sm bg-background border border-border-subtle rounded p-2 min-h-[60px] resize-none focus:outline-none focus:ring-1 focus:ring-accent"
+                      autoFocus
+                    />
+                    <div className="flex flex-col gap-1">
+                      <Button size="sm" onClick={() => saveNote(goal.id)} disabled={updateCase.isPending}>
+                        <Save className="h-3 w-3 mr-1" /> Save
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingNoteId(null)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {goal.note ? (
+                      <div className="flex justify-between items-start group">
+                        <p className="text-xs text-secondary bg-background/50 p-2 rounded border border-border-subtle flex-1 whitespace-pre-wrap">
+                          {goal.note}
+                        </p>
+                        <button
+                          onClick={() => { setEditingNoteId(goal.id); setDraftNote(goal.note!); }}
+                          className="text-xs text-muted hover:text-accent ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+                        >
+                          <Edit2 className="h-3 w-3" /> Edit
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setEditingNoteId(goal.id); setDraftNote(''); }}
+                        className="text-xs text-muted hover:text-accent flex items-center gap-1 transition-colors self-start"
+                      >
+                        <Plus className="h-3 w-3" /> Add Note
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Case Overview (FE-2) ────────────────────────────────────────────────────
 function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTabChange?: (tab: TabId) => void }) {
   const { data: acquisitions } = useAcquisitions(caseData.case_id);
@@ -128,39 +236,21 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
 
       {/* Investigation Goals Panel */}
       {caseData.investigation_goals && caseData.investigation_goals.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Target className="h-4 w-4 text-accent" aria-hidden="true" />
-              Investigation Goals
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ol className="space-y-2" aria-label="Investigation goals">
-              {caseData.investigation_goals.map((goal, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-sm text-primary">
-                  <span className="flex-shrink-0 h-5 w-5 rounded-full bg-surface-elevated border border-border-subtle flex items-center justify-center text-xs text-muted font-medium">
-                    {idx + 1}
-                  </span>
-                  <span className="leading-relaxed">{goal}</span>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
+        <InvestigationGoalsChecklist caseData={caseData} />
       )}
 
       {/* Acquisition Section */}
       <AcquisitionSection
         caseId={caseData.case_id}
-        acquisition={activeAcquisition}
-        evidence={activeEvidence}
+        acquisitions={acquisitions?.items || []}
+        evidenceList={evidence?.items || []}
       />
 
       {/* Analysis Section */}
       <AnalysisSection
         caseId={caseData.case_id}
         acquisitionId={activeAcquisition?.acquisition_id}
+        acquisitions={acquisitions?.items || []}
         onViewFindings={() => onTabChange?.('findings')}
       />
 

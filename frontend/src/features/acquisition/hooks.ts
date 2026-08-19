@@ -22,7 +22,7 @@ export function useUploadAcquisition(caseId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (file: File) => uploadAcquisition(caseId, file),
+    mutationFn: (files: File[]) => uploadAcquisition(caseId, files),
     onSuccess: () => {
       // Invalidate both lists to fetch the latest state
       queryClient.invalidateQueries({ queryKey: acquisitionKeys.lists() });

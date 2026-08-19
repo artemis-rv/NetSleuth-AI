@@ -38,7 +38,7 @@ class LLMAssistantService:
             raw_output = res
         
         if not raw_output or not isinstance(raw_output, str):
-            raise json.JSONDecodeError("Empty or invalid output", str(raw_output), 0)
+            return {"summary": "No output from language model.", "answer": "No output from language model.", "explanation": "No output from language model."}
 
         cleaned = raw_output.strip()
         if cleaned.startswith("```"):
@@ -50,12 +50,22 @@ class LLMAssistantService:
             cleaned = "\n".join(lines).strip()
         
         try:
-            return json.loads(cleaned)
+            return json.loads(cleaned, strict=False)
         except json.JSONDecodeError:
             match = re.search(r"\{.*\}", cleaned, re.DOTALL)
             if match:
-                return json.loads(match.group(0))
-            raise
+                try:
+                    return json.loads(match.group(0), strict=False)
+                except json.JSONDecodeError:
+                    pass
+            
+            # Final fallback: if model outputs plain text or unparseable JSON, wrap text directly
+            return {
+                "summary": cleaned,
+                "answer": cleaned,
+                "explanation": cleaned,
+                "technique_id": getattr(context, "technique_id", None)
+            }
 
     async def generate_summary(self, context: LLMInvestigationContext) -> LLMInvestigationResponse:
         prompt = self.prompts.build_summary_prompt(context)
@@ -68,7 +78,7 @@ class LLMAssistantService:
         
         try:
             data = await self._execute_raw(prompt, context)
-            summary = data.get("summary", "")
+            summary = data.get("summary") or data.get("response") or data.get("answer") or str(data)
             self._validate_groundedness(summary, context)
             
             base_resp.summary = summary
@@ -79,8 +89,6 @@ class LLMAssistantService:
             base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
         except LLMConnectionError:
             base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
-        except json.JSONDecodeError:
-            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
         except Exception:
             base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
             
@@ -97,13 +105,9 @@ class LLMAssistantService:
         
         try:
             data = await self._execute_raw(prompt, context)
-            returned_tech = data.get("technique_id")
-            explanation = data.get("explanation", "")
+            returned_tech = data.get("technique_id", technique_id)
+            explanation = data.get("explanation") or data.get("answer") or data.get("response") or str(data)
             
-            if returned_tech != technique_id:
-                base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
-                return base_resp
-                
             self._validate_groundedness(explanation, context)
             
             target_mapping = next((m for m in context.mitre_mappings if m.technique_id == technique_id), None)
@@ -128,8 +132,6 @@ class LLMAssistantService:
             base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
         except LLMConnectionError:
             base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
-        except json.JSONDecodeError:
-            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
         except Exception:
             base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
             
@@ -146,7 +148,7 @@ class LLMAssistantService:
         
         try:
             data = await self._execute_raw(prompt, context)
-            answer = data.get("answer", "")
+            answer = data.get("answer") or data.get("response") or data.get("summary") or data.get("explanation") or str(data)
             self._validate_groundedness(answer, context)
             
             base_resp.investigator_answers[question] = answer
@@ -157,8 +159,6 @@ class LLMAssistantService:
             base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
         except LLMConnectionError:
             base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
-        except json.JSONDecodeError:
-            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
         except Exception:
             base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
             

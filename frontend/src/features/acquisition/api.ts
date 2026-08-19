@@ -9,11 +9,13 @@ export interface PaginatedList<T> {
   page_size: number;
 }
 
-export async function uploadAcquisition(caseId: string, file: File): Promise<AcquisitionResponse> {
+export async function uploadAcquisition(caseId: string, files: File[]): Promise<AcquisitionResponse[]> {
   const formData = new FormData();
-  formData.append('file', file);
+  files.forEach(file => {
+    formData.append('files', file);
+  });
   
-  return apiClient<AcquisitionResponse>(`/api/v1/cases/${caseId}/acquisitions`, {
+  return apiClient<AcquisitionResponse[]>(`/api/v1/cases/${caseId}/acquisitions`, {
     method: 'POST',
     body: formData,
     // Note: Do not set Content-Type header manually when sending FormData,

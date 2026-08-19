@@ -8,34 +8,48 @@ import type { AnalysisJobResponse } from '../types';
 import { ApiError } from '../../../api/errors';
 import { useState } from 'react';
 
+import type { AcquisitionResponse } from '../../acquisition/types';
+
 interface AnalysisSectionProps {
   caseId: string;
-  acquisitionId: string | undefined;
+  acquisitionId?: string | undefined;
+  acquisitions?: AcquisitionResponse[];
   onViewFindings?: () => void;
 }
 
 const STAGES = ['QUEUED', 'M1', 'M2', 'M3', 'M4', 'COMPLETED'];
 
-export function AnalysisSection({ caseId, acquisitionId, onViewFindings }: AnalysisSectionProps) {
+export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onViewFindings }: AnalysisSectionProps) {
   const { data, isLoading } = useAnalysisJobs(caseId);
   const startMutation = useStartAnalysis(caseId);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const jobs = data?.jobs || [];
-  // Sort jobs by started_at descending
   const sortedJobs = [...jobs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const activeJob = sortedJobs.find(j => j.status === 'queued' || j.status === 'running');
   const latestJob = sortedJobs[0];
 
-  const handleStartAnalysis = () => {
-    if (!acquisitionId) return;
+  const handleStartAnalysis = async () => {
     setErrorMsg(null);
-    startMutation.mutate(acquisitionId, {
-      onError: (error) => {
-        const msg = error instanceof ApiError ? error.message : 'Failed to start analysis.';
+    const targetAcquisitionIds: string[] = [];
+    
+    if (acquisitions && acquisitions.length > 0) {
+      targetAcquisitionIds.push(...acquisitions.map(a => a.acquisition_id));
+    } else if (acquisitionId) {
+      targetAcquisitionIds.push(acquisitionId);
+    }
+
+    if (targetAcquisitionIds.length === 0) return;
+
+    // Trigger analysis for target acquisitions
+    for (const acqId of targetAcquisitionIds) {
+      try {
+        await startMutation.mutateAsync(acqId);
+      } catch (error) {
+        const msg = error instanceof ApiError ? error.message : 'Failed to start analysis for some files.';
         setErrorMsg(msg);
       }
-    });
+    }
   };
 
   const renderStageTimeline = (job: AnalysisJobResponse) => {
@@ -106,7 +120,7 @@ export function AnalysisSection({ caseId, acquisitionId, onViewFindings }: Analy
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!acquisitionId ? (
+        {!acquisitionId && acquisitions.length === 0 ? (
           <div className="text-center py-6 text-muted text-sm">
             Please upload an acquisition first before starting analysis.
           </div>
