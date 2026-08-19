@@ -52,6 +52,14 @@ export interface BehaviorResponse {
   last_observed: string;
 }
 
+export interface BehaviorDetailResponse extends BehaviorResponse {
+  associated_entities: EntityResponse[];
+  related_timeline_events: TimelineEventResponse[];
+  related_findings: Record<string, unknown>[];
+  related_relationships: RelationshipResponse[];
+  related_mitre_techniques: MitreMappingResponse[];
+}
+
 export interface BehaviorListResponse {
   items: BehaviorResponse[];
   total: number;

@@ -79,6 +79,16 @@ export async function getBehaviors(
 }
 
 /**
+ * GET /api/v1/cases/{case_id}/behaviors/{behavior_id}
+ */
+export async function getBehaviorDetail(
+  caseId: string,
+  behaviorId: string
+): Promise<import('./types').BehaviorDetailResponse> {
+  return apiClient<import('./types').BehaviorDetailResponse>(`/api/v1/cases/${caseId}/behaviors/${behaviorId}`);
+}
+
+/**
  * GET /api/v1/cases/{case_id}/mitre
  */
 export async function getMitre(

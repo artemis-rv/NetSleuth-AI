@@ -267,3 +267,16 @@ class AttackChainResponse(BaseModel):
 class GraphResponse(BaseModel):
     nodes: List[EntityResponse]
     edges: List[RelationshipResponse]
+
+# ─────────────────────────────────────────────
+# Behavior Detail
+# ─────────────────────────────────────────────
+
+class BehaviorDetailResponse(BehaviorResponse):
+    associated_entities: List[EntityResponse] = []
+    related_timeline_events: List[TimelineEventResponse] = []
+    related_findings: List[Dict[str, Any]] = []
+    related_relationships: List[RelationshipResponse] = []
+    related_mitre_techniques: List[MitreMappingResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)

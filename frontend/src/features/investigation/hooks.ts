@@ -43,6 +43,14 @@ export function useBehaviorsQuery(caseId: string, filters: PaginationFilters = {
   });
 }
 
+export function useBehaviorDetailQuery(caseId: string, behaviorId: string) {
+  return useQuery({
+    queryKey: investigationKeys.behaviorDetail(caseId, behaviorId),
+    queryFn: () => import('./api').then(m => m.getBehaviorDetail(caseId, behaviorId)),
+    enabled: !!caseId && !!behaviorId,
+  });
+}
+
 export function useMitreQuery(caseId: string, filters: PaginationFilters = {}) {
   return useQuery({
     queryKey: investigationKeys.mitre(caseId, filters as Record<string, unknown>),

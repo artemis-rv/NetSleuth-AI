@@ -151,6 +151,79 @@ class BehaviorRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
+    async def get_detail_with_relations(self, behavior_id: UUID) -> Optional[dict]:
+        from app.persistence.models.investigation_models import (
+            TimelineEventModel, MitreMappingModel, RelationshipModel, EntityModel,
+            behavior_finding_links, mitre_finding_links, relationship_finding_links
+        )
+        
+        # 1. Get Behavior
+        stmt_b = select(BehaviorModel).where(BehaviorModel.behavior_id == behavior_id)
+        result_b = await self.session.execute(stmt_b)
+        behavior = result_b.scalar_one_or_none()
+        if not behavior:
+            return None
+            
+        # 2. Get Timeline Events
+        stmt_t = select(TimelineEventModel).where(TimelineEventModel.behavior_id == behavior_id).order_by(TimelineEventModel.event_timestamp.asc())
+        result_t = await self.session.execute(stmt_t)
+        timeline_events = list(result_t.scalars().all())
+        
+        # 3. Get related Finding IDs
+        stmt_f = select(behavior_finding_links.c.finding_id).where(behavior_finding_links.c.behavior_id == behavior_id)
+        result_f = await self.session.execute(stmt_f)
+        finding_ids = [row[0] for row in result_f.all()]
+        
+        mitre_mappings = []
+        relationships = []
+        entities = []
+        
+        if finding_ids:
+            # 4. Get MITRE by finding links
+            stmt_m = select(MitreMappingModel).join(
+                mitre_finding_links, MitreMappingModel.mitre_mapping_id == mitre_finding_links.c.mitre_mapping_id
+            ).where(mitre_finding_links.c.finding_id.in_(finding_ids))
+            mitre_mappings = list((await self.session.execute(stmt_m)).scalars().all())
+            
+            # 5. Get Relationships by finding links
+            stmt_r = select(RelationshipModel).join(
+                relationship_finding_links, RelationshipModel.relationship_id == relationship_finding_links.c.relationship_id
+            ).where(relationship_finding_links.c.finding_id.in_(finding_ids))
+            relationships = list((await self.session.execute(stmt_r)).scalars().all())
+
+        # Fallbacks to case-scoped records if explicit link tables have not yet populated
+        if not mitre_mappings and behavior.case_id:
+            stmt_m_fallback = select(MitreMappingModel).where(MitreMappingModel.case_id == behavior.case_id)
+            mitre_mappings = list((await self.session.execute(stmt_m_fallback)).scalars().all())
+            
+        if not relationships and behavior.case_id:
+            stmt_r_fallback = select(RelationshipModel).where(RelationshipModel.case_id == behavior.case_id).limit(20)
+            relationships = list((await self.session.execute(stmt_r_fallback)).scalars().all())
+            
+        # 6. Get Entities (from timeline, relationships, or case)
+        entity_ids = set()
+        for t in timeline_events:
+            if getattr(t, 'entity_id', None): entity_ids.add(t.entity_id)
+        for r in relationships:
+            entity_ids.add(r.source_entity_id)
+            entity_ids.add(r.target_entity_id)
+            
+        if entity_ids:
+            stmt_e = select(EntityModel).where(EntityModel.entity_id.in_(list(entity_ids)))
+            entities = list((await self.session.execute(stmt_e)).scalars().all())
+        elif behavior.case_id:
+            stmt_e_case = select(EntityModel).where(EntityModel.case_id == behavior.case_id).limit(20)
+            entities = list((await self.session.execute(stmt_e_case)).scalars().all())
+            
+        return {
+            "behavior": behavior,
+            "timeline_events": timeline_events,
+            "mitre_mappings": mitre_mappings,
+            "relationships": relationships,
+            "entities": entities,
+            "findings": [behavior.attributes] if behavior.attributes else []
+        }
+
 class TimelineEventRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

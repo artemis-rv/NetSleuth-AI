@@ -19,6 +19,9 @@ export const investigationKeys = {
   behaviors: (caseId: string, filters: Record<string, unknown> = {}) =>
     [...investigationKeys.all, 'behaviors', caseId, filters] as const,
 
+  behaviorDetail: (caseId: string, behaviorId: string) =>
+    [...investigationKeys.all, 'behaviorDetail', caseId, behaviorId] as const,
+
   mitre: (caseId: string, filters: Record<string, unknown> = {}) =>
     [...investigationKeys.all, 'mitre', caseId, filters] as const,
 

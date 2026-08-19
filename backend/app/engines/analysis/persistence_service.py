@@ -50,7 +50,10 @@ class M2PersistenceService:
             artifact_links_data = []
 
             for finding in package.findings:
-                f_uuid = uuid.uuid5(uuid.NAMESPACE_OID, finding.finding_id)
+                try:
+                    f_uuid = uuid.UUID(finding.finding_id)
+                except ValueError:
+                    f_uuid = uuid.uuid5(uuid.NAMESPACE_OID, finding.finding_id)
                 with open('debug_finding.txt', 'a') as f: f.write(f"M2 PERSISTENCE: finding_id={finding.finding_id}, f_uuid={f_uuid}\n")
                 
                 # Determine classification and anomaly extraction

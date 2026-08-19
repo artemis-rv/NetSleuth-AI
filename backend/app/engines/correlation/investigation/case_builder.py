@@ -135,9 +135,14 @@ class InvestigationCaseBuilder:
         
         # 1. Findings
         for f in ctx.findings:
+            act = f.activity_class.value if hasattr(f.activity_class, "value") else str(f.activity_class)
             doc["findings"].append({
                 "finding_id": f.finding_id,
-                "role": "primary"
+                "role": "primary",
+                "activity": act,
+                "confidence_score": getattr(f, "classification_confidence", 0.8),
+                "risk_score": getattr(f, "risk_score", 0.5),
+                "severity": getattr(f, "severity", "high" if getattr(f, "risk_score", 0) > 0.6 else "medium"),
             })
             
         # 2. Timeline
@@ -163,6 +168,8 @@ class InvestigationCaseBuilder:
                     t_doc["target_entity_id"] = t.entity_ids[1]
             if t.evidence_ids:
                 t_doc["evidence_ids"] = t.evidence_ids
+            if t.finding_ids:
+                t_doc["finding_ids"] = t.finding_ids
             doc["timeline"].append(t_doc)
             
         # 3. Entities

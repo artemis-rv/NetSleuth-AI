@@ -22,6 +22,12 @@ class AcquisitionRepository:
 
     get_by_id = get
 
+    async def get_by_sha256(self, sha256: str) -> Optional[AcquisitionModel]:
+        from sqlalchemy.orm import selectinload
+        stmt = select(AcquisitionModel).options(selectinload(AcquisitionModel.evidence)).where(AcquisitionModel.sha256 == sha256)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def list_by_case(
         self,
         case_id: UUID,

@@ -129,6 +129,7 @@ class M3PersistenceService:
         # 3. Persist Relationships
         relationships = case_doc.get("relationships", [])
         rel_uuid_map = {}
+        rel_finding_links_data = []
         if relationships:
             rel_records = []
             for r in relationships:
@@ -147,18 +148,63 @@ class M3PersistenceService:
                         "target_entity_id": tgt_uuid,
                         "relationship_type": r.get("relationship_type", "linked"),
                         "strength": r.get("confidence", 0.5),
-                        "attributes": {"reason": r.get("reason")} if r.get("reason") else None,
+                        "attributes": {"reason": r.get("reason"), "evidence_ids": r.get("evidence_ids")} if (r.get("reason") or r.get("evidence_ids")) else None,
                         "first_seen": self._parse_time(r.get("first_seen")),
                         "last_seen": self._parse_time(r.get("last_seen"))
                     })
+                    for ev_id in r.get("evidence_ids", []):
+                        ev_uuid = self._to_uuid(ev_id)
+                        rel_finding_links_data.append({
+                            "relationship_id": r_uuid,
+                            "finding_id": ev_uuid
+                        })
             if rel_records:
-                await self.uow.session.execute(
-                    pg_insert(RelationshipModel).values(rel_records).on_conflict_do_nothing()
-                )
+                batch_size = 1000
+                for i in range(0, len(rel_records), batch_size):
+                    batch = rel_records[i:i + batch_size]
+                    await self.uow.session.execute(
+                        pg_insert(RelationshipModel).values(batch).on_conflict_do_nothing()
+                    )
                 
+        # 3.5 Persist Behaviors from Findings (Moved here because TimelineEvents have an FK to Behaviors)
+        findings_list = case_doc.get("findings", [])
+        behaviors = []
+        beh_finding_links_data_early = []
+        for finding in findings_list:
+            f_id = finding.get("finding_id")
+            if f_id:
+                b_uuid = self._to_uuid(f"behavior:{f_id}")
+                b_type = finding.get("activity", finding.get("finding_type", "suspicious_activity"))
+                b_label = b_type.replace("_", " ").title()
+                
+                # Append to behavior-finding links immediately
+                f_uuid = self._to_uuid(f_id)
+                beh_finding_links_data_early.append({
+                    "behavior_id": b_uuid,
+                    "finding_id": f_uuid
+                })
+                
+                behaviors.append({
+                    "behavior_id": b_uuid,
+                    "case_id": case_uuid,
+                    "behavior_type": b_type,
+                    "label": b_label,
+                    "confidence": finding.get("confidence_score", 0.8),
+                    "attributes": finding,
+                    "first_observed": None,
+                    "last_observed": None
+                })
+        if behaviors:
+            await self.uow.session.execute(
+                pg_insert(BehaviorModel).values(behaviors).on_conflict_do_nothing()
+            )
+
         # 4. Persist Timeline Events
         timeline = case_doc.get("timeline", [])
         if timeline:
+            findings_list = case_doc.get("findings", [])
+            finding_ids = {f.get("finding_id") for f in findings_list if f.get("finding_id")}
+            
             timeline_records = []
             for t in timeline:
                 t_id_str = t["event_id"]
@@ -169,7 +215,20 @@ class M3PersistenceService:
                     t_entity_uuid = entity_uuid_map.get(t["source_entity_id"])
                     
                 attributes = {}
-                if t.get("evidence_ids"): attributes["evidence_ids"] = t.get("evidence_ids")
+                behavior_uuid = None
+                if t.get("evidence_ids"):
+                    attributes["evidence_ids"] = t.get("evidence_ids")
+                    for ev_id in t.get("evidence_ids"):
+                        if ev_id in finding_ids:
+                            behavior_uuid = self._to_uuid(f"behavior:{ev_id}")
+                            break
+                if not behavior_uuid and t.get("finding_ids"):
+                    attributes["finding_ids"] = t.get("finding_ids")
+                    for f_id in t.get("finding_ids"):
+                        if f_id in finding_ids:
+                            behavior_uuid = self._to_uuid(f"behavior:{f_id}")
+                            break
+                            
                 if t.get("flow_ids"): attributes["flow_ids"] = t.get("flow_ids")
                 if t.get("protocol_event_ids"): attributes["protocol_event_ids"] = t.get("protocol_event_ids")
                 if t.get("artifact_ids"): attributes["artifact_ids"] = t.get("artifact_ids")
@@ -182,11 +241,16 @@ class M3PersistenceService:
                     "event_type": t.get("event_type", "network"),
                     "description": t.get("description"),
                     "entity_id": t_entity_uuid,
+                    "behavior_id": behavior_uuid,
                     "attributes": attributes if attributes else None
                 })
-            await self.uow.session.execute(
-                pg_insert(TimelineEventModel).values(timeline_records).on_conflict_do_nothing()
-            )
+            if timeline_records:
+                batch_size = 1000
+                for i in range(0, len(timeline_records), batch_size):
+                    batch = timeline_records[i:i + batch_size]
+                    await self.uow.session.execute(
+                        pg_insert(TimelineEventModel).values(batch).on_conflict_do_nothing()
+                    )
             
         # 5. Persist Case-to-Finding and Case-to-Acquisition Links
         findings = case_doc.get("findings", [])
@@ -253,10 +317,11 @@ class M3PersistenceService:
                     "technique_name": m.get("technique_name"),
                     "attack_version": m.get("attack_version", "19.2"),
                     "justification": m.get("justification"),
-                    "confidence": m.get("confidence"),
+                    "confidence": m.get("confidence") or m.get("mapping_confidence"),
                 })
-                # Link to findings referenced by this mapping
-                for f_id in m.get("finding_ids", []):
+                # Link to findings referenced by this mapping (support source_finding_ids, finding_ids, finding_id)
+                f_ids = m.get("source_finding_ids") or m.get("finding_ids") or ([m["finding_id"]] if "finding_id" in m else [])
+                for f_id in f_ids:
                     f_uuid = self._to_uuid(f_id)
                     mitre_finding_link_records.append({
                         "mitre_mapping_id": m_uuid,
@@ -271,34 +336,11 @@ class M3PersistenceService:
                     pg_insert(mitre_finding_links).values(mitre_finding_link_records).on_conflict_do_nothing()
                 )
 
-        # 8. Persist Behaviors from Findings
-        findings_list = case_doc.get("findings", [])
-        behaviors = []
-        for finding in findings_list:
-            f_id = finding.get("finding_id")
-            if f_id:
-                b_uuid = self._to_uuid(f"behavior:{f_id}")
-                b_type = finding.get("activity", finding.get("finding_type", "suspicious_activity"))
-                b_label = b_type.replace("_", " ").title()
-                behaviors.append({
-                    "behavior_id": b_uuid,
-                    "case_id": case_uuid,
-                    "behavior_type": b_type,
-                    "label": b_label,
-                    "confidence": finding.get("confidence_score", 0.8),
-                    "attributes": finding,
-                    "first_observed": None,
-                    "last_observed": None
-                })
-        if behaviors:
-            await self.uow.session.execute(
-                pg_insert(BehaviorModel).values(behaviors).on_conflict_do_nothing()
-            )
+        # (Behaviors moved before Timeline Events to satisfy FK constraints)
             
         # 9. M3 evidence_references — relationship and artifact links
         evidences = case_doc.get("evidence_references", [])
         
-        rel_finding_links_data = []
         ent_artifact_links_data = []
         beh_finding_links_data = []
         
@@ -340,6 +382,7 @@ class M3PersistenceService:
             await self.uow.session.execute(
                 pg_insert(entity_artifact_links).values(ent_artifact_links_data).on_conflict_do_nothing()
             )
+        beh_finding_links_data.extend(beh_finding_links_data_early)
         if beh_finding_links_data:
             from app.persistence.models.investigation_models import behavior_finding_links
             await self.uow.session.execute(

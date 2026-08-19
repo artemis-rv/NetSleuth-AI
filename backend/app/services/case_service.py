@@ -34,7 +34,7 @@ class CaseService:
             external_case_id=request_data.external_case_id,
             external_system=request_data.external_system,
             reported_by=request_data.reported_by,
-            priority=request_data.priority,
+            priority=request_data.priority.lower() if request_data.priority else None,
             created_by=current_user.user_id,
             status="open"
         )

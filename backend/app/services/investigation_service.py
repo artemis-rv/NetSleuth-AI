@@ -74,6 +74,12 @@ class InvestigationService:
             page_size=page_size
         )
 
+    async def get_behavior_detail(self, behavior_id: UUID) -> dict:
+        detail_data = await self.behavior_repo.get_detail_with_relations(behavior_id)
+        if not detail_data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Behavior not found")
+        return detail_data
+
     async def list_timeline_by_case(self, case_id: UUID, page: int, page_size: int) -> TimelineEventListResponse:
         skip = (page - 1) * page_size
         events = await self.timeline_repo.list_by_case(case_id=case_id, skip=skip, limit=page_size)

@@ -16,9 +16,21 @@ class UserRepository:
         return user
 
     async def get_by_username(self, username: str) -> Optional[UserModel]:
-        stmt = select(UserModel).where(UserModel.username == username)
+        from sqlalchemy import or_
+        candidates = [username]
+        if username == "admin":
+            candidates.append("admin_user")
+        elif username == "admin_user":
+            candidates.append("admin")
+            
+        stmt = select(UserModel).where(
+            or_(
+                UserModel.username.in_(candidates),
+                UserModel.email == username
+            )
+        )
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return result.scalars().first()
 
 class CaseAccessRepository:
     def __init__(self, session: AsyncSession):

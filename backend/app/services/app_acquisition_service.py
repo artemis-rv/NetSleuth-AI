@@ -65,6 +65,28 @@ class AppAcquisitionService:
 
             # 3. Deterministic object key (User requested: evidence/{acquisition_id}/{safe_filename})
             object_key = f"evidence/{acquisition_ref.acquisition_id}/{acquisition_ref.file_name}"
+            
+            # Check for existing acquisition by SHA256 to avoid UniqueViolationError
+            existing_acq = await self.acq_repo.get_by_sha256(acquisition_ref.sha256)
+            if existing_acq:
+                # Link existing acquisition to the new case
+                await self.acq_repo.link_to_case(case_id, existing_acq.acquisition_id)
+                await self.db.commit()
+                
+                # Use existing evidence ID if available, otherwise just generate a fake one for response
+                ev_id = existing_acq.evidence[0].evidence_id if existing_acq.evidence else uuid.uuid4()
+                
+                return AcquisitionUploadResponse(
+                    acquisition_id=existing_acq.acquisition_id,
+                    evidence_id=ev_id,
+                    case_id=case_id,
+                    file_name=existing_acq.file_name,
+                    format=existing_acq.format,
+                    size_bytes=existing_acq.file_size,
+                    sha256=existing_acq.sha256,
+                    status=existing_acq.status,
+                    created_at=existing_acq.ingested_at
+                )
 
             # 4. Upload to authoritative MinIO storage
             try:
