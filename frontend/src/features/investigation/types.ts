@@ -8,6 +8,7 @@ export interface EntityResponse {
   entity_id: string;
   case_id: string;
   name: string;
+  label?: string;
   entity_type: string;
   risk_score: number | null;
   properties: Record<string, unknown> | null;
