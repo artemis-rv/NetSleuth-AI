@@ -245,10 +245,31 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
         </CardContent>
       </Card>
 
-      {/* Investigation Goals Panel */}
+      {/* Investigation Goals Panel or Case Notes */}
       {caseData.investigation_goals && caseData.investigation_goals.length > 0 ? (
         <InvestigationGoalsChecklist caseData={caseData} />
-      ) : <div />}
+      ) : (
+        <Card className="flex flex-col h-full border-border-subtle bg-surface-elevated/30">
+          <CardHeader className="pb-2 border-b border-border-subtle/50 px-5 pt-5">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileText className="h-4 w-4 text-info" aria-hidden="true" />
+              Case Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 py-4 flex-1">
+            {caseData.description ? (
+              <p className="text-sm text-primary whitespace-pre-wrap leading-relaxed bg-surface/50 p-3 rounded-md border border-border-subtle-2">
+                {caseData.description}
+              </p>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center py-6">
+                <FileText className="h-8 w-8 text-muted/50 mb-3" />
+                <p className="text-sm text-muted">No notes or description available.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Acquisition Section */}
       <div className="lg:col-span-1 flex flex-col h-full">
