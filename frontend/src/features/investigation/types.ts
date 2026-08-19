@@ -12,6 +12,8 @@ export interface EntityResponse {
   case_id: string;
   // M3-003 FIX: V1.3 contract uses 'label', not 'name'
   label: string;
+  name?: string;
+  value?: string;
   entity_type: string;
   risk_score: number | null;
   properties: Record<string, unknown> | null;

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, Plus, Save } from 'lucide-react';
+import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, Plus, Save, FileText } from 'lucide-react';
 import { useCaseQuery, useUpdateCaseMutation } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
 import { CaseStatusBadge, CasePriorityBadge } from '../components/CaseBadge';
@@ -102,38 +102,19 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [draftNote, setDraftNote] = useState('');
 
-<<<<<<< HEAD
-  const goals: InvestigationGoal[] = useMemo(() => {
-    if (!caseData?.investigation_goals) return [];
-    return caseData.investigation_goals.map((g, idx) => {
-      if (typeof g === 'string') {
-        return { id: `goal-${idx}`, description: g, completed: false };
-      }
-      return g;
-    });
-  }, [caseData?.investigation_goals]);
-
-  const toggleGoal = (goalId: string) => {
-    const newGoals = goals.map(g => 
-=======
   const normalizedGoals: InvestigationGoal[] = (caseData.investigation_goals || []).map((g, idx) => 
     typeof g === 'string' ? { id: String(idx + 1), description: g, completed: false } : g
   );
 
   const toggleGoal = (goalId: string) => {
     const newGoals = normalizedGoals.map(g => 
->>>>>>> 93a9016047078976d9f2e1c6ea3a39c1b9cc85b7
       g.id === goalId ? { ...g, completed: !g.completed } : g
     );
     updateCase.mutate({ investigation_goals: newGoals });
   };
 
   const saveNote = (goalId: string) => {
-<<<<<<< HEAD
-    const newGoals = goals.map(g => 
-=======
     const newGoals = normalizedGoals.map(g => 
->>>>>>> 93a9016047078976d9f2e1c6ea3a39c1b9cc85b7
       g.id === goalId ? { ...g, note: draftNote.trim() || null } : g
     );
     updateCase.mutate({ investigation_goals: newGoals }, {
@@ -151,11 +132,7 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3" aria-label="Investigation goals">
-<<<<<<< HEAD
-          {goals.map((goal) => (
-=======
           {normalizedGoals.map((goal) => (
->>>>>>> 93a9016047078976d9f2e1c6ea3a39c1b9cc85b7
             <div key={goal.id} className="flex flex-col gap-2 p-3 rounded-lg border border-border-subtle bg-surface-elevated/50 transition-colors hover:bg-surface-elevated">
               <div className="flex items-start gap-3">
                 <button
@@ -358,9 +335,6 @@ export function CaseDetailPage() {
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
   const { data: acquisitions } = useAcquisitions(caseId ?? '');
   const { data: evidence } = useEvidence(caseId ?? '');
-
-  const activeAcquisition = acquisitions?.items?.[0];
-  const activeEvidence = evidence?.items?.[0];
 
   if (isLoading) {
     return (

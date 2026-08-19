@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react';
-import { Upload, File as FileIcon, Shield, AlertCircle, Play } from 'lucide-react';
+import { Upload, File as FileIcon, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
 import { Spinner } from '../../../components/ui/Spinner';
 import { useUploadAcquisition, useVerifyEvidence } from '../hooks';
 import { useStartAnalysis } from '../../analysis/hooks';
-import { EvidenceVerificationBadge } from './EvidenceVerificationBadge';
 import type { AcquisitionResponse, EvidenceResponse } from '../types';
 import { ApiError } from '../../../api/errors';
 
@@ -20,10 +20,33 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [analyzingAcqId, setAnalyzingAcqId] = useState<string | null>(null);
+  const [verifyingEvId, setVerifyingEvId] = useState<string | null>(null);
 
   const uploadMutation = useUploadAcquisition(caseId);
   const verifyMutation = useVerifyEvidence();
   const startAnalysisMutation = useStartAnalysis(caseId);
+
+  const handleStartAnalysis = (acqId: string) => {
+    setAnalyzingAcqId(acqId);
+    startAnalysisMutation.mutate(acqId, {
+      onSettled: () => setAnalyzingAcqId(null),
+      onError: (error) => {
+        const msg = error instanceof ApiError ? error.message : 'Failed to start analysis.';
+        setErrorMsg(msg);
+      }
+    });
+  };
+
+  const handleVerify = (evId: string) => {
+    setVerifyingEvId(evId);
+    verifyMutation.mutate(evId, {
+      onSettled: () => setVerifyingEvId(null),
+      onError: (error) => {
+        const msg = error instanceof ApiError ? error.message : 'Verification request failed.';
+        setErrorMsg(msg);
+      }
+    });
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -54,26 +77,6 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
         const msg = error instanceof ApiError ? error.message : 'Upload failed. Please try again.';
         setErrorMsg(msg);
       },
-    });
-  };
-
-  const handleVerify = (evidenceId: string) => {
-    verifyMutation.mutate(evidenceId, {
-      onError: (error) => {
-        const msg = error instanceof ApiError ? error.message : 'Verification request failed.';
-        setErrorMsg(msg);
-      }
-    });
-  };
-
-  const handleAnalyzeFile = (acquisitionId: string) => {
-    setAnalyzingAcqId(acquisitionId);
-    startAnalysisMutation.mutate(acquisitionId, {
-      onSettled: () => setAnalyzingAcqId(null),
-      onError: (error) => {
-        const msg = error instanceof ApiError ? error.message : 'Failed to start analysis.';
-        setErrorMsg(msg);
-      }
     });
   };
 
@@ -178,12 +181,12 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
                         <div>
                           <p className="text-sm font-medium text-primary break-all">{acq.file_name}</p>
                           <p className="text-xs text-muted">
-                            Size: {(acq.file_size_bytes / (1024 * 1024)).toFixed(2)} MB | Uploaded: {new Date(acq.created_at).toLocaleString()}
+                            Size: {(acq.file_size / (1024 * 1024)).toFixed(2)} MB | Ingested: {new Date(acq.ingested_at).toLocaleString()}
                           </p>
                         </div>
                       </div>
-                      <Badge variant={acq.status === 'COMPLETED' ? 'success' : acq.status === 'FAILED' ? 'danger' : 'warning'}>
-                        {acq.status}
+                      <Badge variant={acq.status === 'complete' ? 'success' : acq.status === 'failed' ? 'danger' : 'warning'}>
+                        {acq.status.toUpperCase()}
                       </Badge>
                     </div>
 
@@ -191,12 +194,12 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
                       <div className="bg-background p-3 rounded border border-border-subtle space-y-2 text-xs">
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-muted">SHA-256 Hash</span>
-                          <Badge variant={ev.verification_status === 'VERIFIED' ? 'success' : 'warning'} className="text-[10px]">
-                            {ev.verification_status}
+                          <Badge variant={ev.status === 'verified' ? 'success' : 'warning'} className="text-[10px]">
+                            {ev.status.toUpperCase()}
                           </Badge>
                         </div>
                         <p className="font-mono text-primary break-all bg-surface p-1.5 rounded text-[11px]">
-                          {ev.calculated_hash || ev.expected_hash}
+                          {ev.sha256}
                         </p>
                       </div>
                     )}
@@ -207,7 +210,7 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
                       variant="primary" 
                       size="sm"
                       onClick={() => handleStartAnalysis(acq.acquisition_id)}
-                      disabled={analyzingAcqId === acq.acquisition_id || acq.status !== 'COMPLETED'}
+                      disabled={analyzingAcqId === acq.acquisition_id || acq.status !== 'complete'}
                       className="w-full"
                     >
                       {analyzingAcqId === acq.acquisition_id ? (
@@ -217,7 +220,7 @@ export function AcquisitionSection({ caseId, acquisitions, evidenceList }: Acqui
                       )}
                     </Button>
                     
-                    {ev && ev.verification_status !== 'VERIFIED' && (
+                    {ev && ev.status !== 'verified' && (
                       <Button 
                         variant="secondary" 
                         size="sm"
