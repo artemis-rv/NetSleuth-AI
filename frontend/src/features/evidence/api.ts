@@ -1,4 +1,5 @@
 import { apiClient } from '../../api/client';
+import { tokenStore } from '../../auth/auth-store';
 import type {
   EvidenceListResponse,
   EvidenceResponse,
@@ -69,4 +70,67 @@ export async function getCustodyItem(itemId: string): Promise<EvidenceItemRespon
  */
 export async function getCustodyEvents(itemId: string): Promise<CustodyEventListResponse> {
   return apiClient<CustodyEventListResponse>(`/api/v1/custody/items/${itemId}/events`);
+}
+
+/**
+ * Export and download raw evidence file directly.
+ * GET /api/v1/evidence/{evidence_id}/export
+ */
+export async function exportEvidenceBlob(
+  evidenceId: string,
+  defaultFilename: string
+): Promise<void> {
+  const token = tokenStore.get();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+  const response = await fetch(`${BASE_URL}/api/v1/evidence/${evidenceId}/export`, {
+    headers,
+  });
+  
+  if (!response.ok) {
+    if (response.status === 403) {
+      throw new Error("You do not have permission to export this evidence. Requires administrator or custodian role.");
+    }
+    if (response.status === 404) {
+      throw new Error("Evidence file was not found.");
+    }
+    if (response.status >= 500) {
+      throw new Error("Evidence service is temporarily unavailable.");
+    }
+    let errMsg = `Export failed (${response.status})`;
+    try {
+      const errJson = await response.json();
+      if (errJson?.error?.message) {
+        errMsg = errJson.error.message;
+      }
+    } catch {}
+    throw new Error(errMsg);
+  }
+  
+  let filename = defaultFilename;
+  const disposition = response.headers.get('Content-Disposition');
+  if (disposition && disposition.includes('filename=')) {
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+  
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+    if (document.body.contains(a)) {
+      document.body.removeChild(a);
+    }
+  }, 1000);
 }

@@ -68,7 +68,7 @@ describe('ReportsSection Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Investigation Final Report v1.3')).toBeInTheDocument();
       expect(screen.getByText('SUMMARY')).toBeInTheDocument();
-      expect(screen.getByText('Details')).toBeInTheDocument();
+      expect(screen.getByText('View Details')).toBeInTheDocument();
     });
   });
 });

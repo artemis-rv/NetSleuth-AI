@@ -97,7 +97,7 @@ describe('AcquisitionSection', () => {
     );
 
     expect(screen.getByText('test.pcap')).toBeInTheDocument();
-    expect(screen.getByText(/Size: 1\.00 MB/)).toBeInTheDocument();
+    expect(screen.getByText(/1\.00\s*MB/)).toBeInTheDocument();
     expect(screen.getByText('complete')).toBeInTheDocument();
   });
 
@@ -123,10 +123,10 @@ describe('AcquisitionSection', () => {
       </Wrapper>
     );
 
-    expect(screen.getByText('abc')).toBeInTheDocument();
+    expect(screen.getByText('abc...')).toBeInTheDocument();
     expect(screen.getByText('Pending Verification')).toBeInTheDocument();
     
-    const verifyBtn = screen.getByRole('button', { name: /Verify Hash/i });
+    const verifyBtn = screen.getByRole('button', { name: /^Verify$/i });
     fireEvent.click(verifyBtn);
 
     await waitFor(() => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ShieldCheck, Lock, AlertCircle, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { useCaseEvidenceQuery, useCustodyItemsQuery } from '../hooks';
+import { exportEvidenceBlob } from '../api';
 import { IntegrityVerificationModal } from './IntegrityVerificationModal';
 import { CustodyTimelineDrawer } from './CustodyTimelineDrawer';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -23,6 +24,8 @@ export function EvidenceSection({ caseId }: EvidenceSectionProps) {
   const [selectedVerifyEvidence, setSelectedVerifyEvidence] = useState<EvidenceResponse | null>(null);
   const [selectedCustodyItem, setSelectedCustodyItem] = useState<EvidenceItemResponse | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const { data: evidenceData, isLoading: evidenceLoading, isError: evidenceError, error: evErr } = useCaseEvidenceQuery(caseId, filters);
   const { data: custodyData } = useCustodyItemsQuery(caseId, filters);
@@ -30,10 +33,21 @@ export function EvidenceSection({ caseId }: EvidenceSectionProps) {
   const totalPages = evidenceData ? Math.ceil(evidenceData.total / (filters.page_size ?? 25)) : 0;
   const currentPage = filters.page ?? 1;
 
-  function handleExport(ev: EvidenceResponse) {
-    setExportNotice(`Export request logged server-side for evidence ${ev.file_name} (SHA-256: ${ev.sha256.slice(0, 12)}…). Direct byte download requires elevated custodian role.`);
-    setTimeout(() => setExportNotice(null), 8000);
-  }
+  const handleExport = async (ev: EvidenceResponse) => {
+    try {
+      setExportError(null);
+      setExportNotice(null);
+      setExportingId(ev.evidence_id);
+      await exportEvidenceBlob(ev.evidence_id, ev.file_name);
+      setExportNotice(`Export initiated for ${ev.file_name}. Check your browser downloads.`);
+      setTimeout(() => setExportNotice(null), 8000);
+    } catch (err: any) {
+      console.error('Export error:', err);
+      setExportError(err.message || 'Failed to export evidence.');
+    } finally {
+      setExportingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -54,6 +68,16 @@ export function EvidenceSection({ caseId }: EvidenceSectionProps) {
         {exportNotice && (
           <div className="p-3 rounded border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs">
             {exportNotice}
+          </div>
+        )}
+
+        {exportError && (
+          <div className="p-3 rounded border border-red-500/30 bg-red-500/10 text-red-300 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+              <span>{exportError}</span>
+            </div>
+            <button onClick={() => setExportError(null)} className="text-red-400 hover:text-red-200 font-semibold text-xs ml-2 flex-shrink-0">Dismiss</button>
           </div>
         )}
 
@@ -112,11 +136,16 @@ export function EvidenceSection({ caseId }: EvidenceSectionProps) {
                           </button>
                           <button
                             onClick={() => handleExport(item)}
-                            className="flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-primary hover:bg-surface-elevated border border-border-subtle rounded transition-colors"
+                            disabled={exportingId !== null}
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-secondary hover:text-primary hover:bg-surface-elevated border border-border-subtle rounded transition-colors disabled:opacity-50"
                             title="Export Evidence Record"
                           >
-                            <Download className="h-3.5 w-3.5" />
-                            Export
+                            {exportingId === item.evidence_id ? (
+                              <Spinner size={12} />
+                            ) : (
+                              <Download className="h-3.5 w-3.5" />
+                            )}
+                            <span>{exportingId === item.evidence_id ? 'Exporting...' : 'Export'}</span>
                           </button>
                         </div>
                       </td>

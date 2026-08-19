@@ -1,4 +1,4 @@
-﻿aioboto3==15.5.0
+aioboto3==15.5.0
 aiobotocore==2.25.1
 aiofiles==25.1.0
 aiohappyeyeballs==2.7.1
@@ -71,3 +71,4 @@ urllib3==2.7.0
 uvicorn==0.52.3
 wrapt==1.17.3
 yarl==1.24.5
+reportlab>=4.0.0

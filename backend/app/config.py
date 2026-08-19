@@ -89,7 +89,7 @@ class _Settings:
         unless explicitly declared with trusted domains.
         Set via: CORS_ORIGINS (comma-separated string)
         """
-        raw = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173")
+        raw = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174")
         origins = [o.strip() for o in raw.split(",") if o.strip()]
         if self.is_production:
             # Enforce security: eliminate any wildcard in production
@@ -272,7 +272,7 @@ class _Settings:
         Set via: OLLAMA_BASE_URL
         Default: http://localhost:11434
         """
-        return os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        return os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
 
     @property
     def ollama_model(self) -> str:

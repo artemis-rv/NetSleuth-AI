@@ -14,7 +14,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function CaseStatusBadge({ status, className }: CaseStatusBadgeProps) {
-  const style = STATUS_STYLES[status] ?? 'bg-muted/15 text-muted border-muted/30';
+  const normalized = status ? status.toUpperCase() : '';
+  const style = STATUS_STYLES[normalized] ?? 'bg-muted/15 text-muted border-muted/30';
   return (
     <span
       className={cn(
@@ -24,7 +25,7 @@ export function CaseStatusBadge({ status, className }: CaseStatusBadgeProps) {
       )}
       aria-label={`Status: ${status}`}
     >
-      {status.replace('_', ' ')}
+      {status ? status.replace('_', ' ') : ''}
     </span>
   );
 }
@@ -43,7 +44,8 @@ const PRIORITY_STYLES: Record<string, string> = {
 
 export function CasePriorityBadge({ priority, className }: CasePriorityBadgeProps) {
   if (!priority) return null;
-  const style = PRIORITY_STYLES[priority] ?? 'bg-muted/15 text-muted border-muted/30';
+  const normalized = priority.toUpperCase();
+  const style = PRIORITY_STYLES[normalized] ?? 'bg-muted/15 text-muted border-muted/30';
   return (
     <span
       className={cn(

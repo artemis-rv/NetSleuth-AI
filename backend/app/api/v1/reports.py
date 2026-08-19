@@ -88,6 +88,7 @@ async def export_report(
     service: ReportsService = Depends(get_reports_service)
 ):
     import traceback as _tb
+    from app.exceptions import ApplicationError
     try:
         artifact_bytes, media_type, filename = await service.export_report(
             report_id=report_id,
@@ -95,6 +96,9 @@ async def export_report(
             target_format=format,
             http_request=request
         )
+    except ApplicationError as exc:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=exc.status_code, content={"error": exc.message, "code": exc.error_code, "details": exc.details})
     except Exception as exc:
         tb = _tb.format_exc()
         from fastapi.responses import JSONResponse

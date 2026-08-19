@@ -31,7 +31,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 describe('AnalysisSection', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    (api.getAnalysisJobs as any).mockResolvedValue({ items: [], total: 0, page: 1, page_size: 25 });
+    (api.getAnalysisJobs as any).mockResolvedValue({ jobs: [], total: 0, page: 1, page_size: 25 });
   });
 
   it('renders prompt if no acquisitionId is provided', () => {
@@ -44,7 +44,7 @@ describe('AnalysisSection', () => {
   });
 
   it('renders start button when no active jobs exist', async () => {
-    (api.getAnalysisJobs as any).mockResolvedValue({ items: [], total: 0, page: 1, page_size: 25 });
+    (api.getAnalysisJobs as any).mockResolvedValue({ jobs: [], total: 0, page: 1, page_size: 25 });
     
     render(
       <Wrapper>
@@ -59,7 +59,7 @@ describe('AnalysisSection', () => {
   });
 
   it('handles start analysis mutation', async () => {
-    (api.getAnalysisJobs as any).mockResolvedValue({ items: [], total: 0, page: 1, page_size: 25 });
+    (api.getAnalysisJobs as any).mockResolvedValue({ jobs: [], total: 0, page: 1, page_size: 25 });
     (api.startAnalysis as any).mockResolvedValue({ analysis_id: 'job-1', status: 'queued' });
 
     render(
@@ -81,7 +81,7 @@ describe('AnalysisSection', () => {
 
   it('renders active job timeline', async () => {
     (api.getAnalysisJobs as any).mockResolvedValue({
-      items: [
+      jobs: [
         {
           analysis_id: 'job-1', case_id: 'case-1', acquisition_id: 'acq-1',
           status: 'running', current_stage: 'M2', progress: 45,
@@ -109,7 +109,7 @@ describe('AnalysisSection', () => {
 
   it('renders failure state properly', async () => {
     (api.getAnalysisJobs as any).mockResolvedValue({
-      items: [
+      jobs: [
         {
           analysis_id: 'job-1', case_id: 'case-1', acquisition_id: 'acq-1',
           status: 'failed', current_stage: 'M3', progress: null,

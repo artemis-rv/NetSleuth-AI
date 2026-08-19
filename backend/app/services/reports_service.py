@@ -91,7 +91,7 @@ class ReportsService:
             "title": case.title or f"Investigation Case {case_id}",
             "description": case.description or "Forensic Investigation Report",
             "status": case.status if case.status in ("open", "investigating", "review", "closed") else "open",
-            "severity": case.priority.lower() if hasattr(case, "priority") and getattr(case, "priority", "").lower() in ("low", "medium", "high", "critical") else "medium",
+            "severity": case.priority.lower() if getattr(case, "priority", None) and case.priority.lower() in ("low", "medium", "high", "critical") else "medium",
             "investigator": {
                 "investigator_id": str(current_user.user_id),
                 "name": current_user.full_name or current_user.username or "Forensic Investigator"
@@ -252,6 +252,12 @@ class ReportsService:
             raise NotFoundError(f"Report {report_id} not found")
 
         await verify_case_access_direct(report.case_id, current_user, self.db)
+
+        if report.report_type != "final":
+            if current_user.role == "analyst":
+                raise ForbiddenError("Analysts are not permitted to export draft/unfinalized reports.")
+            else:
+                raise ConflictError("Draft reports must be finalized before they can be exported.")
 
         # Eagerly snapshot all ORM attributes into plain variables so they survive
         # a potential db.rollback() that would expire the ORM object.

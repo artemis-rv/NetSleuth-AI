@@ -59,6 +59,18 @@ class EvidenceStorageService:
         except botocore.exceptions.ClientError:
             return False, None
 
+    async def get_evidence_bytes(self, object_key: str) -> bytes:
+        """Download evidence bytes directly from MinIO."""
+        import botocore.exceptions
+        from app.exceptions import InfrastructureError
+
+        async with self.get_client() as s3:
+            try:
+                response = await s3.get_object(Bucket=self.bucket_name, Key=object_key)
+                return await response["Body"].read()
+            except botocore.exceptions.ClientError as e:
+                raise InfrastructureError(f"Failed to retrieve evidence artifact from MinIO: {str(e)}")
+
     @asynccontextmanager
     async def download_evidence_temp(self, object_key: str):
         """

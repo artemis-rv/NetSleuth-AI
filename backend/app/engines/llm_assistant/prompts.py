@@ -45,50 +45,65 @@ Output must be valid JSON only.
         ctx_str = self.serialize_context(context)
         return f"""{ctx_str}
 
-Provide a concise, factual executive summary of this investigation including key threat indicators, high-risk findings, involved entities, and current case status.
+Summarize this case. Format your answer strictly using this EXACT structured pointwise format:
+
+### Investigation Summary
+
+[2–4 sentence summary]
+
+### Key Findings
+
+1. [finding]
+2. [finding]
+
+### Key Limitations
+
+- [limitation]
+- [limitation]
+
+### Recommended Next Steps
+
+1. [action]
+2. [action]
+
 Format your output as a JSON object with key:
-"summary": "your detailed markdown summary here"
+"summary": "your complete structured markdown summary here"
 """
 
     def build_finding_explanation_prompt(self, context: LLMInvestigationContext, finding_id: str) -> str:
         ctx_str = self.serialize_context(context)
         return f"""{ctx_str}
 
-Explain finding '{finding_id}' using this EXACT structured format in your markdown response:
+Explain finding '{finding_id}' using this EXACT structured pointwise format:
 
-### What was detected
-<plain-language explanation of the finding activity>
+### Finding
+
+**[finding activity or title]**
 
 ### Why it is suspicious
-<evidence-backed reasoning explaining why the system flagged it>
+
+1. [specific signal]
+2. [specific signal]
 
 ### Evidence
-- Evidence ID: <exact evidence ID>
-- Type: <evidence type>
-- Observation: <specific IP, port, protocol, timestamp, or flow metric observation>
 
-### MITRE interpretation
-<associated MITRE ATT&CK technique and tactic explanation>
+- `[exact evidence ID]` — [what it shows]
 
-### Confidence and status
-<use exact M3 risk_score, confidence, and decision_state values from context>
+### Assessment
 
-### What is proven
-<observed network facts only>
+- Status: `[exact M3 status, e.g., SUPPORTED/PARTIAL]`
+- Confidence: `[exact M3 confidence]`
+- Risk: `[exact M3 risk score]`
 
-### What is not proven
-<missing or unverified information>
+### Limitations
 
-### Recommended investigation
-1. <numbered step>
-2. <numbered step>
+- [missing telemetry]
+- [uncertain interpretation]
 
-### Recommended containment/remediation
-1. <numbered step>
-2. <numbered step>
+### Recommended Next Steps
 
-### Priority
-<LOW / MEDIUM / HIGH / CRITICAL advisory rating>
+1. [action]
+2. [action]
 
 Format your output as a JSON object with keys:
 "finding_id": "{finding_id}",
@@ -100,12 +115,25 @@ Format your output as a JSON object with keys:
         return f"""{ctx_str}
 
 Explain the MITRE ATT&CK technique '{technique_id}' mapping based ONLY on the supplied context.
-Detail:
-- Tactic and technique representation
-- Why M3 mapped it
-- Supporting evidence IDs and findings
-- M3 mapping status and mapping confidence
-- Limitations or unproven aspects
+Format your answer strictly using this EXACT structured pointwise format:
+
+### MITRE ATT&CK
+
+**{technique_id} — [Technique Name]**
+
+1. [why mapped]
+2. [supporting behavior]
+
+### Assessment
+
+- Tactic: [exact tactic name]
+- Status: [exact M3 status, e.g., SUPPORTED/PARTIAL]
+- Confidence: [exact M3 mapping confidence]
+
+### Evidence
+
+- `[exact evidence ID]`
+- `[exact evidence ID]`
 
 Format your output as a JSON object with keys:
 "technique_id": "{technique_id}",
@@ -116,13 +144,30 @@ Format your output as a JSON object with keys:
         ctx_str = self.serialize_context(context)
         return f"""{ctx_str}
 
-Explain hypothesis '{hypothesis_id}':
-- Statement and hypothesis type
-- Why this hypothesis exists
-- What evidence and findings support it
-- What evidence is missing or contradicting
-- Current M3 status and confidence level
-- Suggested verification steps
+Explain hypothesis '{hypothesis_id}' using this EXACT structured pointwise format:
+
+### Hypothesis
+
+**[hypothesis statement]**
+
+- Status: `[exact status]`
+- Confidence: `[exact confidence]`
+
+### Supporting findings
+
+- `[exact finding ID]`
+
+### Supporting evidence
+
+- `[exact evidence ID]`
+
+### Rationale
+
+1. [reason]
+
+### Missing evidence
+
+- [missing evidence]
 
 Format your output as a JSON object with keys:
 "hypothesis_id": "{hypothesis_id}",
@@ -133,12 +178,28 @@ Format your output as a JSON object with keys:
         ctx_str = self.serialize_context(context)
         return f"""{ctx_str}
 
-Explain root cause '{root_cause_id}':
-- Root cause statement
-- Supporting hypotheses and evidence
-- Why status is POTENTIAL / PARTIALLY_SUPPORTED / SUPPORTED / UNRESOLVED
-- Missing evidence required for full confirmation
-- Recommended containment and verification steps
+Explain root cause '{root_cause_id}' using this EXACT structured pointwise format:
+
+### Root Cause
+
+**[root cause statement]**
+
+- Status: `[exact status]`
+- Confidence: `[exact confidence]`
+
+### Supporting Evidence
+
+- `[exact evidence ID]`
+- `[exact evidence ID]`
+
+### Why
+
+1. [reason]
+2. [reason]
+
+### Missing Evidence
+
+- [missing evidence]
 
 Format your output as a JSON object with keys:
 "root_cause_id": "{root_cause_id}",
@@ -149,12 +210,24 @@ Format your output as a JSON object with keys:
         ctx_str = self.serialize_context(context)
         return f"""{ctx_str}
 
-Explain impact assessment '{impact_id}':
-- Impact category and statement
-- Affected entities and assets
-- Supporting evidence and M3 status/confidence
-- Distinguish between OBSERVED impact vs POTENTIAL impact
-- Missing evidence and recommended mitigation
+Explain impact assessment '{impact_id}' using this EXACT structured pointwise format:
+
+### Impact Assessment
+
+**[impact category]**
+
+- Status: OBSERVED / INFERRED / POTENTIAL
+- Confidence: `[exact value]`
+
+### Evidence
+
+1. [evidence-backed fact]
+2. [evidence-backed fact]
+
+### Recommended Actions
+
+1. [action]
+2. [action]
 
 Format your output as a JSON object with keys:
 "impact_id": "{impact_id}",
@@ -163,20 +236,189 @@ Format your output as a JSON object with keys:
 
     def build_qa_prompt(self, context: LLMInvestigationContext, question: str) -> str:
         ctx_str = self.serialize_context(context)
+        q_lower = question.lower()
+        
+        # 1. Case Suspicious Query
+        if any(k in q_lower for k in ("why is this case suspicious", "why the case is suspicious", "suspicious case")):
+            guidance = """Format your answer strictly as a structured pointwise report using this exact format:
+
+### Why this case is suspicious
+
+1. **[Technique ID/Activity Name]**
+   - [concise explanation of suspicious external communication]
+   - MITRE: `[exact technique ID]`
+   - Status: `[exact M3 status]`
+   - Confidence: `[exact M3 confidence]`
+
+2. **[Technique ID/Activity Name]**
+   - [concise explanation]
+   - MITRE: `[exact technique ID]`
+   - Status: `[exact M3 status]`
+
+### Confirmed
+
+- The listed network behaviors were observed.
+- The findings and MITRE mappings were produced by M3.
+
+### Still Unconfirmed
+
+- [limitations / missing telemetry]
+
+### Recommended Next Steps
+
+1. [action]
+2. [action]
+3. [action]
+
+Rules:
+- Never return one long paragraph.
+- Use the exact headings above.
+- Do NOT use Markdown tables.
+- Use EXACT evidence IDs and status values from context.
+"""
+        # 2. Highest-risk findings query
+        elif any(k in q_lower for k in ("highest-risk findings", "highest risk findings", "high-risk findings")):
+            guidance = """Format your answer strictly as a concise analyst report using this exact structure:
+
+### Highest-Risk Findings
+
+- **[Technique ID] — [Technique Name]**
+  - **Confidence:** [XX%]
+  - **Risk:** [Critical/High/Medium/Low]
+  - [Concise explanation of what the finding indicates and why it matters.]
+
+- **[Technique ID] — [Technique Name]**
+  - **Confidence:** [XX%]
+  - **Risk:** [Critical/High/Medium/Low]
+  - [Concise explanation.]
+
+### Overall Verdict
+
+- [One concise sentence summarizing the security situation.]
+
+### Recommended Next Steps
+
+- [Immediate containment/investigation action]
+- [Investigation action]
+- [Evidence/forensic action]
+
+Rules:
+1. Do NOT use Markdown tables.
+2. Use bullet points and the exact headings above.
+3. Sort findings by: Critical > High > Medium > Low.
+4. For "highest-risk findings", prioritize High and Critical findings.
+5. If there are no High or Critical findings, write under that heading: "No High or Critical findings were identified from the supplied evidence."
+6. Keep the response under 180 words.
+7. No chain-of-thought or internal reasoning.
+"""
+        # 3. Next steps / "What should I do next?"
+        elif any(k in q_lower for k in ("what should i do next", "what should i investigate next", "investigate next", "do next")):
+            guidance = """Format your answer strictly as a structured report using this exact format:
+
+### Recommended Investigation Steps
+
+1. **Verify the source host**
+   - [what to check]
+
+2. **Validate the suspicious communication**
+   - [what to check]
+
+3. **Review endpoint telemetry**
+   - [what is missing]
+
+4. **Contain if confirmed**
+   - [safe action]
+
+### Priority
+
+**[Advisory Priority: LOW/MEDIUM/HIGH/CRITICAL]**
+
+Rules:
+- Do NOT alter M3 risk or status.
+- Do NOT use Markdown tables.
+"""
+        # 3. Remediation / "How can I fix this?"
+        elif any(k in q_lower for k in ("how can i fix this", "how can i contain", "how can i remediate", "remediate this", "contain this")):
+            guidance = """Format your answer strictly as a structured report using this exact format:
+
+### Immediate Actions
+
+1. [step]
+2. [step]
+
+### Investigation
+
+1. [step]
+2. [step]
+
+### Remediation
+
+1. [step]
+2. [step]
+
+### Monitoring
+
+1. [step]
+
+Rules:
+- Clearly distinguish recommendations from observed facts.
+- Do NOT use Markdown tables.
+"""
+        # 4. System Architecture Prompts
+        elif any(k in q_lower for k in ("m1", "m2", "m3", "m4", "postgresql", "minio", "architecture")):
+            guidance = """Format your answer strictly as a structured report using this exact format:
+
+### NetSleuth Architecture
+
+1. **M1 — Packet Intelligence**
+   - [explanation]
+
+2. **M2 — Analysis**
+   - [explanation]
+
+3. **M3 — Correlation & Investigation**
+   - [explanation]
+
+4. **M4 — Reporting**
+   - [explanation]
+
+5. **PostgreSQL**
+   - [explanation]
+
+6. **MinIO**
+   - [explanation]
+
+7. **LLM Copilot**
+   - [explanation]
+"""
+        # 5. Generic Q&A / Simple Questions (e.g. host / IP involved)
+        else:
+            guidance = """Format your answer strictly as a short structured Q&A using this exact format:
+
+### Host Involved
+
+**[Factual Host/IP, e.g., 192.168.1.105]**
+
+### Evidence
+
+- `[exact entity/evidence ID]`
+- `[related finding ID]`
+
+Rules:
+- No unnecessary paragraphs.
+- Rely ONLY on facts present in the context.
+"""
+
+        escaped_question = question.replace('"', '\\"')
+
         return f"""{ctx_str}
 
-Answer the following investigator question grounded exclusively in the context or NetSleuth-AI system architecture:
+Answer the following investigator question grounded exclusively in the context:
 QUESTION: {question}
 
-Guidance:
-- If the question is about system architecture (M1, M2, M3, M4, PostgreSQL, MinIO, APIs, UI), explain clearly using System Knowledge.
-- If the question is about findings, evidence, C2, DNS, scanning, exfiltration, or root cause:
-  - State OBSERVED facts vs INFERRED models vs POTENTIAL risks vs RECOMMENDATIONS.
-  - Cite specific IPs, ports, protocols, timestamps, finding IDs, and evidence IDs.
-  - Provide actionable investigation and containment recommendations.
-- If evidence is missing, state it explicitly.
+{guidance}
 
 Format your output as a JSON object with keys:
-"question": "{question}",
+"question": "{escaped_question}",
 "answer": "your detailed evidence-backed markdown answer here"
 """

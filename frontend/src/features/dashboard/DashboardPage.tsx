@@ -29,10 +29,10 @@ export function DashboardPage() {
   const canCreate = user?.role === 'investigator' || user?.role === 'administrator';
 
   // Derive stats from bounded data set
-  const openCount = data?.items.filter((c) => c.status === 'OPEN').length ?? 0;
-  const activeCount = data?.items.filter((c) => c.status === 'ACTIVE').length ?? 0;
+  const openCount = data?.items.filter((c) => c.status?.toUpperCase() === 'OPEN').length ?? 0;
+  const activeCount = data?.items.filter((c) => c.status?.toUpperCase() === 'ACTIVE').length ?? 0;
   const highPriorityCount = data?.items.filter(
-    (c) => c.priority === 'HIGH' || c.priority === 'CRITICAL'
+    (c) => c.priority?.toUpperCase() === 'HIGH' || c.priority?.toUpperCase() === 'CRITICAL'
   ).length ?? 0;
   const recentCases = data?.items.slice(0, 10) ?? [];
 
