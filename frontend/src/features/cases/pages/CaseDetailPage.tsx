@@ -1,6 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, CheckSquare, Square, Plus, Save } from 'lucide-react';
+import { 
+  ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, 
+  CheckSquare, Square, Plus, Save, LayoutDashboard, AlertTriangle, 
+  Activity, Share2, Shield, FolderOpen, FileText, Sparkles 
+} from 'lucide-react';
 import { useCaseQuery, useUpdateCaseMutation } from '../hooks';
 import { EditCaseForm } from '../components/EditCaseForm';
 import { CaseStatusBadge, CasePriorityBadge } from '../components/CaseBadge';
@@ -62,15 +66,15 @@ import { CopilotPanel } from '../../copilot/components/CopilotPanel';
 
 // ─── Top-level tab definitions ───────────────────────────────────────────────
 const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'findings', label: 'Findings' },
-  { id: 'network', label: 'Network' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'graph', label: 'Graph' },
-  { id: 'mitre', label: 'MITRE' },
-  { id: 'evidence', label: 'Evidence' },
-  { id: 'reports', label: 'Reports' },
-  { id: 'copilot', label: 'AI Copilot' },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'findings', label: 'Findings', icon: AlertTriangle },
+  { id: 'network', label: 'Network', icon: Activity },
+  { id: 'timeline', label: 'Timeline', icon: Clock },
+  { id: 'graph', label: 'Graph', icon: Share2 },
+  { id: 'mitre', label: 'MITRE', icon: Shield },
+  { id: 'evidence', label: 'Evidence', icon: FolderOpen },
+  { id: 'reports', label: 'Reports', icon: FileText },
+  { id: 'copilot', label: 'AI Copilot', icon: Sparkles },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -291,27 +295,30 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
     <div className="space-y-4">
       {/* Sub-tab bar */}
       <div
-        className="flex border-b border-border-subtle overflow-x-auto"
+        className="flex items-center gap-1.5 p-1 bg-surface-elevated/30 border border-border-subtle rounded-lg overflow-x-auto"
         role="tablist"
         aria-label="Investigation sub-sections"
       >
-        {INVESTIGATION_SUBTABS.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            id={`investigation-subtab-${t.id}`}
-            aria-selected={sub === t.id}
-            aria-controls={`investigation-subpanel-${t.id}`}
-            onClick={() => setSub(t.id)}
-            className={`px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-              sub === t.id
-                ? 'border-accent text-accent'
-                : 'border-transparent text-secondary hover:text-primary hover:border-border-subtle'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+        {INVESTIGATION_SUBTABS.map((t) => {
+          const isActive = sub === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              id={`investigation-subtab-${t.id}`}
+              aria-selected={isActive}
+              aria-controls={`investigation-subpanel-${t.id}`}
+              onClick={() => setSub(t.id)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                isActive
+                  ? 'bg-surface-elevated text-primary font-semibold shadow-sm border border-border-subtle'
+                  : 'text-muted hover:text-primary hover:bg-surface-elevated/50 border border-transparent'
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Sub-tab panel */}
@@ -450,27 +457,32 @@ export function CaseDetailPage() {
       {!editing && (
         <>
           <div
-            className="flex border-b border-border-subtle mb-6 overflow-x-auto"
+            className="flex items-center gap-1.5 p-1.5 bg-surface-elevated/40 border border-border-subtle rounded-xl mb-6 overflow-x-auto backdrop-blur-sm shadow-sm"
             role="tablist"
             aria-label="Case sections"
           >
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                role="tab"
-                id={`tab-${tab.id}`}
-                aria-selected={activeTab === tab.id}
-                aria-controls={`panel-${tab.id}`}
-                onClick={() => handleTabChange(tab.id)}
-                className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                  activeTab === tab.id
-                    ? 'border-accent text-accent'
-                    : 'border-transparent text-secondary hover:text-primary hover:border-border-subtle'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  id={`tab-${tab.id}`}
+                  aria-selected={isActive}
+                  aria-controls={`panel-${tab.id}`}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    isActive
+                      ? 'bg-accent/15 text-accent border border-accent/30 shadow-[0_0_15px_rgba(59,130,246,0.18)]'
+                      : 'text-secondary hover:text-primary hover:bg-surface-elevated/70 border border-transparent'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-accent' : 'text-muted'}`} aria-hidden="true" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div
