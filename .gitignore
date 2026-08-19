@@ -19,42 +19,25 @@ venv.bak/
 htmlcov/
 .mypy_cache/
 
-# Infrastructure — never commit local secrets or generated data
-# .env.example is intentionally NOT ignored (it contains only placeholders)
-# docker-compose.yml is intentionally NOT ignored (it is infrastructure-as-code)
-# MinIO data is stored in a Docker named volume (not a repo directory)
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.vite/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build artifacts
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environments
-.env
-*.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Testing and cache
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
+# Scratch & Debug Scripts
+scratch_*.py
+backend/scratch_*.py
+test_behavior_detail.py
+backend/test_behavior_detail.py
+test_output.log
+debug_finding.txt
+*.log
 
 # Infrastructure — never commit local secrets or generated data
 # .env.example is intentionally NOT ignored (it contains only placeholders)
@@ -77,28 +60,9 @@ Thumbs.db
 # Evidence files — never commit capture data
 sample_data/evidence/*.pcap
 sample_data/evidence/*.pcapng
+backend/sample_data/evidence/*.pcap
+backend/sample_data/evidence/*.pcapng
 
 # Zeek dynamic outputs — never commit runtime outputs
 sample_data/zeek_output/
 backend/sample_data/zeek_output/
-
-
-test_output.log
-debug_finding.txt
-
-# Local infra binaries and data
-infra/bin/
-infra/data/
-infra/pg/
-infra/pg.zip
-
-# Seed scripts with development passwords
-backend/seed.py
-backend/seed_users.py
-seed.py
-seed_users.py
-**/seed.py
-**/seed_users.py
-
-
-
