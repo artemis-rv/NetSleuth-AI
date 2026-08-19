@@ -47,11 +47,11 @@ function formatDateTime(iso: string): string {
 function MetaItem({ icon: Icon, label, value }: { icon: any; label: string; value: string | null | undefined }) {
   if (!value) return null;
   return (
-    <div className="flex items-start gap-2.5">
+    <div className="flex items-start gap-3 bg-surface/50 p-3 rounded-lg border border-border-subtle-2">
       <Icon className="h-4 w-4 text-muted mt-0.5 flex-shrink-0" aria-hidden="true" />
       <div>
-        <p className="text-xs text-muted mb-0.5">{label}</p>
-        <p className="text-sm text-primary">{value}</p>
+        <p className="text-[11px] uppercase tracking-wider text-muted mb-1 font-semibold">{label}</p>
+        <p className="text-sm font-medium text-primary">{value}</p>
       </div>
     </div>
   );
@@ -125,52 +125,52 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="flex flex-col h-full border-border-subtle bg-surface-elevated/30">
+      <CardHeader className="pb-2 border-b border-border-subtle/50 px-5 pt-5">
         <CardTitle className="text-sm flex items-center gap-2">
           <Target className="h-4 w-4 text-accent" aria-hidden="true" />
           Investigation Goals
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-3" aria-label="Investigation goals">
+      <CardContent className="p-0 flex-1">
+        <div className="divide-y divide-border-subtle/50" aria-label="Investigation goals">
           {goals.map((goal) => (
-            <div key={goal.id} className="flex flex-col gap-2 p-3 rounded-lg border border-border-subtle bg-surface-elevated/50 transition-colors hover:bg-surface-elevated">
+            <div key={goal.id} className="group flex flex-col p-4 transition-colors hover:bg-surface/50">
               <div className="flex items-start gap-3">
                 <button
                   type="button"
                   onClick={() => toggleGoal(goal.id)}
-                  className="mt-0.5 flex-shrink-0 text-muted hover:text-accent transition-colors"
+                  className="mt-0.5 flex-shrink-0 text-muted hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
                   aria-label={goal.completed ? "Mark incomplete" : "Mark complete"}
                 >
                   {goal.completed ? (
-                    <CheckSquare className="h-5 w-5 text-accent" />
+                    <CheckSquare className="h-5 w-5 text-success" />
                   ) : (
-                    <Square className="h-5 w-5" />
+                    <Square className="h-5 w-5 text-muted group-hover:text-primary transition-colors" />
                   )}
                 </button>
                 <div className="flex-1">
-                  <span className={`text-sm leading-relaxed ${goal.completed ? 'text-muted line-through' : 'text-primary'}`}>
+                  <span className={`text-[14px] leading-relaxed font-medium transition-colors ${goal.completed ? 'text-muted line-through' : 'text-primary'}`}>
                     {goal.description}
                   </span>
                 </div>
               </div>
               
-              <div className="pl-8 flex flex-col gap-2">
+              <div className="pl-8 mt-1.5 flex flex-col">
                 {editingNoteId === goal.id ? (
-                  <div className="flex gap-2 items-start mt-1">
+                  <div className="flex gap-2 items-start mt-2 bg-background/50 p-2 rounded-md border border-border-subtle">
                     <textarea
                       value={draftNote}
                       onChange={(e) => setDraftNote(e.target.value)}
-                      placeholder="Add a note..."
-                      className="flex-1 text-sm bg-background border border-border-subtle rounded p-2 min-h-[60px] resize-none focus:outline-none focus:ring-1 focus:ring-accent"
+                      placeholder="Add an investigator note..."
+                      className="flex-1 text-sm bg-transparent border-none min-h-[40px] resize-none focus:outline-none focus:ring-0 text-primary"
                       autoFocus
                     />
-                    <div className="flex flex-col gap-1">
-                      <Button size="sm" onClick={() => saveNote(goal.id)} disabled={updateCase.isPending}>
+                    <div className="flex flex-col gap-1.5">
+                      <Button size="sm" onClick={() => saveNote(goal.id)} disabled={updateCase.isPending} className="h-7 text-xs">
                         <Save className="h-3 w-3 mr-1" /> Save
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingNoteId(null)}>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingNoteId(null)} className="h-7 text-xs">
                         Cancel
                       </Button>
                     </div>
@@ -178,13 +178,13 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
                 ) : (
                   <>
                     {goal.note ? (
-                      <div className="flex justify-between items-start group">
-                        <p className="text-xs text-secondary bg-background/50 p-2 rounded border border-border-subtle flex-1 whitespace-pre-wrap">
+                      <div className="flex justify-between items-start group/note mt-1">
+                        <p className="text-[13px] text-secondary border-l-2 border-accent/40 pl-3 py-0.5 flex-1 whitespace-pre-wrap">
                           {goal.note}
                         </p>
                         <button
                           onClick={() => { setEditingNoteId(goal.id); setDraftNote(goal.note!); }}
-                          className="text-xs text-muted hover:text-accent ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+                          className="text-xs text-muted hover:text-accent ml-2 opacity-0 group-hover/note:opacity-100 transition-opacity flex items-center gap-1"
                         >
                           <Edit2 className="h-3 w-3" /> Edit
                         </button>
@@ -192,7 +192,7 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
                     ) : (
                       <button
                         onClick={() => { setEditingNoteId(goal.id); setDraftNote(''); }}
-                        className="text-xs text-muted hover:text-accent flex items-center gap-1 transition-colors self-start"
+                        className="text-xs text-muted hover:text-accent flex items-center gap-1.5 transition-colors self-start mt-1 opacity-0 group-hover:opacity-100"
                       >
                         <Plus className="h-3 w-3" /> Add Note
                       </button>
@@ -216,27 +216,27 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
   const activeAcquisition = acquisitions?.items?.[0];
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start">
       {/* Trigger Panel */}
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="flex flex-col h-full border-border-subtle bg-surface-elevated/30">
+        <CardHeader className="pb-2 border-b border-border-subtle/50 px-5 pt-5">
           <CardTitle className="text-sm flex items-center gap-2">
             <Zap className="h-4 w-4 text-warning" aria-hidden="true" />
             Triggering Event
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-3">
+        <CardContent className="px-5 py-4 flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-xs text-muted mb-1">Trigger Type</p>
-              <span className="inline-flex items-center rounded border border-border-subtle bg-surface-elevated px-2.5 py-1 text-xs font-medium text-secondary">
+              <p className="text-[11px] uppercase tracking-wider text-muted mb-2 font-semibold">Trigger Type</p>
+              <span className="inline-flex items-center rounded border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-secondary shadow-sm">
                 {caseData.trigger_type.replace(/_/g, ' ')}
               </span>
             </div>
             {caseData.trigger_description && (
-              <div>
-                <p className="text-xs text-muted mb-1">Description</p>
-                <p className="text-sm text-primary whitespace-pre-wrap leading-relaxed">
+              <div className="md:col-span-2">
+                <p className="text-[11px] uppercase tracking-wider text-muted mb-2 font-semibold">Context / Description</p>
+                <p className="text-sm text-primary whitespace-pre-wrap leading-relaxed bg-surface/50 p-3 rounded-md border border-border-subtle-2">
                   {caseData.trigger_description}
                 </p>
               </div>
@@ -246,43 +246,52 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
       </Card>
 
       {/* Investigation Goals Panel */}
-      {caseData.investigation_goals && caseData.investigation_goals.length > 0 && (
+      {caseData.investigation_goals && caseData.investigation_goals.length > 0 ? (
         <InvestigationGoalsChecklist caseData={caseData} />
-      )}
+      ) : <div />}
 
       {/* Acquisition Section */}
-      <AcquisitionSection
-        caseId={caseData.case_id}
-        acquisitions={acquisitions?.items || []}
-        evidenceList={evidence?.items || []}
-      />
-
-      {/* Analysis Section */}
-      <AnalysisSection
-        caseId={caseData.case_id}
-        acquisitionId={activeAcquisition?.acquisition_id}
-        acquisitions={acquisitions?.items || []}
-        onViewFindings={() => onTabChange?.('findings')}
-      />
+      <div className="lg:col-span-1 flex flex-col h-full">
+        <AcquisitionSection
+          caseId={caseData.case_id}
+          acquisitions={acquisitions?.items || []}
+          evidenceList={evidence?.items || []}
+        />
+      </div>
 
       {/* Metadata Panel */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Case Metadata</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <MetaItem icon={Calendar} label="Opened" value={formatDateTime(caseData.opened_at)} />
-            <MetaItem icon={Clock} label="Last Updated" value={formatDateTime(caseData.updated_at)} />
-            {caseData.closed_at && (
-              <MetaItem icon={Calendar} label="Closed" value={formatDateTime(caseData.closed_at)} />
-            )}
-            <MetaItem icon={User} label="Reported By" value={caseData.reported_by} />
-            <MetaItem icon={User} label="External Case ID" value={caseData.external_case_id} />
-            <MetaItem icon={User} label="External System" value={caseData.external_system} />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="lg:col-span-1 flex flex-col h-full">
+        <Card className="flex flex-col h-full border-border-subtle bg-surface-elevated/30">
+          <CardHeader className="pb-2 border-b border-border-subtle/50 px-5 pt-5">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Activity className="h-4 w-4 text-accent" aria-hidden="true" />
+              Case Metadata
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 py-4 flex-1">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5">
+              <MetaItem icon={Calendar} label="Opened" value={formatDateTime(caseData.opened_at)} />
+              <MetaItem icon={Clock} label="Last Updated" value={formatDateTime(caseData.updated_at)} />
+              {caseData.closed_at && (
+                <MetaItem icon={Calendar} label="Closed" value={formatDateTime(caseData.closed_at)} />
+              )}
+              <MetaItem icon={User} label="Reported By" value={caseData.reported_by} />
+              <MetaItem icon={FolderOpen} label="External ID" value={caseData.external_case_id} />
+              <MetaItem icon={Target} label="Source System" value={caseData.external_system} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analysis Section (Full width bottom) */}
+      <div className="lg:col-span-2">
+        <AnalysisSection
+          caseId={caseData.case_id}
+          acquisitionId={activeAcquisition?.acquisition_id}
+          acquisitions={acquisitions?.items || []}
+          onViewFindings={() => onTabChange?.('findings')}
+        />
+      </div>
     </div>
   );
 }
@@ -394,44 +403,48 @@ export function CaseDetailPage() {
   if (!caseData) return null;
 
   return (
-    <div>
+    <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-6">
       {/* Breadcrumb */}
       <div className="mb-4">
         <Link
           to="/investigations"
-          className="inline-flex items-center text-sm text-muted hover:text-primary transition-colors"
+          className="inline-flex items-center text-[13px] font-medium text-muted hover:text-primary transition-colors"
         >
           <ChevronLeft className="h-4 w-4 mr-1" aria-hidden="true" />
-          Investigations
+          Back to Investigations
         </Link>
       </div>
 
       {/* Case Header */}
-      <div className="flex items-start justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4 border-b border-border-subtle pb-6">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
             <CaseStatusBadge status={caseData.status} />
             <CasePriorityBadge priority={caseData.priority} />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-primary leading-tight">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary leading-tight mt-1">
             {caseData.title}
           </h1>
           {caseData.description && (
-            <p className="text-sm text-secondary mt-2 leading-relaxed">{caseData.description}</p>
+            <p className="text-sm text-secondary mt-3 leading-relaxed max-w-4xl">{caseData.description}</p>
           )}
-          <p className="text-xs text-muted mt-2 font-mono">ID: {caseData.case_id}</p>
+          <div className="flex items-center gap-2 mt-4">
+            <span className="text-[11px] uppercase tracking-wider text-muted font-semibold">Case ID</span>
+            <span className="text-[13px] text-primary font-mono bg-surface-elevated px-2 py-0.5 rounded border border-border-subtle">{caseData.case_id}</span>
+          </div>
         </div>
         <div className="flex-shrink-0 flex gap-2">
           <Button
             variant="secondary"
             size="sm"
+            className="border-border-subtle bg-surface hover:bg-surface-elevated text-primary"
             onClick={() => setEditing((prev) => !prev)}
             aria-label={editing ? 'Cancel editing' : 'Edit case'}
           >
             {editing ? (
-              <><X className="h-4 w-4 mr-1" aria-hidden="true" /> Cancel</>
+              <><X className="h-4 w-4 mr-1.5 text-muted" aria-hidden="true" /> Cancel</>
             ) : (
-              <><Edit2 className="h-4 w-4 mr-1" aria-hidden="true" /> Edit</>
+              <><Edit2 className="h-4 w-4 mr-1.5 text-muted" aria-hidden="true" /> Edit</>
             )}
           </Button>
         </div>
@@ -439,7 +452,7 @@ export function CaseDetailPage() {
 
       {/* Edit Form */}
       {editing && (
-        <Card className="mb-6">
+        <Card className="mb-8 border-border-subtle bg-surface-elevated/30">
           <CardHeader>
             <CardTitle className="text-base">Edit Investigation</CardTitle>
           </CardHeader>
@@ -457,7 +470,7 @@ export function CaseDetailPage() {
       {!editing && (
         <>
           <div
-            className="flex items-center gap-1.5 p-1.5 bg-surface-elevated/40 border border-border-subtle rounded-xl mb-6 overflow-x-auto backdrop-blur-sm shadow-sm"
+            className="flex items-end gap-1.5 border-b border-border-subtle mb-6 overflow-x-auto scrollbar-hide"
             role="tablist"
             aria-label="Case sections"
           >
@@ -472,14 +485,17 @@ export function CaseDetailPage() {
                   aria-selected={isActive}
                   aria-controls={`panel-${tab.id}`}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  className={`relative flex items-center gap-2 px-4 h-[52px] text-[14px] font-medium whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-t-[5px] border border-b-0 ${
                     isActive
-                      ? 'bg-accent/15 text-accent border border-accent/30 shadow-[0_0_15px_rgba(59,130,246,0.18)]'
-                      : 'text-secondary hover:text-primary hover:bg-surface-elevated/70 border border-transparent'
+                      ? 'bg-surface-elevated border-border-subtle text-primary shadow-sm'
+                      : 'border-transparent bg-transparent text-muted hover:text-primary hover:bg-surface-elevated/30'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-accent' : 'text-muted'}`} aria-hidden="true" />
+                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-accent' : 'text-muted'}`} aria-hidden="true" />
                   <span>{tab.label}</span>
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-accent" aria-hidden="true" />
+                  )}
                 </button>
               );
             })}
@@ -489,6 +505,7 @@ export function CaseDetailPage() {
             role="tabpanel"
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
+            className="min-h-[500px]"
           >
             {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={handleTabChange} />}
             {activeTab === 'findings' && <FindingsSection caseId={caseData.case_id} />}

@@ -7,10 +7,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0b',
-        surface: '#111113',
-        'surface-elevated': '#1a1a1d',
-        'border-subtle': '#2a2a2e',
+        background: '#08090b',
+        surface: '#101216',
+        'surface-elevated': '#15171c',
+        'border-subtle': 'rgba(255, 255, 255, 0.08)',
+        'border-subtle-2': 'rgba(255, 255, 255, 0.05)',
         primary: '#e4e4e7',
         secondary: '#a1a1aa',
         muted: '#71717a',
