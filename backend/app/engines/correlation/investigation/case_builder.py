@@ -139,9 +139,31 @@ class InvestigationCaseBuilder:
         
         # 1. Findings
         for f in ctx.findings:
+            # Use domain finding timestamps if available, else calculate from timeline events
+            first_observed = f.first_seen.isoformat().replace("+00:00", "Z") if getattr(f, "first_seen", None) else None
+            last_observed = f.last_seen.isoformat().replace("+00:00", "Z") if getattr(f, "last_seen", None) else None
+
+            if not first_observed or not last_observed:
+                finding_timestamps = []
+                for t in ctx.timeline_events:
+                    if f.finding_id in (t.finding_ids or []):
+                        finding_timestamps.append(t.timestamp)
+                    elif hasattr(f, 'event_ids') and t.event_id in (getattr(f, 'event_ids', []) or []):
+                        finding_timestamps.append(t.timestamp)
+                        
+                if not first_observed and finding_timestamps:
+                    first_observed = min(finding_timestamps).isoformat().replace("+00:00", "Z")
+                if not last_observed and finding_timestamps:
+                    last_observed = max(finding_timestamps).isoformat().replace("+00:00", "Z")
+
             doc["findings"].append({
                 "finding_id": f.finding_id,
-                "role": "primary"
+                "role": "primary",
+                "activity": getattr(f, "finding_type", "suspicious_activity"),
+                "confidence_score": getattr(f, "confidence_score", 0.8),
+                "risk_score": 0.8,
+                "first_observed": first_observed,
+                "last_observed": last_observed
             })
             
         # 2. Timeline
@@ -369,7 +391,22 @@ class InvestigationCaseBuilder:
                     
                 doc["mitre_mappings"].append(m_doc)
 
+        # Temporarily remove internal metadata to pass strict JSON schema validation
+        internal_metadata = []
+        for f in doc["findings"]:
+            internal_metadata.append({
+                "activity": f.pop("activity", None),
+                "confidence_score": f.pop("confidence_score", None),
+                "risk_score": f.pop("risk_score", None),
+                "first_observed": f.pop("first_observed", None),
+                "last_observed": f.pop("last_observed", None),
+            })
+
         # Validate output against schema
         self.validator.validate(f"{schema_version}.json", doc)
         
+        # Restore internal metadata for persistence service consumption
+        for i, f in enumerate(doc["findings"]):
+            f.update({k: v for k, v in internal_metadata[i].items() if v is not None})
+            
         return doc

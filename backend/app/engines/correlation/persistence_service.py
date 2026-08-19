@@ -174,7 +174,7 @@ class M3PersistenceService:
             f_id = finding.get("finding_id")
             if f_id:
                 b_uuid = self._to_uuid(f"behavior:{f_id}")
-                b_type = finding.get("activity", finding.get("finding_type", "suspicious_activity"))
+                b_type = finding.pop("activity", finding.get("finding_type", "suspicious_activity"))
                 b_label = b_type.replace("_", " ").title()
                 
                 # Append to behavior-finding links immediately
@@ -189,11 +189,12 @@ class M3PersistenceService:
                     "case_id": case_uuid,
                     "behavior_type": b_type,
                     "label": b_label,
-                    "confidence": finding.get("confidence_score", 0.8),
-                    "attributes": finding,
-                    "first_observed": None,
-                    "last_observed": None
+                    "confidence": finding.pop("confidence_score", 0.8),
+                    "attributes": dict(finding),
+                    "first_observed": self._parse_time(finding.pop("first_observed", None)),
+                    "last_observed": self._parse_time(finding.pop("last_observed", None))
                 })
+                finding.pop("risk_score", None)
         if behaviors:
             await self.uow.session.execute(
                 pg_insert(BehaviorModel).values(behaviors).on_conflict_do_nothing()
