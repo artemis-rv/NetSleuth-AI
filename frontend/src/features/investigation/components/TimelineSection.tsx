@@ -74,10 +74,7 @@ export function TimelineSection({ caseId }: TimelineSectionProps) {
                     aria-hidden="true"
                   />
 
-                  <div 
-                    className="border border-border-subtle rounded p-3 space-y-1.5 hover:bg-surface-elevated hover:border-accent/40 cursor-pointer active:scale-[0.99] transition-all"
-                    onClick={() => console.log('Clicked event:', evt)}
-                  >
+                  <div className="border border-border-subtle rounded p-3 space-y-1.5 hover:bg-surface-elevated/40 transition-colors">
                     {/* Header row */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${typeStyle}`}>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFindingsQuery } from '../hooks';
-import { useAnalysisJobs } from '../../analysis/hooks';
 import { FindingRow } from './FindingRow';
 import { FindingFilters } from './FindingFilters';
 import { FindingDetailDrawer } from './FindingDetailDrawer';
@@ -18,9 +17,6 @@ export function FindingsSection({ caseId }: FindingsSectionProps) {
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
 
   const { data, isLoading, isError, error } = useFindingsQuery(caseId, filters);
-  const { data: analysisData } = useAnalysisJobs(caseId);
-
-  const hasJobs = (analysisData?.jobs?.length ?? 0) > 0;
 
   const totalPages = data ? Math.ceil(data.total / (filters.page_size ?? 25)) : 0;
   const currentPage = filters.page ?? 1;
@@ -59,12 +55,8 @@ export function FindingsSection({ caseId }: FindingsSectionProps) {
       {/* Results */}
       {data && data.items.length === 0 && (
         <EmptyState
-          title={!hasJobs ? "Analysis Not Started" : "No Findings Detected"}
-          description={
-            !hasJobs
-              ? "Forensic analysis has not been executed for this case yet. Please navigate to the Overview tab and click Start Analysis."
-              : "The analysis pipeline completed and detected zero security findings for this acquisition."
-          }
+          title="No Findings"
+          description="No findings match the current filters for this investigation."
         />
       )}
 

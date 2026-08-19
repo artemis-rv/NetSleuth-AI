@@ -6,7 +6,6 @@ import { EmptyState } from '../../../components/feedback/EmptyState';
 import type { PaginationFilters } from '../types';
 
 const SEVERITY_STYLES: Record<string, string> = {
-  undefined: 'border-slate-500/40 bg-slate-500/10 text-slate-400',
   critical: 'bg-red-500/15 text-red-400 border-red-500/30',
   high: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
   medium: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
@@ -69,7 +68,7 @@ export function BehaviorsSection({ caseId }: BehaviorsSectionProps) {
         <>
           <div className="space-y-2">
             {data.items.map((beh) => {
-              const sevStyle = beh.severity ? SEVERITY_STYLES[beh.severity.toLowerCase()] ?? SEVERITY_STYLES.unknown : SEVERITY_STYLES.unknown;
+              const sevStyle = SEVERITY_STYLES[beh.severity?.toLowerCase()] ?? SEVERITY_STYLES.info;
               const confidence = beh.confidence !== null ? `${Math.round(beh.confidence * 100)}%` : null;
 
               return (
@@ -82,9 +81,9 @@ export function BehaviorsSection({ caseId }: BehaviorsSectionProps) {
                     <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold uppercase flex-shrink-0 ${sevStyle}`}>
                       {beh.severity}
                     </span>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-medium text-primary">{beh.label}</p>
-                      <p className="text-xs text-muted">{beh.behavior_type?.replace(/_/g, ' ')}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-primary">{beh.name}</p>
+                      <p className="text-xs text-muted">{beh.category.replace(/_/g, ' ')}</p>
                     </div>
                     {confidence && (
                       <span className="text-xs text-secondary bg-surface-elevated border border-border-subtle rounded px-1.5 py-0.5 flex-shrink-0">

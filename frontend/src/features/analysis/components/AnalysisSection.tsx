@@ -17,14 +17,7 @@ interface AnalysisSectionProps {
   onViewFindings?: () => void;
 }
 
-const STAGES = [
-  'QUEUED',
-  'M1_PACKET_INTELLIGENCE',
-  'M2_ANALYSIS',
-  'M3_CORRELATION',
-  'M4_REPORTING',
-  'COMPLETED'
-];
+const STAGES = ['QUEUED', 'M1', 'M2', 'M3', 'M4', 'COMPLETED'];
 
 export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onViewFindings }: AnalysisSectionProps) {
   const { data, isLoading } = useAnalysisJobs(caseId);
@@ -59,91 +52,55 @@ export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onVi
     }
   };
 
-  const getStageIndex = (stage: string | null | undefined): number => {
-    if (!stage) return -1;
-    switch (stage) {
-      case 'INITIALIZING':
-      case 'LOADING_ACQUISITION':
-        return 0; // QUEUED
-      case 'M1_PACKET_INTELLIGENCE':
-        return 1; // M1
-      case 'M2_ANALYSIS':
-        return 2; // M2
-      case 'M3_CORRELATION':
-        return 3; // M3
-      case 'M4_REPORTING':
-        return 4; // M4
-      case 'COMPLETED':
-        return 5; // COMPLETED
-      default:
-        return -1;
-    }
-  };
-
   const renderStageTimeline = (job: AnalysisJobResponse) => {
     if (job.status === 'failed') {
       return (
-        <div className="flex items-center gap-3 text-danger mt-6 bg-danger/10 p-4 rounded-lg border border-danger/20">
-          <AlertCircle className="h-6 w-6 flex-shrink-0" />
+        <div className="flex items-center gap-2 text-danger mt-4 bg-danger/10 p-3 rounded border border-danger/20">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-semibold">Analysis Failed at {job.current_stage}</p>
+            <p className="text-sm font-medium">Analysis Failed at {job.current_stage}</p>
             {job.error_code && <p className="text-xs opacity-90 font-mono mt-1">{job.error_code}</p>}
           </div>
         </div>
       );
     }
 
-    const currentStageIndex = getStageIndex(job.current_stage);
+    const currentStageIndex = STAGES.indexOf(job.current_stage);
     
     return (
-      <div className="mt-6 mb-2">
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-2">
-            <Activity className="h-3.5 w-3.5 text-accent" />
-            Processing Pipeline
-          </p>
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium text-primary">Processing Pipeline</p>
           {job.progress !== null && (
-            <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-              job.status === 'completed' 
-                ? 'bg-success/10 text-success border-success/30' 
-                : 'bg-accent/10 text-accent border-accent/30'
-            }`}>
-              {job.progress}%
-            </span>
+            <p className="text-xs font-medium text-accent">{job.progress}%</p>
           )}
         </div>
         
-        <div className="relative px-3 pt-2 pb-6">
-          {/* Continuous track line (background) */}
-          <div className="absolute top-5 left-6 right-6 h-1 bg-surface-elevated rounded-full z-0" />
+        <div className="relative">
+          {/* Track line */}
+          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border-subtle -translate-y-1/2 rounded" />
           
-          {/* Active track line (progress) */}
-          <div 
-            className={`absolute top-5 left-6 h-1 rounded-full z-0 transition-all duration-500 ease-in-out ${job.status === 'completed' ? 'bg-success' : 'bg-accent'}`}
-            style={{ width: `calc(${Math.min(100, Math.max(0, job.status === 'completed' ? 100 : (currentStageIndex / (STAGES.length - 1)) * 100))}% - 3rem)` }}
-          />
-          
-          <div className="relative flex justify-between z-10">
+          <div className="relative flex justify-between">
             {STAGES.map((stage, idx) => {
               const isPast = currentStageIndex > idx || job.status === 'completed';
               const isCurrent = currentStageIndex === idx && job.status !== 'completed';
               return (
                 <div key={stage} className="flex flex-col items-center group relative">
                   <div 
-                    className={`w-7 h-7 rounded-full flex items-center justify-center border-[2.5px] transition-all duration-300 ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center border-2 z-10 transition-colors ${
                       isPast 
-                        ? 'bg-success border-success text-white shadow-sm' 
+                        ? 'bg-success border-success text-white' 
                         : isCurrent 
-                        ? 'bg-background border-accent text-accent ring-4 ring-accent/20 scale-110' 
-                        : 'bg-surface-elevated border-border-subtle text-transparent'
+                        ? 'bg-background border-accent text-accent animate-pulse' 
+                        : 'bg-surface-elevated border-border-subtle text-muted'
                     }`}
                   >
-                    {isPast ? <CheckCircle2 className="h-4 w-4" strokeWidth={3} /> : <div className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-accent' : 'bg-transparent'}`} />}
+                    {isPast ? <CheckCircle2 className="h-4 w-4" /> : <div className="w-2 h-2 rounded-full bg-current" />}
                   </div>
-                  <p className={`mt-3 text-[10px] font-bold tracking-wider absolute top-7 whitespace-nowrap uppercase ${
-                    isPast ? 'text-primary' : isCurrent ? 'text-accent' : 'text-muted'
+                  <p className={`mt-2 text-xs font-medium absolute top-6 whitespace-nowrap ${
+                    isPast ? 'text-success' : isCurrent ? 'text-accent' : 'text-muted'
                   }`}>
-                    {stage.replace('M1_PACKET_INTELLIGENCE', 'M1').replace('M2_ANALYSIS', 'M2').replace('M3_CORRELATION', 'M3').replace('M4_REPORTING', 'M4')}
+                    {stage}
                   </p>
                 </div>
               );
@@ -155,84 +112,60 @@ export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onVi
   };
 
   return (
-    <Card className="border-border-subtle shadow-sm mb-6">
-      <CardHeader className="p-6 pb-4 border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <CardTitle className="text-base font-semibold flex items-center gap-2 mb-1">
-            <Activity className="h-4 w-4 text-accent" aria-hidden="true" />
-            Analysis Jobs
-          </CardTitle>
-          <p className="text-xs text-muted">Runs packet intelligence, parsing, correlation, and evidence generation.</p>
-        </div>
-        
-        {/* Start Analysis Button in Header */}
-        {!activeJob && acquisitionId && (
-          <Button 
-            onClick={handleStartAnalysis} 
-            disabled={startMutation.isPending}
-            className="flex-shrink-0 shadow-sm hover:shadow bg-accent text-white hover:bg-accent/90"
-          >
-            {startMutation.isPending ? (
-              <><Spinner size={16} className="mr-2" /> Starting...</>
-            ) : (
-              <><Play className="h-4 w-4 mr-1.5" /> Start Analysis</>
-            )}
-          </Button>
-        )}
+    <Card>
+      <CardHeader className="pb-3 border-b border-border-subtle mb-4">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Activity className="h-5 w-5 text-accent" aria-hidden="true" />
+          Analysis Jobs
+        </CardTitle>
       </CardHeader>
-      
-      <CardContent className="p-6">
-        {!acquisitionId ? (
-          <div className="text-center py-10 bg-surface-elevated/30 rounded-xl border border-dashed border-border-subtle text-muted text-sm">
+      <CardContent>
+        {!acquisitionId && acquisitions.length === 0 ? (
+          <div className="text-center py-6 text-muted text-sm">
             Please upload an acquisition first before starting analysis.
           </div>
         ) : (
           <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-primary mb-1">Automated Pipeline</p>
+                <p className="text-xs text-muted">Runs packet intelligence, parsing, correlation, and evidence generation.</p>
+              </div>
+              
+              {!activeJob && (
+                <Button 
+                  onClick={handleStartAnalysis} 
+                  disabled={startMutation.isPending}
+                >
+                  {startMutation.isPending ? (
+                    <><Spinner size={16} className="mr-2" /> Starting...</>
+                  ) : (
+                    <><Play className="h-4 w-4 mr-1.5" /> Start Analysis</>
+                  )}
+                </Button>
+              )}
+            </div>
+
             {errorMsg && (
-              <div className="flex items-start gap-2 text-sm text-danger bg-danger/10 p-3 rounded-lg border border-danger/20">
+              <div className="flex items-start gap-2 text-sm text-danger bg-danger/10 p-2 rounded">
                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <p>{errorMsg}</p>
               </div>
             )}
 
             {isLoading && (
-              <div className="flex justify-center py-10">
-                <Spinner size={28} />
-              </div>
-            )}
-
-            {!latestJob && !isLoading && acquisitionId && (
-              <div className="text-center py-12 px-6 bg-surface-elevated/20 rounded-xl border border-dashed border-border-subtle">
-                <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-4 border border-accent/20">
-                  <Play className="h-6 w-6 ml-0.5" />
-                </div>
-                <h4 className="text-base font-semibold text-primary mb-2">Analysis Has Not Been Started</h4>
-                <p className="text-sm text-muted max-w-md mx-auto mb-6 leading-relaxed">
-                  An acquisition file is linked to this case. Click Start Analysis to execute packet intelligence, network flow parsing, threat correlation, and report generation.
-                </p>
-                <Button onClick={handleStartAnalysis} disabled={startMutation.isPending} className="shadow-sm bg-accent text-white hover:bg-accent/90">
-                  {startMutation.isPending ? (
-                    <><Spinner size={16} className="mr-2" /> Starting...</>
-                  ) : (
-                    <><Play className="h-4 w-4 mr-2" /> Start Analysis</>
-                  )}
-                </Button>
+              <div className="flex justify-center py-4">
+                <Spinner size={24} />
               </div>
             )}
 
             {latestJob && !isLoading && (
-              <div className="bg-surface p-6 rounded-xl border border-border-subtle/80 shadow-sm relative overflow-hidden space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-subtle/50">
+              <div className="bg-surface p-4 rounded-lg border border-border-subtle mt-4">
+                <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
-                      Current Analysis 
-                      <span className="text-xs font-mono text-muted bg-surface-elevated px-2 py-0.5 rounded border border-border-subtle">
-                        {latestJob.analysis_id.split('-')[0]}
-                      </span>
-                    </h3>
-                    <p className="text-xs text-muted mt-1 flex items-center gap-1.5">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent"></span>
-                      Started {new Date(latestJob.started_at).toLocaleString()}
+                    <h3 className="text-sm font-medium text-primary">Job {latestJob.analysis_id.split('-')[0]}</h3>
+                    <p className="text-xs text-muted">
+                      Started: {new Date(latestJob.started_at).toLocaleString()}
                     </p>
                   </div>
                   <Badge 
@@ -241,7 +174,6 @@ export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onVi
                       latestJob.status === 'failed' ? 'danger' :
                       latestJob.status === 'cancelled' ? 'warning' : 'info'
                     }
-                    className="px-3 py-1 text-[11px] font-bold tracking-wider uppercase self-start sm:self-auto"
                   >
                     {latestJob.status.toUpperCase()}
                   </Badge>
@@ -249,10 +181,10 @@ export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onVi
                 
                 {renderStageTimeline(latestJob)}
                 
-                {latestJob.status === 'completed' && (latestJob.findings_count ?? 0) > 0 && (
-                  <div className="pt-4 border-t border-border-subtle/50 flex justify-end">
-                    <Button variant="secondary" className="gap-2 text-xs shadow-sm border-border-subtle hover:border-primary/30 hover:bg-surface-elevated transition-all" onClick={onViewFindings}>
-                      View Findings <ArrowRight className="h-3.5 w-3.5" />
+                {latestJob.status === 'completed' && (
+                  <div className="mt-10 flex justify-end">
+                    <Button variant="secondary" className="gap-1.5" onClick={onViewFindings}>
+                      View Findings <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
@@ -260,26 +192,17 @@ export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onVi
             )}
             
             {sortedJobs.length > 1 && (
-              <div className="mt-8 pt-6 border-t border-border-subtle">
-                <h4 className="text-xs uppercase tracking-wider text-muted font-semibold mb-4 flex items-center gap-2">
-                  <Activity className="h-3.5 w-3.5 text-muted" />
-                  Previous Runs
-                </h4>
-                <div className="space-y-3">
+              <div className="mt-4 pt-4 border-t border-border-subtle">
+                <p className="text-xs text-muted font-medium mb-3">Previous Runs</p>
+                <div className="space-y-2">
                   {sortedJobs.slice(1, 4).map(job => (
-                    <div key={job.analysis_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-surface rounded-lg border border-border-subtle hover:border-accent/30 transition-colors gap-2">
-                      <div className="flex items-center gap-3">
-                        <Activity className="h-4 w-4 text-muted" />
-                        <div>
-                          <p className="text-xs text-primary font-medium">Job <span className="font-mono text-xs text-secondary">{job.analysis_id.split('-')[0]}</span></p>
-                          <p className="text-[11px] text-muted">{new Date(job.started_at).toLocaleString()}</p>
-                        </div>
-                      </div>
+                    <div key={job.analysis_id} className="flex items-center justify-between p-2 text-sm rounded hover:bg-surface-elevated">
+                      <span className="text-secondary font-mono text-xs">{job.analysis_id.split('-')[0]}</span>
+                      <span className="text-muted text-xs">{new Date(job.started_at).toLocaleString()}</span>
                       <Badge 
                         variant={job.status === 'completed' ? 'success' : job.status === 'failed' ? 'danger' : 'default'}
-                        className="self-start sm:self-auto text-[10px] uppercase font-bold"
                       >
-                        {job.status.toUpperCase()}
+                        {job.status}
                       </Badge>
                     </div>
                   ))}

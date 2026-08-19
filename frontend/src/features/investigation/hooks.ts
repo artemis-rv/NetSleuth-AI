@@ -8,10 +8,6 @@ import {
   getMitre,
   getGraph,
   getAttackChain,
-  getHypotheses,
-  getHypothesisValidations,
-  getRootCauses,
-  getImpactAssessments,
 } from './api';
 import type { PaginationFilters } from './types';
 
@@ -67,38 +63,6 @@ export function useAttackChainQuery(caseId: string) {
   return useQuery({
     queryKey: investigationKeys.attackChain(caseId),
     queryFn: () => getAttackChain(caseId),
-    enabled: !!caseId,
-  });
-}
-
-export function useHypothesesQuery(caseId: string, filters: PaginationFilters = {}) {
-  return useQuery({
-    queryKey: investigationKeys.hypotheses(caseId, filters as Record<string, unknown>),
-    queryFn: () => getHypotheses(caseId, filters),
-    enabled: !!caseId,
-  });
-}
-
-export function useHypothesisValidationsQuery(caseId: string, filters: PaginationFilters = {}) {
-  return useQuery({
-    queryKey: investigationKeys.hypothesisValidations(caseId, filters as Record<string, unknown>),
-    queryFn: () => getHypothesisValidations(caseId, filters),
-    enabled: !!caseId,
-  });
-}
-
-export function useRootCausesQuery(caseId: string, filters: PaginationFilters = {}) {
-  return useQuery({
-    queryKey: investigationKeys.rootCauses(caseId, filters as Record<string, unknown>),
-    queryFn: () => getRootCauses(caseId, filters),
-    enabled: !!caseId,
-  });
-}
-
-export function useImpactAssessmentsQuery(caseId: string, filters: PaginationFilters = {}) {
-  return useQuery({
-    queryKey: investigationKeys.impactAssessments(caseId, filters as Record<string, unknown>),
-    queryFn: () => getImpactAssessments(caseId, filters),
     enabled: !!caseId,
   });
 }

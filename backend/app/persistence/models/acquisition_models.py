@@ -12,7 +12,7 @@ class AcquisitionModel(Base):
     acquisition_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     file_name = Column(String, nullable=False)
     file_size = Column(BigInteger, nullable=True)
-    sha256 = Column(String(64), nullable=False)
+    sha256 = Column(String(64), nullable=False, unique=True)
     format = Column(String, nullable=False)
     source_type = Column(String, nullable=False)
     capture_interface = Column(String, nullable=True)

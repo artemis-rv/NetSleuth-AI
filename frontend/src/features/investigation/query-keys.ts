@@ -27,16 +27,4 @@ export const investigationKeys = {
 
   attackChain: (caseId: string) =>
     [...investigationKeys.all, 'attack-chain', caseId] as const,
-
-  hypotheses: (caseId: string, filters: Record<string, unknown> = {}) =>
-    [...investigationKeys.all, 'hypotheses', caseId, filters] as const,
-
-  hypothesisValidations: (caseId: string, filters: Record<string, unknown> = {}) =>
-    [...investigationKeys.all, 'hypothesis-validations', caseId, filters] as const,
-
-  rootCauses: (caseId: string, filters: Record<string, unknown> = {}) =>
-    [...investigationKeys.all, 'root-causes', caseId, filters] as const,
-
-  impactAssessments: (caseId: string, filters: Record<string, unknown> = {}) =>
-    [...investigationKeys.all, 'impact-assessments', caseId, filters] as const,
 };

@@ -51,34 +51,34 @@ export function FindingDetailDrawer({ findingId, onClose }: FindingDetailDrawerP
 
   return (
     <>
-      {/* Backdrop & Centering Container */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 md:p-6"
+        className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
-      >
-        {/* Modal Card */}
-        <aside
-          className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-surface border border-border-subtle rounded-xl shadow-2xl overflow-hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Finding detail"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex-shrink-0 bg-surface border-b border-border-subtle px-6 py-4 flex items-center justify-between z-10">
-            <h2 className="text-sm font-semibold text-primary">Finding Detail</h2>
-            <button
-              onClick={onClose}
-              className="rounded p-1 hover:bg-surface-elevated text-muted hover:text-primary transition-colors"
-              aria-label="Close finding detail"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+      />
 
-          {/* Body */}
-          <div className="flex-1 px-6 py-5 space-y-6 overflow-y-auto">
+      {/* Drawer */}
+      <aside
+        className="fixed right-0 top-0 h-full w-full max-w-lg bg-surface border-l border-border-subtle z-50 overflow-y-auto shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Finding detail"
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-surface border-b border-border-subtle px-6 py-4 flex items-center justify-between z-10">
+          <h2 className="text-sm font-semibold text-primary">Finding Detail</h2>
+          <button
+            onClick={onClose}
+            className="rounded p-1 hover:bg-surface-elevated text-muted hover:text-primary transition-colors"
+            aria-label="Close finding detail"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-6">
           {isLoading && (
             <div className="flex items-center justify-center py-16">
               <Spinner size={28} />
@@ -213,7 +213,6 @@ export function FindingDetailDrawer({ findingId, onClose }: FindingDetailDrawerP
           )}
         </div>
       </aside>
-      </div>
     </>
   );
 }

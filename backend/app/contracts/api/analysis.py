@@ -21,7 +21,6 @@ class AnalysisStatusResponse(BaseModel):
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     progress: Optional[int] = None
-    findings_count: Optional[int] = None
     result_available: bool = False
     error_code: Optional[str] = None
     error_message: Optional[str] = None

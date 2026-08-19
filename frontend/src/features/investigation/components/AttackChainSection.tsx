@@ -14,6 +14,15 @@ function ConfidenceBadge({ value }: { value: number | null }) {
   );
 }
 
+interface AttackChainStage {
+  stage_id?: string;
+  name?: string;
+  finding_ids?: string[];
+  event_ids?: string[];
+  timestamp?: string;
+  technique_id?: string;
+  [key: string]: unknown;
+}
 
 interface AttackChainSectionProps {
   caseId: string;
@@ -31,15 +40,6 @@ export function AttackChainSection({ caseId }: AttackChainSectionProps) {
   }
 
   if (isError) {
-    const apiErr = error as any;
-    if (apiErr?.status === 404) {
-      return (
-        <EmptyState
-          title="No Attack Chain"
-          description="No attack chain has been reconstructed for this investigation yet."
-        />
-      );
-    }
     return (
       <div className="flex items-center gap-2 p-4 rounded border border-red-500/30 bg-red-500/5 text-red-400 text-sm">
         <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -57,8 +57,21 @@ export function AttackChainSection({ caseId }: AttackChainSectionProps) {
     );
   }
 
-  const stagesList = data.stages || [];
-  const chainStatus = data.status || 'unknown';
+  // Extract stages list and chain status from response payload
+  let stagesList: AttackChainStage[] = [];
+  let chainStatus = 'potential';
+
+  if (Array.isArray(data.stages)) {
+    stagesList = data.stages;
+  } else if (data.stages && typeof data.stages === 'object') {
+    const rawObj = data.stages as Record<string, unknown>;
+    if (Array.isArray(rawObj.stages)) {
+      stagesList = rawObj.stages as AttackChainStage[];
+    }
+    if (typeof rawObj.status === 'string') {
+      chainStatus = rawObj.status;
+    }
+  }
 
   if (stagesList.length === 0 || chainStatus === 'none') {
     return (

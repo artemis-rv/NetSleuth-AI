@@ -24,6 +24,17 @@ htmlcov/
 # docker-compose.yml is intentionally NOT ignored (it is infrastructure-as-code)
 # MinIO data is stored in a Docker named volume (not a repo directory)
 
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -66,18 +77,10 @@ Thumbs.db
 # Evidence files — never commit capture data
 sample_data/evidence/*.pcap
 sample_data/evidence/*.pcapng
-<<<<<<< HEAD
 
 # Zeek dynamic outputs — never commit runtime outputs
 sample_data/zeek_output/
 backend/sample_data/zeek_output/
-=======
-*.pcap
-*.cap
-
-# Zeek dynamic outputs — never commit runtime outputs
-sample_data/zeek_output/
->>>>>>> 119264f (report engine fixed)
 
 
 test_output.log

@@ -112,7 +112,7 @@ class M4PersistenceService:
         case_uuid = self._to_uuid(case_id)
         user_uuid = self._to_uuid(generator_id)
 
-        await self.uow.session.execute(insert(ReportModel).values(
+        report = ReportModel(
             report_id=report_uuid,
             case_id=case_uuid,
             generated_by=user_uuid,
@@ -122,5 +122,6 @@ class M4PersistenceService:
             minio_bucket=minio_bucket,
             object_key=object_key,
             sha256=hash_sha256
-        ))
+        )
+        self.uow.session.add(report)
         return report_uuid

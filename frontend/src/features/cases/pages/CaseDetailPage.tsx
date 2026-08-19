@@ -29,10 +29,6 @@ import { BehaviorsSection } from '../../investigation/components/BehaviorsSectio
 import { MitreSection } from '../../investigation/components/MitreSection';
 import { GraphSection } from '../../investigation/components/GraphSection';
 import { AttackChainSection } from '../../investigation/components/AttackChainSection';
-import { HypothesesSection } from '../../investigation/components/HypothesesSection';
-import { ValidationsSection } from '../../investigation/components/ValidationsSection';
-import { RootCausesSection } from '../../investigation/components/RootCausesSection';
-import { ImpactSection } from '../../investigation/components/ImpactSection';
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('en-US', {
@@ -86,10 +82,6 @@ const INVESTIGATION_SUBTABS = [
   { id: 'relationships', label: 'Relationships' },
   { id: 'behaviors', label: 'Behaviors' },
   { id: 'attack-chain', label: 'Attack Chain' },
-  { id: 'hypotheses', label: 'Hypotheses' },
-  { id: 'validations', label: 'Validations' },
-  { id: 'root-causes', label: 'Root Causes' },
-  { id: 'impact', label: 'Impact' },
 ] as const;
 
 type InvestigationSubTabId = (typeof INVESTIGATION_SUBTABS)[number]['id'];
@@ -102,7 +94,6 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [draftNote, setDraftNote] = useState('');
 
-<<<<<<< HEAD
   const goals: InvestigationGoal[] = useMemo(() => {
     if (!caseData?.investigation_goals) return [];
     return caseData.investigation_goals.map((g, idx) => {
@@ -115,25 +106,13 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
 
   const toggleGoal = (goalId: string) => {
     const newGoals = goals.map(g => 
-=======
-  const normalizedGoals: InvestigationGoal[] = (caseData.investigation_goals || []).map((g, idx) => 
-    typeof g === 'string' ? { id: String(idx + 1), description: g, completed: false } : g
-  );
-
-  const toggleGoal = (goalId: string) => {
-    const newGoals = normalizedGoals.map(g => 
->>>>>>> 93a9016047078976d9f2e1c6ea3a39c1b9cc85b7
       g.id === goalId ? { ...g, completed: !g.completed } : g
     );
     updateCase.mutate({ investigation_goals: newGoals });
   };
 
   const saveNote = (goalId: string) => {
-<<<<<<< HEAD
     const newGoals = goals.map(g => 
-=======
-    const newGoals = normalizedGoals.map(g => 
->>>>>>> 93a9016047078976d9f2e1c6ea3a39c1b9cc85b7
       g.id === goalId ? { ...g, note: draftNote.trim() || null } : g
     );
     updateCase.mutate({ investigation_goals: newGoals }, {
@@ -151,11 +130,7 @@ function InvestigationGoalsChecklist({ caseData }: { caseData: CaseResponse }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3" aria-label="Investigation goals">
-<<<<<<< HEAD
           {goals.map((goal) => (
-=======
-          {normalizedGoals.map((goal) => (
->>>>>>> 93a9016047078976d9f2e1c6ea3a39c1b9cc85b7
             <div key={goal.id} className="flex flex-col gap-2 p-3 rounded-lg border border-border-subtle bg-surface-elevated/50 transition-colors hover:bg-surface-elevated">
               <div className="flex items-start gap-3">
                 <button
@@ -238,35 +213,33 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
 
   return (
     <div className="space-y-6">
-      {/* Trigger Event */}
-      {caseData.trigger_description && (
-        <Card className="border-accent/30 bg-accent/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-accent flex items-center gap-2">
-              <Zap className="h-4 w-4" aria-hidden="true" />
-              Trigger Event
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-primary leading-relaxed">{caseData.trigger_description}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Description */}
-      {caseData.description && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <FileText className="h-4 w-4 text-accent" aria-hidden="true" />
-              Case Description
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-secondary leading-relaxed whitespace-pre-line">{caseData.description}</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Trigger Panel */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Zap className="h-4 w-4 text-warning" aria-hidden="true" />
+            Triggering Event
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-muted mb-1">Trigger Type</p>
+              <span className="inline-flex items-center rounded border border-border-subtle bg-surface-elevated px-2.5 py-1 text-xs font-medium text-secondary">
+                {caseData.trigger_type.replace(/_/g, ' ')}
+              </span>
+            </div>
+            {caseData.trigger_description && (
+              <div>
+                <p className="text-xs text-muted mb-1">Description</p>
+                <p className="text-sm text-primary whitespace-pre-wrap leading-relaxed">
+                  {caseData.trigger_description}
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Investigation Goals Panel */}
       {caseData.investigation_goals && caseData.investigation_goals.length > 0 && (
@@ -287,6 +260,25 @@ function CaseOverview({ caseData, onTabChange }: { caseData: CaseResponse; onTab
         acquisitions={acquisitions?.items || []}
         onViewFindings={() => onTabChange?.('findings')}
       />
+
+      {/* Metadata Panel */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Case Metadata</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <MetaItem icon={Calendar} label="Opened" value={formatDateTime(caseData.opened_at)} />
+            <MetaItem icon={Clock} label="Last Updated" value={formatDateTime(caseData.updated_at)} />
+            {caseData.closed_at && (
+              <MetaItem icon={Calendar} label="Closed" value={formatDateTime(caseData.closed_at)} />
+            )}
+            <MetaItem icon={User} label="Reported By" value={caseData.reported_by} />
+            <MetaItem icon={User} label="External Case ID" value={caseData.external_case_id} />
+            <MetaItem icon={User} label="External System" value={caseData.external_system} />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -333,10 +325,6 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
         {sub === 'relationships' && <RelationshipsSection caseId={caseId} />}
         {sub === 'behaviors' && <BehaviorsSection caseId={caseId} />}
         {sub === 'attack-chain' && <AttackChainSection caseId={caseId} />}
-        {sub === 'hypotheses' && <HypothesesSection caseId={caseId} />}
-        {sub === 'validations' && <ValidationsSection caseId={caseId} />}
-        {sub === 'root-causes' && <RootCausesSection caseId={caseId} />}
-        {sub === 'impact' && <ImpactSection caseId={caseId} />}
       </div>
     </div>
   );
@@ -356,11 +344,6 @@ export function CaseDetailPage() {
   };
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
-  const { data: acquisitions } = useAcquisitions(caseId ?? '');
-  const { data: evidence } = useEvidence(caseId ?? '');
-
-  const activeAcquisition = acquisitions?.items?.[0];
-  const activeEvidence = evidence?.items?.[0];
 
   if (isLoading) {
     return (
@@ -404,87 +387,70 @@ export function CaseDetailPage() {
   if (!caseData) return null;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden min-h-0">
+    <div>
+      {/* Breadcrumb */}
+      <div className="mb-4">
+        <Link
+          to="/investigations"
+          className="inline-flex items-center text-sm text-muted hover:text-primary transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" aria-hidden="true" />
+          Investigations
+        </Link>
+      </div>
+
       {/* Case Header */}
-      <div className="flex-shrink-0 mb-3 space-y-3">
-        {/* Breadcrumb & Title Row */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <Link
-                to="/investigations"
-                className="inline-flex items-center text-xs text-muted hover:text-primary transition-colors mr-2"
-              >
-                <ChevronLeft className="h-3.5 w-3.5 mr-0.5" aria-hidden="true" />
-                Investigations
-              </Link>
-              <CaseStatusBadge status={caseData.status} />
-              <CasePriorityBadge priority={caseData.priority} />
-              <span className="text-[11px] text-muted font-mono bg-surface-elevated px-2 py-0.5 rounded border border-border-subtle">
-                ID: {caseData.case_id}
-              </span>
-            </div>
-            <h1 className="text-xl font-bold tracking-tight text-primary leading-tight">
-              {caseData.title}
-            </h1>
+      <div className="flex items-start justify-between mb-6 gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <CaseStatusBadge status={caseData.status} />
+            <CasePriorityBadge priority={caseData.priority} />
           </div>
-          <div className="flex-shrink-0 flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setEditing((prev) => !prev)}
-              aria-label={editing ? 'Cancel editing' : 'Edit case'}
-            >
-              {editing ? (
-                <><X className="h-3.5 w-3.5 mr-1" aria-hidden="true" /> Cancel</>
-              ) : (
-                <><Edit2 className="h-3.5 w-3.5 mr-1" aria-hidden="true" /> Edit</>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Case Metadata Bar (Compact) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-surface p-3 rounded-lg border border-border-subtle shadow-sm">
-          <MetaItem icon={Calendar} label="Opened" value={formatDateTime(caseData.opened_at)} />
-          <MetaItem icon={Clock} label="Last Updated" value={formatDateTime(caseData.updated_at)} />
-          <MetaItem icon={User} label="Reported By" value={caseData.reported_by} />
-          {caseData.external_case_id && (
-            <MetaItem icon={User} label="External Ref" value={`${caseData.external_system || 'System'}: ${caseData.external_case_id}`} />
+          <h1 className="text-xl font-bold tracking-tight text-primary leading-tight">
+            {caseData.title}
+          </h1>
+          {caseData.description && (
+            <p className="text-sm text-secondary mt-2 leading-relaxed">{caseData.description}</p>
           )}
+          <p className="text-xs text-muted mt-2 font-mono">ID: {caseData.case_id}</p>
         </div>
-
-        {/* Acquisition & Evidence Status */}
-        <AcquisitionSection
-          caseId={caseData.case_id}
-          acquisitions={acquisitions?.items || []}
-          evidenceList={evidence?.items || []}
-        />
+        <div className="flex-shrink-0 flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setEditing((prev) => !prev)}
+            aria-label={editing ? 'Cancel editing' : 'Edit case'}
+          >
+            {editing ? (
+              <><X className="h-4 w-4 mr-1" aria-hidden="true" /> Cancel</>
+            ) : (
+              <><Edit2 className="h-4 w-4 mr-1" aria-hidden="true" /> Edit</>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Edit Form */}
       {editing && (
-        <div className="flex-1 overflow-y-auto min-h-0 mb-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Edit Investigation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EditCaseForm
-                caseData={caseData}
-                onSuccess={() => { setEditing(false); refetch(); }}
-                onCancel={() => setEditing(false)}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Edit Investigation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditCaseForm
+              caseData={caseData}
+              onSuccess={() => { setEditing(false); refetch(); }}
+              onCancel={() => setEditing(false)}
+            />
+          </CardContent>
+        </Card>
       )}
 
-      {/* Sticky Tabs Bar & Scrollable Content Area */}
+      {/* Tabs */}
       {!editing && (
         <>
           <div
-            className="flex-shrink-0 flex border-b border-border-subtle mb-3 overflow-x-auto"
+            className="flex border-b border-border-subtle mb-6 overflow-x-auto"
             role="tablist"
             aria-label="Case sections"
           >
@@ -511,7 +477,6 @@ export function CaseDetailPage() {
             role="tabpanel"
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
-            className="flex-1 overflow-y-auto min-h-0 pr-1"
           >
             {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={handleTabChange} />}
             {activeTab === 'findings' && <FindingsSection caseId={caseData.case_id} />}
