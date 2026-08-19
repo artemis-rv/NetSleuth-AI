@@ -1,7 +1,7 @@
-from typing import Optional, List
+from typing import Optional, List, Any, Union
 from uuid import UUID, uuid4
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class InvestigationGoal(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
@@ -14,11 +14,26 @@ class CreateCaseRequest(BaseModel):
     description: Optional[str] = Field(None, description="Detailed description of the case context")
     trigger_type: str = Field(..., description="The type of event that triggered the case (e.g., USER_REPORT)")
     trigger_description: Optional[str] = Field(None, description="Detailed description of the trigger")
-    investigation_goals: Optional[List[InvestigationGoal]] = Field(None, description="Specific goals for the investigation")
+    investigation_goals: Optional[List[Any]] = Field(None, description="Specific goals for the investigation")
     external_case_id: Optional[str] = Field(None, description="ID of a related case in an external system")
     external_system: Optional[str] = Field(None, description="Name of the external system (e.g., Jira, ServiceNow)")
     reported_by: Optional[str] = Field(None, description="User or entity that reported the issue")
     priority: Optional[str] = Field(None, description="Priority level of the case")
+
+    @field_validator("investigation_goals", mode="before")
+    @classmethod
+    def convert_goals(cls, v):
+        if v is None:
+            return v
+        res = []
+        for item in v:
+            if isinstance(item, str):
+                res.append(InvestigationGoal(description=item))
+            elif isinstance(item, dict):
+                res.append(InvestigationGoal(**item))
+            else:
+                res.append(item)
+        return res
 
 class UpdateCaseRequest(BaseModel):
     title: Optional[str] = Field(None, min_length=1)
@@ -26,11 +41,26 @@ class UpdateCaseRequest(BaseModel):
     priority: Optional[str] = Field(None)
     trigger_type: Optional[str] = Field(None)
     trigger_description: Optional[str] = Field(None)
-    investigation_goals: Optional[List[InvestigationGoal]] = Field(None)
+    investigation_goals: Optional[List[Any]] = Field(None)
     external_case_id: Optional[str] = Field(None)
     external_system: Optional[str] = Field(None)
     reported_by: Optional[str] = Field(None)
     status: Optional[str] = Field(None, description="Case status, must be one of the allowed transitions")
+
+    @field_validator("investigation_goals", mode="before")
+    @classmethod
+    def convert_goals(cls, v):
+        if v is None:
+            return v
+        res = []
+        for item in v:
+            if isinstance(item, str):
+                res.append(InvestigationGoal(description=item))
+            elif isinstance(item, dict):
+                res.append(InvestigationGoal(**item))
+            else:
+                res.append(item)
+        return res
 
 class CaseResponse(BaseModel):
     case_id: UUID

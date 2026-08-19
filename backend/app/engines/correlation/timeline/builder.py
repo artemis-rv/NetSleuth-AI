@@ -19,10 +19,9 @@ class TimelineReconstructor:
         
         events: List[TimelineEvent] = []
         
-        # 1. Map M2 Findings
+        # 1. Map M2 Findings (Investigation-Significant)
         for finding in m2_package.findings:
             finding_ts = datetime.now(timezone.utc)
-            # Try to inherit timestamp from the earliest referenced flow if possible
             if finding.evidence_references:
                 ev_flow_ids = set()
                 for er in finding.evidence_references:
@@ -38,106 +37,90 @@ class TimelineReconstructor:
                         finding_ts = earliest
 
             events.append(TimelineEvent(
-                event_id=str(uuid.uuid4()),
+                event_id=f"evt-finding-{finding.finding_id}",
                 timestamp=finding_ts,
                 event_type="finding",
                 title=f"Finding: {finding.activity_class.value}",
-                description=f"Automated analysis identified {finding.activity_class.value} with {int(finding.classification_confidence * 100)}% confidence.",
+                description=f"Automated threat model identified {finding.activity_class.value} ({int(finding.classification_confidence * 100)}% confidence). Risk score: {finding.risk_score:.2f}.",
                 finding_ids=[finding.finding_id],
                 evidence_ids=[],
                 source_reference=f"m2-finding:{finding.finding_id}"
             ))
 
-        # 2. Map Semantic Protocol Events (DNS, HTTP, TLS, etc.)
-        used_flow_ids = set()
-        
+        # 2. Map Payload-Bearing Protocol Events (Deduplicated)
+        seen_proto_keys = set()
+
         for event in m1_package.protocol_events:
             p_data = event.protocol_data.model_dump() if hasattr(event.protocol_data, "model_dump") else (event.protocol_data if isinstance(event.protocol_data, dict) else {})
             
-            title = f"{event.protocol.upper()} Event"
+            title = ""
             desc = ""
+            ref_entities = []
+            dedupe_key = ""
             
             if event.protocol == "dns" and p_data:
                 q = p_data.get("query") or getattr(event.protocol_data, "query", None)
                 if q:
-                    title = "DNS Query"
-                    desc = f"DNS query for {q}"
+                    dedupe_key = f"dns:{q}"
+                    if dedupe_key not in seen_proto_keys:
+                        title = "DNS Query Observed"
+                        desc = f"DNS resolution query for {q} — external domain look-up"
+                        ref_entities.append(f"domain:{q}")
+                        seen_proto_keys.add(dedupe_key)
             elif event.protocol == "http" and p_data:
                 method = p_data.get("method") or getattr(event.protocol_data, "method", "")
                 uri = p_data.get("uri") or getattr(event.protocol_data, "uri", "")
                 if method or uri:
-                    title = f"HTTP {method}".strip()
-                    desc = uri
+                    dedupe_key = f"http:{method}:{uri}"
+                    if dedupe_key not in seen_proto_keys:
+                        title = f"HTTP {method} Communication".strip()
+                        desc = f"HTTP {method} request to {uri} — application traffic"
+                        seen_proto_keys.add(dedupe_key)
             elif event.protocol == "tls" and p_data:
                 sni = p_data.get("server_name") or getattr(event.protocol_data, "server_name", None)
                 if sni:
-                    title = "TLS Connection"
-                    desc = f"SNI: {sni}"
+                    dedupe_key = f"tls:{sni}"
+                    if dedupe_key not in seen_proto_keys:
+                        title = "TLS Encrypted Session"
+                        desc = f"TLS session established with SNI {sni} — encrypted connection"
+                        ref_entities.append(f"domain:{sni}")
+                        seen_proto_keys.add(dedupe_key)
 
-            events.append(TimelineEvent(
-                event_id=str(uuid.uuid4()),
-                timestamp=event.timestamp,
-                event_type=event.protocol.lower(),
-                title=title,
-                description=desc,
-                entity_ids=[f"protocol_event:{event.event_id}"],
-                protocol_event_ids=[event.event_id],
-                flow_ids=[event.flow_id] if event.flow_id else [],
-                source_reference=f"m1-event:{event.event_id}"
-            ))
-            if event.flow_id:
-                used_flow_ids.add(event.flow_id)
+            if title and desc:
+                events.append(TimelineEvent(
+                    event_id=f"evt-proto-{event.event_id}",
+                    timestamp=event.timestamp,
+                    event_type=event.protocol.lower(),
+                    title=title,
+                    description=desc,
+                    entity_ids=ref_entities,
+                    protocol_event_ids=[event.event_id],
+                    flow_ids=[event.flow_id] if event.flow_id else [],
+                    source_reference=f"m1-event:{event.event_id}"
+                ))
 
-        # 3. Map File Artifacts
+        # 3. Map Extracted File Artifacts
         for art in m1_package.artifacts:
             events.append(TimelineEvent(
-                event_id=str(uuid.uuid4()),
+                event_id=f"evt-artifact-{art.artifact_id}",
                 timestamp=art.timestamp if hasattr(art, 'timestamp') and art.timestamp else datetime.now(timezone.utc),
                 event_type="artifact",
-                title="File Observed",
-                description=f"Artifact extracted: {art.type.value if hasattr(art.type, 'value') else str(art.type)} ({art.value})",
+                title="File Artifact Extracted",
+                description=f"File artifact extracted from stream: {art.type.value if hasattr(art.type, 'value') else str(art.type)} ({art.value})",
+                entity_ids=[f"artifact:{art.artifact_id}"],
                 artifact_ids=[art.artifact_id],
                 protocol_event_ids=[art.source_event_id] if art.source_event_id else [],
                 flow_ids=[art.flow_id] if art.flow_id else [],
                 source_reference=f"m1-artifact:{art.artifact_id}"
             ))
-            if art.flow_id:
-                used_flow_ids.add(art.flow_id)
 
-        # 4. Map Remaining Raw Flows (Only those involved in findings but have no protocol events, or just a sample to avoid UI spam)
-        # We will only include flows that are explicitly part of a finding if they aren't already represented by a protocol event.
-        finding_flow_ids = set()
-        for finding in m2_package.findings:
-            if finding.evidence_references:
-                for er in finding.evidence_references:
-                    if er.flow_ids:
-                        finding_flow_ids.update(er.flow_ids)
-                        
-        for flow in m1_package.flows:
-            if flow.flow_id in finding_flow_ids and flow.flow_id not in used_flow_ids:
-                events.append(TimelineEvent(
-                    event_id=str(uuid.uuid4()),
-                    timestamp=flow.timestamp,
-                    event_type="network",
-                    title=f"Network Flow {flow.protocol.upper()}",
-                    description=f"{flow.source.ip}:{flow.source.port} -> {flow.destination.ip}:{flow.destination.port}",
-                    entity_ids=[f"ip:{flow.source.ip}", f"ip:{flow.destination.ip}"],
-                    flow_ids=[flow.flow_id],
-                    source_reference=f"m1-flow:{flow.flow_id}"
-                ))
-
-        # 5. Deterministic sorting
-        # Primary: timestamp ascending
-        # Secondary: event_type priority
-        # Tertiary: source_reference or event_id for stable tie-breaking
-        
+        # 4. Chronological sorting
         priority_map = {
             "finding": 1,
             "artifact": 2,
             "http": 3,
             "dns": 4,
             "tls": 5,
-            "network": 9
         }
         
         def sort_key(e: TimelineEvent):
@@ -145,5 +128,4 @@ class TimelineReconstructor:
             return (e.timestamp.timestamp(), pri, e.source_reference or e.event_id)
             
         events.sort(key=sort_key)
-        
         return events

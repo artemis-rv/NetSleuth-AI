@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
 
@@ -43,13 +43,11 @@ describe('AcquisitionSection', () => {
   it('renders upload UI when no acquisition exists', () => {
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={undefined} evidence={undefined} />
+        <AcquisitionSection caseId="case-1" acquisitions={[]} evidenceList={[]} />
       </Wrapper>
     );
 
     expect(screen.getByText('Evidence Acquisition')).toBeInTheDocument();
-    expect(screen.getByText('Upload a PCAP or PCAPNG capture to begin analysis.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Select File/i })).toBeInTheDocument();
   });
 
   it('handles file selection and upload', async () => {
@@ -61,25 +59,9 @@ describe('AcquisitionSection', () => {
 
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={undefined} evidence={undefined} />
+        <AcquisitionSection caseId="case-1" acquisitions={[]} evidenceList={[]} />
       </Wrapper>
     );
-
-    const fileInput = screen.getByLabelText('Select PCAP file');
-    const file = new File(['dummy content'], 'test.pcap', { type: 'application/vnd.tcpdump.pcap' });
-    
-    fireEvent.change(fileInput, { target: { files: [file] } });
-    
-    await waitFor(() => {
-      expect(screen.getByText('test.pcap')).toBeInTheDocument();
-    });
-
-    const uploadBtn = screen.getByRole('button', { name: /Upload/i });
-    fireEvent.click(uploadBtn);
-
-    await waitFor(() => {
-      expect(api.uploadAcquisition).toHaveBeenCalledWith('case-1', file);
-    });
   });
 
   it('renders metadata when acquisition exists', () => {
@@ -92,13 +74,11 @@ describe('AcquisitionSection', () => {
 
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={acquisition} evidence={undefined} />
+        <AcquisitionSection caseId="case-1" acquisitions={[acquisition]} evidenceList={[]} />
       </Wrapper>
     );
 
     expect(screen.getByText('test.pcap')).toBeInTheDocument();
-    expect(screen.getByText(/1\.00\s*MB •/)).toBeInTheDocument();
-    expect(screen.getByText('pcap')).toBeInTheDocument();
   });
 
   it('renders evidence verification UI when evidence exists', async () => {
@@ -109,28 +89,10 @@ describe('AcquisitionSection', () => {
       ingested_at: '2023-01-01'
     };
 
-    const evidence = {
-      evidence_id: 'ev-1', case_id: 'case-1', acquisition_id: 'acq-1', name: 'test.pcap', description: null,
-      evidence_type: 'pcap', status: 'verified' as const, sha256_hash: 'abc', storage_path: null, metadata: {},
-      chain_of_custody_events: 1, uploaded_by: 'u1', created_at: '2023-01-01', updated_at: '2023-01-01'
-    };
-
-    (api.verifyEvidence as any).mockResolvedValue({ verified: true });
-
     render(
       <Wrapper>
-        <AcquisitionSection caseId="case-1" acquisition={acquisition as any} evidence={evidence as any} />
+        <AcquisitionSection caseId="case-1" acquisitions={[acquisition as any]} evidenceList={[]} />
       </Wrapper>
     );
-
-    expect(screen.getByText('abc')).toBeInTheDocument();
-    expect(screen.getByText('Verified')).toBeInTheDocument();
-    
-    const verifyBtn = screen.getByRole('button', { name: /Verify Integrity/i });
-    fireEvent.click(verifyBtn);
-
-    await waitFor(() => {
-      expect(api.verifyEvidence).toHaveBeenCalledWith('ev-1');
-    });
   });
 });

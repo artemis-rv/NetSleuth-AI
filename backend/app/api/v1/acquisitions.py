@@ -10,25 +10,39 @@ from app.services.app_acquisition_service import AppAcquisitionService
 
 router = APIRouter(tags=["Acquisitions"])
 
-from typing import Optional, List
+from typing import Optional, List, Union
 
-@router.post("/cases/{case_id}/acquisitions", response_model=List[AcquisitionUploadResponse], status_code=status.HTTP_201_CREATED)
+@router.post("/cases/{case_id}/acquisitions", status_code=status.HTTP_201_CREATED)
 async def upload_acquisition(
     http_request: Request,
     case_id: UUID = Depends(verify_case_access),
-    files: List[UploadFile] = File(...),
+    files: Optional[List[UploadFile]] = File(None),
+    file: Optional[UploadFile] = File(None),
     current_user: UserModel = Depends(RequireRole(["administrator", "investigator"])),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Upload PCAP/PCAPNG evidence for an investigation case.
     Validates file, computes SHA-256, stores in MinIO, and creates metadata.
+    Supports single or multiple file uploads.
     """
+    upload_files = []
+    if files:
+        upload_files.extend(files)
+    if file:
+        upload_files.append(file)
+    if not upload_files:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="No file provided")
+
     service = AppAcquisitionService(db)
     results = []
-    for f in files:
+    for f in upload_files:
         res = await service.upload_evidence(case_id, current_user, f, http_request)
         results.append(res)
+    
+    if file and not files:
+        return results[0]
     return results
 
 @router.get("/cases/{case_id}/acquisitions", response_model=AcquisitionListResponse)

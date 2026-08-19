@@ -9,7 +9,8 @@ from app.services.network_service import NetworkIntelligenceService
 from app.contracts.api.network import (
     FlowDetailResponse, FlowListResponse,
     ProtocolEventResponse, ProtocolEventListResponse,
-    ArtifactResponse, ArtifactListResponse
+    ArtifactResponse, ArtifactListResponse,
+    IPEntityListResponse
 )
 from app.services.audit_service import log_audit_event
 
@@ -214,3 +215,17 @@ async def get_artifact(
         
     await log_audit_event(db, "ARTIFACT_VIEWED", user.user_id, str(artifact_id))
     return artifact
+
+@router.get(
+    "/cases/{case_id}/network/entities",
+    response_model=IPEntityListResponse,
+    summary="List Contextual Network IP Entities by Case"
+)
+async def list_case_ip_entities(
+    case_id: UUID = Path(...),
+    user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    service: NetworkIntelligenceService = Depends(get_network_service)
+):
+    await verify_case_access_direct(case_id, user, db)
+    return await service.list_ip_entities_by_case(case_id=case_id)

@@ -78,3 +78,27 @@ class ArtifactListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+class IPEntityResponse(BaseModel):
+    ip: str
+    classification: str  # "PRIVATE/INTERNAL", "PUBLIC/EXTERNAL", "LOOPBACK", "LINK_LOCAL", "MULTICAST", "UNKNOWN"
+    role: str  # "SOURCE", "DESTINATION", "BOTH"
+    related_domains: List[str] = Field(default_factory=list)
+    services: List[str] = Field(default_factory=list)
+    first_seen: Optional[datetime] = None
+    last_seen: Optional[datetime] = None
+    flow_count: int = 0
+    event_count: int = 0
+    finding_count: int = 0
+    flow_ids: List[UUID] = Field(default_factory=list)
+    event_ids: List[UUID] = Field(default_factory=list)
+    artifact_ids: List[UUID] = Field(default_factory=list)
+    finding_ids: List[UUID] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+class IPEntityListResponse(BaseModel):
+    items: List[IPEntityResponse]
+    total: int
+    internal_count: int
+    external_count: int

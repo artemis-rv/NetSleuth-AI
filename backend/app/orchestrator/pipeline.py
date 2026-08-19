@@ -214,7 +214,7 @@ class ForensicPipelineOrchestrator:
                 ctx.evidence_references.append(DomainEvidenceReference(evidence_id=art.artifact_id, evidence_type="artifact", source_id=art.artifact_id))
                 declared_ev_ids.add(art.artifact_id)
 
-        # 2. Extract Entities from M1 Network Intelligence
+        # 2. Extract Real Domain Entities from M1 Network Intelligence & M2 Findings
         seen_entity_ids = set()
         for flow in m1_package.flows:
             src_ip = str(flow.source.ip)
@@ -228,17 +228,8 @@ class ForensicPipelineOrchestrator:
                 ctx.entities.append(Entity(entity_id=dst_ent_id, entity_type="ip", value=dst_ip, first_seen=flow.timestamp, last_seen=flow.timestamp))
                 seen_entity_ids.add(dst_ent_id)
 
-            flow_ent_id = f"flow:{flow.flow_id}"
-            if flow_ent_id not in seen_entity_ids:
-                ctx.entities.append(Entity(entity_id=flow_ent_id, entity_type="flow", value=flow.flow_id, attributes={"flow_id": flow.flow_id, "protocol": flow.protocol}, first_seen=flow.timestamp, last_seen=flow.timestamp))
-                seen_entity_ids.add(flow_ent_id)
-
         for evt in m1_package.protocol_events:
-            evt_ent_id = f"protocol_event:{evt.event_id}"
             p_data = evt.protocol_data.model_dump() if hasattr(evt.protocol_data, "model_dump") else (evt.protocol_data if isinstance(evt.protocol_data, dict) else {})
-            if evt_ent_id not in seen_entity_ids:
-                ctx.entities.append(Entity(entity_id=evt_ent_id, entity_type="protocol_event", value=evt.event_id, attributes={"flow_id": evt.flow_id, "protocol": evt.protocol, "data": p_data}, first_seen=evt.timestamp, last_seen=evt.timestamp))
-                seen_entity_ids.add(evt_ent_id)
             
             if evt.protocol == "dns" and p_data:
                 q = getattr(evt.protocol_data, "query", None) or p_data.get("query")
@@ -247,12 +238,25 @@ class ForensicPipelineOrchestrator:
                     if dom_ent_id not in seen_entity_ids:
                         ctx.entities.append(Entity(entity_id=dom_ent_id, entity_type="domain", value=q, first_seen=evt.timestamp, last_seen=evt.timestamp))
                         seen_entity_ids.add(dom_ent_id)
+            elif evt.protocol == "tls" and p_data:
+                sni = getattr(evt.protocol_data, "server_name", None) or p_data.get("server_name")
+                if sni:
+                    dom_ent_id = f"domain:{sni}"
+                    if dom_ent_id not in seen_entity_ids:
+                        ctx.entities.append(Entity(entity_id=dom_ent_id, entity_type="domain", value=sni, first_seen=evt.timestamp, last_seen=evt.timestamp))
+                        seen_entity_ids.add(dom_ent_id)
 
         for art in m1_package.artifacts:
             art_ent_id = f"artifact:{art.artifact_id}"
             if art_ent_id not in seen_entity_ids:
                 ctx.entities.append(Entity(entity_id=art_ent_id, entity_type="artifact", value=art.value, attributes={"source_event_id": art.source_event_id, "flow_id": art.flow_id}))
                 seen_entity_ids.add(art_ent_id)
+
+        for finding in m2_package.findings:
+            f_ent_id = f"finding:{finding.finding_id}"
+            if f_ent_id not in seen_entity_ids:
+                ctx.entities.append(Entity(entity_id=f_ent_id, entity_type="finding", value=finding.activity_class.value, attributes={"risk_score": finding.risk_score, "confidence": finding.classification_confidence}))
+                seen_entity_ids.add(f_ent_id)
 
         # 3. Extract Findings References (for M3 input)
         for finding in m2_package.findings:

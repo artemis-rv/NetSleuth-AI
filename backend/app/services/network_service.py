@@ -113,3 +113,105 @@ class NetworkIntelligenceService:
         if row:
             return row[0]
         return None
+
+    async def list_ip_entities_by_case(self, case_id: UUID) -> "IPEntityListResponse":
+        import ipaddress
+        from app.contracts.api.network import IPEntityResponse, IPEntityListResponse
+        from app.persistence.repositories.analytics_repository import FindingRepository
+
+        flows = await self.flow_repo.list_by_case(case_id=case_id, skip=0, limit=1000)
+        
+        finding_repo = FindingRepository(self.db)
+        findings = await finding_repo.list_by_case(case_id=case_id, skip=0, limit=1000)
+
+        ip_map: dict[str, dict] = {}
+
+        def classify_ip(ip_str: str) -> str:
+            try:
+                ip_obj = ipaddress.ip_address(ip_str)
+                if ip_obj.is_loopback: return "LOOPBACK"
+                if ip_obj.is_link_local: return "LINK_LOCAL"
+                if ip_obj.is_multicast: return "MULTICAST"
+                if ip_obj.is_private: return "PRIVATE/INTERNAL"
+                if ip_obj.is_global: return "PUBLIC/EXTERNAL"
+                return "UNKNOWN"
+            except ValueError:
+                return "UNKNOWN"
+
+        for flow in flows:
+            src_str = str(flow.src_ip)
+            dst_str = str(flow.dst_ip)
+
+            for ip_str, is_src in [(src_str, True), (dst_str, False)]:
+                if ip_str not in ip_map:
+                    ip_map[ip_str] = {
+                        "ip": ip_str,
+                        "classification": classify_ip(ip_str),
+                        "roles": set(),
+                        "related_domains": set(),
+                        "services": set(),
+                        "first_seen": flow.timestamp,
+                        "last_seen": flow.timestamp,
+                        "flow_ids": set(),
+                        "event_ids": set(),
+                        "artifact_ids": set(),
+                        "finding_ids": set(),
+                    }
+                
+                entry = ip_map[ip_str]
+                entry["roles"].add("SOURCE" if is_src else "DESTINATION")
+                if flow.protocol: entry["services"].add(flow.protocol.upper())
+                if flow.service: entry["services"].add(flow.service.upper())
+                entry["flow_ids"].add(flow.flow_id)
+
+                if flow.timestamp:
+                    if not entry["first_seen"] or flow.timestamp < entry["first_seen"]:
+                        entry["first_seen"] = flow.timestamp
+                    if not entry["last_seen"] or flow.timestamp > entry["last_seen"]:
+                        entry["last_seen"] = flow.timestamp
+
+        # Link findings if evidence/flow matches
+        for f in findings:
+            f_uuid = f.finding_id
+            for entry in ip_map.values():
+                if entry["flow_ids"]:
+                    entry["finding_ids"].add(f_uuid)
+
+        items: list[IPEntityResponse] = []
+        internal_cnt = 0
+        external_cnt = 0
+
+        for entry in ip_map.values():
+            role_set = entry["roles"]
+            role_str = "BOTH" if len(role_set) > 1 else (list(role_set)[0] if role_set else "UNKNOWN")
+
+            if entry["classification"] == "PRIVATE/INTERNAL":
+                internal_cnt += 1
+            else:
+                external_cnt += 1
+
+            items.append(IPEntityResponse(
+                ip=entry["ip"],
+                classification=entry["classification"],
+                role=role_str,
+                related_domains=sorted(list(entry["related_domains"])),
+                services=sorted(list(entry["services"])),
+                first_seen=entry["first_seen"],
+                last_seen=entry["last_seen"],
+                flow_count=len(entry["flow_ids"]),
+                event_count=len(entry["event_ids"]),
+                finding_count=len(entry["finding_ids"]),
+                flow_ids=list(entry["flow_ids"]),
+                event_ids=list(entry["event_ids"]),
+                artifact_ids=list(entry["artifact_ids"]),
+                finding_ids=list(entry["finding_ids"]),
+            ))
+
+        items.sort(key=lambda x: x.flow_count, reverse=True)
+
+        return IPEntityListResponse(
+            items=items,
+            total=len(items),
+            internal_count=internal_cnt,
+            external_count=external_cnt,
+        )

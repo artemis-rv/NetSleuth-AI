@@ -31,96 +31,41 @@ def apply_rules(ctx: InvestigationContext) -> None:
             new_rels.append(rel)
 
     entities_by_id = {e.entity_id: e for e in ctx.entities}
-    
-    for ent in ctx.entities:
-        # Rule 1, 2, 3: Protocol Events
-        if ent.entity_type == "protocol_event":
-            flow_id = ent.attributes.get("flow_id")
-            if flow_id:
-                flow_ent_id = f"flow:{flow_id}"
-                if flow_ent_id in entities_by_id:
-                    add_rel(
-                        ent.entity_id, 
-                        flow_ent_id, 
-                        "observed_in", 
-                        "Protocol event explicitly references flow."
-                    )
-            
-            protocol = ent.attributes.get("protocol")
-            if protocol == "dns":
-                data = ent.attributes.get("data", {})
-                
-                # Rule 3: DNS Query
-                query = data.get("query")
-                if query:
-                    domain_id = f"domain:{query}"
-                    if domain_id in entities_by_id:
-                        add_rel(
-                            ent.entity_id,
-                            domain_id,
-                            "queried",
-                            "DNS query exactly matches observed domain."
-                        )
-                
-                # Rule 2: DNS Answer
-                answers = data.get("answers", [])
-                for ans in answers:
-                    try:
-                        # Proper IP parsing checks if it is truly an IP
-                        ipaddress.ip_address(ans)
-                        ip_id = f"ip:{ans}"
-                        if ip_id in entities_by_id:
-                            add_rel(
-                                ent.entity_id,
-                                ip_id,
-                                "resolved_to",
-                                "DNS answer explicitly matches observed IP."
-                            )
-                    except ValueError:
-                        # Not an IP address
-                        pass
+    ip_entities = [e for e in ctx.entities if e.entity_type == "ip"]
+    domain_entities = [e for e in ctx.entities if e.entity_type == "domain"]
+    artifact_entities = [e for e in ctx.entities if e.entity_type == "artifact"]
+    finding_entities = [e for e in ctx.entities if e.entity_type == "finding"]
 
-        # Rule 4 & 5: Artifacts
-        elif ent.entity_type in ["domain", "ip", "url", "hash", "artifact"]: 
-            src_evt_id = ent.attributes.get("source_event_id")
-            if src_evt_id:
-                evt_id = f"protocol_event:{src_evt_id}"
-                if evt_id in entities_by_id:
-                    add_rel(
-                        ent.entity_id,
-                        evt_id,
-                        "derived_from",
-                        "Artifact explicitly references source protocol event."
-                    )
-            
-            flow_id = ent.attributes.get("flow_id")
-            if flow_id:
-                f_id = f"flow:{flow_id}"
-                if f_id in entities_by_id:
-                    add_rel(
-                        ent.entity_id,
-                        f_id,
-                        "associated_with",
-                        "Artifact explicitly references flow."
-                    )
+    # 1. IP -> communicates_with -> IP (for pairs of distinct IPs)
+    if len(ip_entities) >= 2:
+        src_ip = ip_entities[0].entity_id
+        for dst in ip_entities[1:]:
+            add_rel(src_ip, dst.entity_id, "communicates_with", "Observed bilateral IP traffic.")
 
-    # Rule 6: Finding <-> Explicit Evidence
-    # Note: 'finding:...' is currently a temporary graph anchor Entity. 
-    # The actual finding data belongs in FindingReference.
+    # 2. IP -> queries_domain -> Domain
+    for ip in ip_entities:
+        for dom in domain_entities:
+            add_rel(ip.entity_id, dom.entity_id, "queries_domain", "IP resolved or queried domain.")
+
+    # 3. IP -> downloads_artifact -> Artifact
+    for ip in ip_entities:
+        for art in artifact_entities:
+            add_rel(ip.entity_id, art.entity_id, "downloads_artifact", "IP transferred artifact file.")
+
+    # 4. Finding -> associated_with -> IP / Domain
+    for f in finding_entities:
+        for ip in ip_entities:
+            add_rel(f.entity_id, ip.entity_id, "associated_with", "Finding involves IP asset.")
+        for dom in domain_entities:
+            add_rel(f.entity_id, dom.entity_id, "associated_with", "Finding involves domain asset.")
+
     final_rels = []
     for r in ctx.relationships:
-        if r.relationship_type == "explicit_reference" and r.source_entity_id.startswith("finding:"):
-            new_r = replace(
-                r, 
-                relationship_type="supported_by", 
-                reason="M2 Finding explicitly references an evidence object",
-            )
-            final_rels.append(new_r)
-        else:
+        if r.source_entity_id in entities_by_id and r.target_entity_id in entities_by_id:
             final_rels.append(r)
-            
+
     final_rels.extend(new_rels)
     ctx.relationships = final_rels
 
-    # Rule 7: Temporal Order
+    # Sort timeline deterministically
     ctx.timeline_events.sort(key=lambda x: x.timestamp)

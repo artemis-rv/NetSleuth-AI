@@ -73,11 +73,11 @@ export function AttackChainSection({ caseId }: AttackChainSectionProps) {
     }
   }
 
-  if (stagesList.length === 0) {
+  if (stagesList.length === 0 || chainStatus === 'none') {
     return (
       <EmptyState
-        title="No Attack Stages"
-        description="The attack chain exists but contains no progressive stages."
+        title="No Attack Chain Detected"
+        description="No progressive attack chain stages were detected for this case."
       />
     );
   }

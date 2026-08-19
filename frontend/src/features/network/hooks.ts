@@ -1,6 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { flowKeys } from './query-keys';
-import { getFlows, getFlow, getFlowEvents } from './api';
+import { getFlows, getFlow, getFlowEvents, getNetworkIPEntities } from './api';
+
+export function useNetworkIPEntitiesQuery(caseId: string) {
+  return useQuery({
+    queryKey: ['network', 'entities', caseId],
+    queryFn: () => getNetworkIPEntities(caseId),
+    enabled: !!caseId,
+  });
+}
 import type { FlowsFilters } from './types';
 
 /**

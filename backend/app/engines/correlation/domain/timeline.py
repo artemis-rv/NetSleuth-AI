@@ -7,8 +7,8 @@ class TimelineEvent:
     event_id: str
     timestamp: datetime
     event_type: str
-    title: str
-    description: str
+    title: str = ""
+    description: str = ""
     entity_ids: List[str] = field(default_factory=list)
     finding_ids: List[str] = field(default_factory=list)
     evidence_ids: List[str] = field(default_factory=list)

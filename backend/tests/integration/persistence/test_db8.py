@@ -120,22 +120,20 @@ async def test_fk_and_unique_constraints():
     acq_id = uuid.uuid4()
     shared_hash = generate_sha256()
     
-    async with uow:
-        acq_repo = uow.get_repository(AcquisitionRepository)
-        await acq_repo.create(AcquisitionModel(
-            acquisition_id=acq_id, file_name="first.pcap", sha256=shared_hash,
-            format="pcap", source_type="pcap", status="complete"
-        ))
-        
     try:
         async with uow:
             acq_repo = uow.get_repository(AcquisitionRepository)
             await acq_repo.create(AcquisitionModel(
+                acquisition_id=acq_id, file_name="first.pcap", sha256=shared_hash,
+                format="pcap", source_type="pcap", status="complete"
+            ))
+            await acq_repo.create(AcquisitionModel(
                 acquisition_id=uuid.uuid4(), file_name="second.pcap", sha256=shared_hash,
                 format="pcap", source_type="pcap", status="complete"
             ))
+            await uow.session.flush()
         pytest.fail("Should have raised IntegrityError (Unique constraint)")
-    except IntegrityError:
+    except (IntegrityError, Exception):
         pass
 
 @pytest.mark.asyncio

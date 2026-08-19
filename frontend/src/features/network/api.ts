@@ -40,3 +40,11 @@ export async function getFlow(flowId: string): Promise<FlowDetailResponse> {
 export async function getFlowEvents(flowId: string): Promise<ProtocolEventListResponse> {
   return apiClient<ProtocolEventListResponse>(`/api/v1/flows/${flowId}/events`);
 }
+
+/**
+ * Fetch contextual network IP entities for a case.
+ * Maps to: GET /api/v1/cases/{case_id}/network/entities
+ */
+export async function getNetworkIPEntities(caseId: string): Promise<import('./types').IPEntityListResponse> {
+  return apiClient<import('./types').IPEntityListResponse>(`/api/v1/cases/${caseId}/network/entities`);
+}

@@ -65,3 +65,27 @@ export interface FlowsFilters {
   protocol?: string;
   service?: string;
 }
+
+export interface IPEntityResponse {
+  ip: string;
+  classification: string;
+  role: string;
+  related_domains: string[];
+  services: string[];
+  first_seen: string | null;
+  last_seen: string | null;
+  flow_count: number;
+  event_count: number;
+  finding_count: number;
+  flow_ids: string[];
+  event_ids: string[];
+  artifact_ids: string[];
+  finding_ids: string[];
+}
+
+export interface IPEntityListResponse {
+  items: IPEntityResponse[];
+  total: number;
+  internal_count: number;
+  external_count: number;
+}

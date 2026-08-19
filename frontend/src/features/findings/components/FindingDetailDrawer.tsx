@@ -169,21 +169,25 @@ export function FindingDetailDrawer({ findingId, onClose }: FindingDetailDrawerP
                 </Section>
               )}
 
-              {/* Feature Attribution */}
+              {/* Feature Metrics */}
               {data.feature_attribution && Object.keys(data.feature_attribution).length > 0 && (
-                <Section title="Feature Attribution" icon={Layers}>
+                <Section title="Feature Metrics" icon={Layers}>
                   <div className="space-y-1">
                     {Object.entries(data.feature_attribution)
                       .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
                       .slice(0, 10)
-                      .map(([feat, score]) => (
-                        <div key={feat} className="flex justify-between py-0.5">
-                          <span className="text-xs text-muted font-mono truncate max-w-[60%]">{feat}</span>
-                          <span className={`text-xs tabular-nums font-medium ${score >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {score >= 0 ? '+' : ''}{score.toFixed(4)}
-                          </span>
-                        </div>
-                      ))}
+                      .map(([feat, score]) => {
+                        const isDecimal = score % 1 !== 0;
+                        const formatted = isDecimal ? score.toFixed(2) : Math.round(score).toLocaleString();
+                        return (
+                          <div key={feat} className="flex justify-between py-0.5">
+                            <span className="text-xs text-muted font-mono truncate max-w-[60%]">{feat}</span>
+                            <span className="text-xs tabular-nums font-medium text-emerald-400">
+                              {formatted}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </Section>
               )}

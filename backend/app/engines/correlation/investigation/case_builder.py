@@ -142,12 +142,18 @@ class InvestigationCaseBuilder:
             
         # 2. Timeline
         for t in ctx.timeline_events:
+            title_str = getattr(t, "title", None)
+            desc_str = t.description or ""
+            if title_str and not desc_str.startswith(title_str):
+                full_desc = f"{title_str}: {desc_str}" if desc_str else title_str
+            else:
+                full_desc = desc_str or "Event observed"
+
             t_doc = {
                 "event_id": t.event_id,
                 "timestamp": t.timestamp.isoformat().replace("+00:00", "Z"),
                 "event_type": t.event_type if t.event_type in ["network", "dns", "http", "tls", "session", "flow", "artifact", "finding", "alert", "investigation", "evidence"] else "network",
-                "title": getattr(t, "title", None),
-                "description": t.description
+                "description": full_desc
             }
             # Map all entity references without truncation.
             if t.entity_ids:
@@ -157,12 +163,6 @@ class InvestigationCaseBuilder:
                     t_doc["target_entity_id"] = t.entity_ids[1]
             if t.evidence_ids:
                 t_doc["evidence_ids"] = t.evidence_ids
-            if getattr(t, "flow_ids", None):
-                t_doc["flow_ids"] = t.flow_ids
-            if getattr(t, "protocol_event_ids", None):
-                t_doc["protocol_event_ids"] = t.protocol_event_ids
-            if getattr(t, "artifact_ids", None):
-                t_doc["artifact_ids"] = t.artifact_ids
             doc["timeline"].append(t_doc)
             
         # 3. Entities
