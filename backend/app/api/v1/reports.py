@@ -82,16 +82,25 @@ async def finalize_report(
 @router.get("/{report_id}/export")
 async def export_report(
     report_id: UUID = Path(...),
+    format: str = Query(None, description="Export format: pdf, json, txt, html"),
     request: Request = None,
     user: UserModel = Depends(get_current_user),
     service: ReportsService = Depends(get_reports_service)
 ):
-    artifact_bytes, media_type, filename = await service.export_report(
-        report_id=report_id,
-        current_user=user,
-        http_request=request
-    )
+    import traceback as _tb
+    try:
+        artifact_bytes, media_type, filename = await service.export_report(
+            report_id=report_id,
+            current_user=user,
+            target_format=format,
+            http_request=request
+        )
+    except Exception as exc:
+        tb = _tb.format_exc()
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"error": str(exc), "traceback": tb})
     headers = {
         "Content-Disposition": f'attachment; filename="{filename}"'
     }
     return FastAPIResponse(content=artifact_bytes, media_type=media_type, headers=headers)
+

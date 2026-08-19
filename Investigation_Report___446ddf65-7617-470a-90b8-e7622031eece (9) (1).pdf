@@ -1,0 +1,686 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R] /Count 7 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 4167 >>
+stream
+0.07 0.13 0.26 rg 36 690 540 60 re f
+1.0 1.0 1.0 rg
+BT /F2 18 Tf 48 726 Td (NETSLEUTH AI) Tj ET
+BT /F1 11 Tf 48 702 Td (DIGITAL FORENSICS & INCIDENT RESPONSE REPORT) Tj ET
+0.96 0.97 0.98 rg 0.85 0.88 0.91 RG 0.75 w 36 595 540 75 re b
+0.1 0.1 0.1 rg
+BT /F2 10 Tf 46 655 Td (CASE TITLE: Investigation Case 446ddf65-7617-470a-90b8-e7622031eece) Tj ET
+BT /F1 8.5 Tf 46 638 Td (Case ID: 446ddf65-7617-470a-90b8-e7622031eece) Tj ET
+BT /F1 8.5 Tf 46 623 Td (Report ID: RPT-446ddf65-7617-470a-90b8-e7622031eece) Tj ET
+BT /F2 9 Tf 360 655 Td (STATUS: OPEN) Tj ET
+BT /F1 8.5 Tf 360 638 Td (Generated At: 2026-08-19T05:47:04.327560Z) Tj ET
+BT /F1 8.5 Tf 360 623 Td (Engine Version: vNetSleuth-AI M4 v1.0) Tj ET
+BT /F1 8.5 Tf 360 608 Td (Integrity Status: VERIFIED) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 564.0 Td (EXECUTIVE SUMMARY METRICS) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 560.0 m 576 560.0 l S
+0.95 0.96 0.98 rg 0.82 0.85 0.89 RG 0.5 w 36.0 500.0 100.0 40 re b
+0.4 0.4 0.4 rg
+BT /F2 6.5 Tf 42.0 526.0 Td (FINDINGS) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 42.0 510.0 Td (2) Tj ET
+0.95 0.96 0.98 rg 0.82 0.85 0.89 RG 0.5 w 144.0 500.0 100.0 40 re b
+0.4 0.4 0.4 rg
+BT /F2 6.5 Tf 150.0 526.0 Td (TIMELINE EVENTS) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 150.0 510.0 Td (12) Tj ET
+0.95 0.96 0.98 rg 0.82 0.85 0.89 RG 0.5 w 252.0 500.0 100.0 40 re b
+0.4 0.4 0.4 rg
+BT /F2 6.5 Tf 258.0 526.0 Td (MITRE MAPPINGS) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 258.0 510.0 Td (3) Tj ET
+0.95 0.96 0.98 rg 0.82 0.85 0.89 RG 0.5 w 360.0 500.0 100.0 40 re b
+0.4 0.4 0.4 rg
+BT /F2 6.5 Tf 366.0 526.0 Td (ENTITIES) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 366.0 510.0 Td (45) Tj ET
+0.95 0.96 0.98 rg 0.82 0.85 0.89 RG 0.5 w 468.0 500.0 100.0 40 re b
+0.4 0.4 0.4 rg
+BT /F2 6.5 Tf 474.0 526.0 Td (CASE STATUS) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 474.0 510.0 Td (OPEN) Tj ET
+0.2 0.2 0.2 rg
+BT /F2 8.5 Tf 36 485.0 Td (Case Description:) Tj ET
+BT /F1 8 Tf 36 473.0 Td (Automatically assembled investigation case.) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 8 Tf 36 456.0 Td (Evidence Verification Summary: Verified: 0 | Mismatched: 0 | Unverified: 0 | Total: 0) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 424.0 Td (KEY FORENSIC FINDINGS) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 420.0 m 576 420.0 l S
+0.98 0.98 0.99 rg 0.85 0.87 0.90 RG 0.5 w 36 341.0 540 61.0 re b
+0.1 0.5 0.8 rg 36 341.0 4 61.0 re f
+0.1 0.1 0.1 rg
+BT /F2 9.5 Tf 46 389.0 Td (F-C2-408a5965) Tj ET
+BT /F4 7.5 Tf 400 389.0 Td (ID: F-C2-408a5965) Tj ET
+BT /F2 8 Tf 46 378.0 Td (SEVERITY: INFORMATIONAL  |  TYPE: anomaly  |  CONFIDENCE: 1.0) Tj ET
+0.25 0.25 0.25 rg
+BT /F1 8.5 Tf 46 366.0 Td (-) Tj ET
+0.4 0.4 0.4 rg
+BT /F4 7.5 Tf 46 355.0 Td (Evidence References: -) Tj ET
+0.98 0.98 0.99 rg 0.85 0.87 0.90 RG 0.5 w 36 272.0 540 61.0 re b
+0.1 0.5 0.8 rg 36 272.0 4 61.0 re f
+0.1 0.1 0.1 rg
+BT /F2 9.5 Tf 46 320.0 Td (F-SCAN-408a5965) Tj ET
+BT /F4 7.5 Tf 400 320.0 Td (ID: F-SCAN-408a5965) Tj ET
+BT /F2 8 Tf 46 309.0 Td (SEVERITY: INFORMATIONAL  |  TYPE: anomaly  |  CONFIDENCE: 1.0) Tj ET
+0.25 0.25 0.25 rg
+BT /F1 8.5 Tf 46 297.0 Td (-) Tj ET
+0.4 0.4 0.4 rg
+BT /F4 7.5 Tf 46 286.0 Td (Evidence References: -) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 248.0 Td (INVESTIGATION TIMELINE EVENTS) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 244.0 m 576 244.0 l S
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 136.0 540 90.0 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 214.0 Td ([d000f4d6-b88e-4014-8fb2-6684f9796042] 2026-08-18T13:31:59.049318Z ?) Tj ET
+BT /F2 8.5 Tf 42 202.5 Td (d000f4d6-b88e-4014-8fb2-6684f9796042) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 191.0 Td (Type: network  |  Entities: ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f,) Tj ET
+BT /F1 7.5 Tf 42 181.0 Td (ip:2a03:2880:f370:120:face:b00c:0:167  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 171.0 Td (e27f3198-a1bd-4353-afd6-b04d82c2f4a8) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 161.0 Td (Network Flow TCP: 2401:4900:78fd:4ad1:d8ab:e45a:abb:898f:52720 ->) Tj ET
+BT /F1 8 Tf 42 150.5 Td (2a03:2880:f370:120:face:b00c:0:167:5222) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 1 of 7) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 4743 >>
+stream
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 36 760 Td (NETSLEUTH AI - FORENSIC INVESTIGATION REPORT) Tj ET
+0.7 0.7 0.7 RG 0.5 w 36 752 m 576 752 l S
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 650.0 540 80.0 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 718.0 Td ([2aa914f3-90b7-443a-b7b9-e6b66e772bf8] 2026-08-18T13:31:59.278735Z ?) Tj ET
+BT /F2 8.5 Tf 42 706.5 Td (2aa914f3-90b7-443a-b7b9-e6b66e772bf8) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 695.0 Td (Type: network  |  Entities: ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f,) Tj ET
+BT /F1 7.5 Tf 42 685.0 Td (ip:2600:140f:1e00::17c4:e81  |  Evidence: 989e5906-0abf-4949-aa18-1dfdb200a90e) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 675.0 Td (Network Flow UDP: 2401:4900:78fd:4ad1:d8ab:e45a:abb:898f:58757 ->) Tj ET
+BT /F1 8 Tf 42 664.5 Td (2600:140f:1e00::17c4:e81:443) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 572.5 540 69.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 630.0 Td ([e8c19808-c6d5-477f-a188-a3561393ce2d] 2026-08-18T13:31:59.353192Z ?) Tj ET
+BT /F2 8.5 Tf 42 618.5 Td (e8c19808-c6d5-477f-a188-a3561393ce2d) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 607.0 Td (Type: network  |  Entities: ip:10.129.135.190, ip:239.255.255.250  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 597.0 Td (9a162701-1067-49f8-9e40-31a54d009481) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 587.0 Td (Network Flow UDP: 10.129.135.190:63513 -> 239.255.255.250:1900) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 495.0 540 69.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 552.5 Td ([40a18052-0d5d-4d61-9257-3a23fc8488b1] 2026-08-18T13:32:01.063377Z ?) Tj ET
+BT /F2 8.5 Tf 42 541.0 Td (40a18052-0d5d-4d61-9257-3a23fc8488b1) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 529.5 Td (Type: network  |  Entities: ip:10.129.135.190, ip:10.129.135.74  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 519.5 Td (cd0bd925-b460-4bc9-ac60-55c2984c581d) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 509.5 Td (Network Flow UDP: 10.129.135.190:54939 -> 10.129.135.74:53) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 417.5 540 69.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 475.0 Td ([e691604a-22f7-4bfb-a745-e75df028e55e] 2026-08-18T13:32:01.063552Z ?) Tj ET
+BT /F2 8.5 Tf 42 463.5 Td (e691604a-22f7-4bfb-a745-e75df028e55e) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 452.0 Td (Type: network  |  Entities: ip:10.129.135.190, ip:10.129.135.74  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 442.0 Td (56edda50-3e24-43f4-98da-3895b78fd1d5) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 432.0 Td (Network Flow UDP: 10.129.135.190:54142 -> 10.129.135.74:53) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 329.5 540 80.0 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 397.5 Td ([77f99423-0eae-420a-9c4a-7d0ed92da06e] 2026-08-18T13:32:01.133273Z ?) Tj ET
+BT /F2 8.5 Tf 42 386.0 Td (77f99423-0eae-420a-9c4a-7d0ed92da06e) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 374.5 Td (Type: network  |  Entities: ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f,) Tj ET
+BT /F1 7.5 Tf 42 364.5 Td (ip:2401:4900:78fd:4ad1::bf  |  Evidence: 8bcd00db-42ba-4c9e-935a-ead2b1ed5374) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 354.5 Td (Network Flow UDP: 2401:4900:78fd:4ad1:d8ab:e45a:abb:898f:54142 ->) Tj ET
+BT /F1 8 Tf 42 344.0 Td (2401:4900:78fd:4ad1::bf:53) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 241.5 540 80.0 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 309.5 Td ([a50078bc-7764-4438-b8b8-95f2ec303080] 2026-08-18T13:32:01.133350Z ?) Tj ET
+BT /F2 8.5 Tf 42 298.0 Td (a50078bc-7764-4438-b8b8-95f2ec303080) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 286.5 Td (Type: network  |  Entities: ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f,) Tj ET
+BT /F1 7.5 Tf 42 276.5 Td (ip:2401:4900:78fd:4ad1::bf  |  Evidence: 6fbd0bba-6749-49d0-aeca-a0ba582e587c) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 266.5 Td (Network Flow UDP: 2401:4900:78fd:4ad1:d8ab:e45a:abb:898f:54939 ->) Tj ET
+BT /F1 8 Tf 42 256.0 Td (2401:4900:78fd:4ad1::bf:53) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 143.5 540 90.0 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 221.5 Td ([8e95cbdf-6973-4047-9a4e-0be3ae736409] 2026-08-18T13:32:01.505090Z ?) Tj ET
+BT /F2 8.5 Tf 42 210.0 Td (8e95cbdf-6973-4047-9a4e-0be3ae736409) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 198.5 Td (Type: network  |  Entities: ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f,) Tj ET
+BT /F1 7.5 Tf 42 188.5 Td (ip:2606:4700:90c1:d8b7:9aa7:4e4:ccf5:ac50  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 178.5 Td (3cef12b8-b062-483d-81d1-bc6ccbb89a72) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 168.5 Td (Network Flow TCP: 2401:4900:78fd:4ad1:d8ab:e45a:abb:898f:56770 ->) Tj ET
+BT /F1 8 Tf 42 158.0 Td (2606:4700:90c1:d8b7:9aa7:4e4:ccf5:ac50:443) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 2 of 7) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 8 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+8 0 obj
+<< /Length 4834 >>
+stream
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 36 760 Td (NETSLEUTH AI - FORENSIC INVESTIGATION REPORT) Tj ET
+0.7 0.7 0.7 RG 0.5 w 36 752 m 576 752 l S
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 660.5 540 69.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 718.0 Td ([e691887c-51cf-423a-a39c-69d848ca0453] 2026-08-18T13:32:01.914520Z ?) Tj ET
+BT /F2 8.5 Tf 42 706.5 Td (e691887c-51cf-423a-a39c-69d848ca0453) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 695.0 Td (Type: network  |  Entities: ip:10.129.135.190, ip:34.54.84.110  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 685.0 Td (09d015bc-1e9f-44e0-b6c4-bd5bdc220f3d) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 675.0 Td (Network Flow TCP: 10.129.135.190:63043 -> 34.54.84.110:443) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 583.0 540 69.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 640.5 Td ([b608fdb3-c39f-4968-a512-a031b43a81e7] 2026-08-18T13:32:02.166884Z ?) Tj ET
+BT /F2 8.5 Tf 42 629.0 Td (b608fdb3-c39f-4968-a512-a031b43a81e7) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 617.5 Td (Type: network  |  Entities: ip:10.129.135.190, ip:4.150.223.112  |  Evidence:) Tj ET
+BT /F1 7.5 Tf 42 607.5 Td (4f19c538-4296-4458-bd06-6cb27447f6df) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 597.5 Td (Network Flow TCP: 10.129.135.190:56259 -> 4.150.223.112:443) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 515.5 540 59.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 563.0 Td ([6a592b49-792e-45fd-988f-a4d3f1e5e759] 2026-08-19T05:47:03.951710Z ?) Tj ET
+BT /F2 8.5 Tf 42 551.5 Td (6a592b49-792e-45fd-988f-a4d3f1e5e759) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 540.0 Td (Type: finding  |  Entities: -  |  Evidence: -) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 530.0 Td (Finding: C2_MALWARE_COMMUNICATION \(Risk: 90%\)) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 448.0 540 59.5 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 42 495.5 Td ([ba1d9483-3fe9-4ca0-b4aa-1c806d58ae75] 2026-08-19T05:47:03.951710Z ?) Tj ET
+BT /F2 8.5 Tf 42 484.0 Td (ba1d9483-3fe9-4ca0-b4aa-1c806d58ae75) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 42 472.5 Td (Type: finding  |  Entities: -  |  Evidence: -) Tj ET
+0.2 0.2 0.2 rg
+BT /F1 8 Tf 42 462.5 Td (Finding: SCANNING_RECONNAISSANCE \(Risk: 82%\)) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 424.0 Td (EXTRACTED ENTITIES) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 420.0 m 576 420.0 l S
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 379.0 540 23.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 391.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 391.0 Td ([ip:10.129.135.190] IP: ip:10.129.135.190) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 348.0 540 23.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 360.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 360.0 Td ([ip:10.129.135.74] IP: ip:10.129.135.74) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 306.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 329.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 329.0 Td ([flow:cd0bd925-b460-4bc9-ac60-55c2984c581d] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 318.0 Td (flow:cd0bd925-b460-4bc9-ac60-55c2984c581d) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 264.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 287.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 287.0 Td ([flow:56edda50-3e24-43f4-98da-3895b78fd1d5] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 276.0 Td (flow:56edda50-3e24-43f4-98da-3895b78fd1d5) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 222.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 245.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 245.0 Td ([ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f] IP:) Tj ET
+BT /F4 7.5 Tf 40 234.0 Td (ip:2401:4900:78fd:4ad1:d8ab:e45a:abb:898f) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 180.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 203.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 203.0 Td ([ip:2401:4900:78fd:4ad1::bf] IP:) Tj ET
+BT /F4 7.5 Tf 40 192.0 Td (ip:2401:4900:78fd:4ad1::bf) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 138.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 161.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 161.0 Td ([flow:8bcd00db-42ba-4c9e-935a-ead2b1ed5374] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 150.0 Td (flow:8bcd00db-42ba-4c9e-935a-ead2b1ed5374) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 96.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 119.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 119.0 Td ([flow:6fbd0bba-6749-49d0-aeca-a0ba582e587c] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 108.0 Td (flow:6fbd0bba-6749-49d0-aeca-a0ba582e587c) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 3 of 7) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 10 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+10 0 obj
+<< /Length 5065 >>
+stream
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 36 760 Td (NETSLEUTH AI - FORENSIC INVESTIGATION REPORT) Tj ET
+0.7 0.7 0.7 RG 0.5 w 36 752 m 576 752 l S
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 696.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 719.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 719.0 Td ([ip:2606:4700:90c1:d8b7:9aa7:4e4:ccf5:ac50] IP:) Tj ET
+BT /F4 7.5 Tf 40 708.0 Td (ip:2606:4700:90c1:d8b7:9aa7:4e4:ccf5:ac50) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 654.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 677.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 677.0 Td ([flow:3cef12b8-b062-483d-81d1-bc6ccbb89a72] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 666.0 Td (flow:3cef12b8-b062-483d-81d1-bc6ccbb89a72) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 623.0 540 23.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 635.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 635.0 Td ([ip:34.54.84.110] IP: ip:34.54.84.110) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 581.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 604.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 604.0 Td ([flow:09d015bc-1e9f-44e0-b6c4-bd5bdc220f3d] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 593.0 Td (flow:09d015bc-1e9f-44e0-b6c4-bd5bdc220f3d) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 550.0 540 23.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 562.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 562.0 Td ([ip:4.150.223.112] IP: ip:4.150.223.112) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 508.0 540 34.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 531.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 531.0 Td ([flow:4f19c538-4296-4458-bd06-6cb27447f6df] FLOW:) Tj ET
+BT /F4 7.5 Tf 40 520.0 Td (flow:4f19c538-4296-4458-bd06-6cb27447f6df) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 477.0 540 23.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 489.0 Td (Namespace: global | Conf: 1.0) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 489.0 Td ([ip:239.255.255.250] IP: ip:239.255.255.250) Tj ET
+0.4 0.4 0.4 rg
+BT /F3 8 Tf 36 469.0 Td (... and 30 additional extracted entities recorded in JSON export.) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 439.0 Td (ENTITY RELATIONSHIPS) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 435.0 m 576 435.0 l S
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 350.0 540 67.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 406.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 406.0 Td () Tj ET
+BT /F4 7.5 Tf 40 395.0 Td ([rel-protocol_event:c1d6997d-dd93-4a00-8f6e-3442d71ddf79-observed_in-flow:56edda50-3e24-43f4-98da-3895b78fd1d5]) Tj ET
+BT /F4 7.5 Tf 40 384.0 Td (protocol_event:c1d6997d-dd93-4a00-8f6e-3442d71ddf79) Tj ET
+BT /F4 7.5 Tf 40 373.0 Td (--(observed_in)-->) Tj ET
+BT /F4 7.5 Tf 40 362.0 Td (flow:56edda50-3e24-43f4-98da-3895b78fd1d5) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 286.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 331.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 331.0 Td () Tj ET
+BT /F4 7.5 Tf 40 320.0 Td ([rel-protocol_event:c1d6997d-dd93-4a00-8f6e-3442d71ddf79-queried-domain:v20.events.data.microsoft.com]) Tj ET
+BT /F4 7.5 Tf 40 309.0 Td (protocol_event:c1d6997d-dd93-4a00-8f6e-3442d71ddf79) Tj ET
+BT /F4 7.5 Tf 40 298.0 Td (--(queried)--> domain:v20.events.data.microsoft.com) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 211.0 540 67.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 267.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 267.0 Td () Tj ET
+BT /F4 7.5 Tf 40 256.0 Td ([rel-protocol_event:2de4b554-7692-4e2b-93d9-df80fb298ec3-observed_in-flow:cd0bd925-b460-4bc9-ac60-55c2984c581d]) Tj ET
+BT /F4 7.5 Tf 40 245.0 Td (protocol_event:2de4b554-7692-4e2b-93d9-df80fb298ec3) Tj ET
+BT /F4 7.5 Tf 40 234.0 Td (--(observed_in)-->) Tj ET
+BT /F4 7.5 Tf 40 223.0 Td (flow:cd0bd925-b460-4bc9-ac60-55c2984c581d) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 147.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 192.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 192.0 Td () Tj ET
+BT /F4 7.5 Tf 40 181.0 Td ([rel-protocol_event:2de4b554-7692-4e2b-93d9-df80fb298ec3-queried-domain:v20.events.data.microsoft.com]) Tj ET
+BT /F4 7.5 Tf 40 170.0 Td (protocol_event:2de4b554-7692-4e2b-93d9-df80fb298ec3) Tj ET
+BT /F4 7.5 Tf 40 159.0 Td (--(queried)--> domain:v20.events.data.microsoft.com) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 83.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 128.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 128.0 Td () Tj ET
+BT /F4 7.5 Tf 40 117.0 Td ([rel-protocol_event:2de4b554-7692-4e2b-93d9-df80fb298ec3-resolved_to-ip:4.150.223.112]) Tj ET
+BT /F4 7.5 Tf 40 106.0 Td (protocol_event:2de4b554-7692-4e2b-93d9-df80fb298ec3) Tj ET
+BT /F4 7.5 Tf 40 95.0 Td (--(resolved_to)--> ip:4.150.223.112) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 4 of 7) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 12 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+12 0 obj
+<< /Length 5348 >>
+stream
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 36 760 Td (NETSLEUTH AI - FORENSIC INVESTIGATION REPORT) Tj ET
+0.7 0.7 0.7 RG 0.5 w 36 752 m 576 752 l S
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 663.0 540 67.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 719.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 719.0 Td () Tj ET
+BT /F4 7.5 Tf 40 708.0 Td ([rel-protocol_event:aae99e3a-dd5c-4b8a-994b-762b694cfe03-observed_in-flow:8bcd00db-42ba-4c9e-935a-ead2b1ed5374]) Tj ET
+BT /F4 7.5 Tf 40 697.0 Td (protocol_event:aae99e3a-dd5c-4b8a-994b-762b694cfe03) Tj ET
+BT /F4 7.5 Tf 40 686.0 Td (--(observed_in)-->) Tj ET
+BT /F4 7.5 Tf 40 675.0 Td (flow:8bcd00db-42ba-4c9e-935a-ead2b1ed5374) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 599.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 644.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 644.0 Td () Tj ET
+BT /F4 7.5 Tf 40 633.0 Td ([rel-protocol_event:aae99e3a-dd5c-4b8a-994b-762b694cfe03-queried-domain:v20.events.data.microsoft.com]) Tj ET
+BT /F4 7.5 Tf 40 622.0 Td (protocol_event:aae99e3a-dd5c-4b8a-994b-762b694cfe03) Tj ET
+BT /F4 7.5 Tf 40 611.0 Td (--(queried)--> domain:v20.events.data.microsoft.com) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 524.0 540 67.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 580.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 580.0 Td () Tj ET
+BT /F4 7.5 Tf 40 569.0 Td ([rel-protocol_event:d2437b43-9403-4853-8126-81698bb896cf-observed_in-flow:6fbd0bba-6749-49d0-aeca-a0ba582e587c]) Tj ET
+BT /F4 7.5 Tf 40 558.0 Td (protocol_event:d2437b43-9403-4853-8126-81698bb896cf) Tj ET
+BT /F4 7.5 Tf 40 547.0 Td (--(observed_in)-->) Tj ET
+BT /F4 7.5 Tf 40 536.0 Td (flow:6fbd0bba-6749-49d0-aeca-a0ba582e587c) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 460.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 505.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 505.0 Td () Tj ET
+BT /F4 7.5 Tf 40 494.0 Td ([rel-protocol_event:d2437b43-9403-4853-8126-81698bb896cf-queried-domain:v20.events.data.microsoft.com]) Tj ET
+BT /F4 7.5 Tf 40 483.0 Td (protocol_event:d2437b43-9403-4853-8126-81698bb896cf) Tj ET
+BT /F4 7.5 Tf 40 472.0 Td (--(queried)--> domain:v20.events.data.microsoft.com) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 396.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 441.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 441.0 Td () Tj ET
+BT /F4 7.5 Tf 40 430.0 Td ([rel-protocol_event:d2437b43-9403-4853-8126-81698bb896cf-resolved_to-ip:4.150.223.112]) Tj ET
+BT /F4 7.5 Tf 40 419.0 Td (protocol_event:d2437b43-9403-4853-8126-81698bb896cf) Tj ET
+BT /F4 7.5 Tf 40 408.0 Td (--(resolved_to)--> ip:4.150.223.112) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 321.0 540 67.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 377.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 377.0 Td () Tj ET
+BT /F4 7.5 Tf 40 366.0 Td ([rel-protocol_event:0de10e99-9768-4198-bdde-dd242acb3742-observed_in-flow:cd0bd925-b460-4bc9-ac60-55c2984c581d]) Tj ET
+BT /F4 7.5 Tf 40 355.0 Td (protocol_event:0de10e99-9768-4198-bdde-dd242acb3742) Tj ET
+BT /F4 7.5 Tf 40 344.0 Td (--(observed_in)-->) Tj ET
+BT /F4 7.5 Tf 40 333.0 Td (flow:cd0bd925-b460-4bc9-ac60-55c2984c581d) Tj ET
+0.98 0.98 0.99 rg 0.88 0.90 0.92 RG 0.5 w 36 257.0 540 56.0 re b
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 410 302.0 Td (Evidence: -) Tj ET
+0.1 0.1 0.1 rg
+BT /F4 7.5 Tf 40 302.0 Td () Tj ET
+BT /F4 7.5 Tf 40 291.0 Td ([rel-protocol_event:0de10e99-9768-4198-bdde-dd242acb3742-queried-domain:v20.events.data.microsoft.com]) Tj ET
+BT /F4 7.5 Tf 40 280.0 Td (protocol_event:0de10e99-9768-4198-bdde-dd242acb3742) Tj ET
+BT /F4 7.5 Tf 40 269.0 Td (--(queried)--> domain:v20.events.data.microsoft.com) Tj ET
+0.4 0.4 0.4 rg
+BT /F3 8 Tf 36 249.0 Td (... and 37 additional relationships recorded in JSON export.) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 219.0 Td (MITRE ATT&CK MAPPINGS) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 215.0 m 576 215.0 l S
+0.92 0.94 0.96 rg 0.8 0.83 0.87 RG 0.5 w 36 181.0 540 16 re b
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 40 185.0 Td (TACTIC / NAME) Tj ET
+BT /F2 8 Tf 220 185.0 Td (TECHNIQUE ID) Tj ET
+BT /F2 8 Tf 320 185.0 Td (STATUS) Tj ET
+BT /F2 8 Tf 410 185.0 Td (CONFIDENCE) Tj ET
+BT /F2 8 Tf 490 185.0 Td (EVIDENCE) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 108.0 540 73.0 re b
+0.1 0.1 0.1 rg
+BT /F2 8 Tf 40 170.0 Td (Web Protocols) Tj ET
+BT /F4 8 Tf 220 170.0 Td (T1071.001) Tj ET
+BT /F2 7.5 Tf 320 170.0 Td (SUPPORTED) Tj ET
+BT /F1 8 Tf 410 170.0 Td (0.88) Tj ET
+BT /F4 7.5 Tf 490 170.0 Td (cd0bd925-b460-4bc9-ac60-55c2984c581d, 56edda50-3e24-43f4-98da-3895b78fd1d5, c1d6997d-dd93-4a00-8f6e-3442d71ddf79, 2de4b554-7692-4e2b-93d9-df80fb298ec3) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 40 159.0 Td (Tactic: TA0011 / Command and Control | Behavior: C2_MALWARE_COMMUNICATION |) Tj ET
+BT /F1 7.5 Tf 40 149.0 Td (Findings: F-C2-408a5965 | Rationale: Web protocol evidence \(HTTP/TLS\) satisfies) Tj ET
+BT /F1 7.5 Tf 40 139.0 Td (technique requirements.) Tj ET
+BT /F4 7 Tf 40 129.0 Td (First Seen:  | Last Seen:  | Detect: DET0027 | Analytic: AN0079, AN0075, AN0078,) Tj ET
+BT /F4 7 Tf 40 119.5 Td (AN0077, AN0076 | DataComp: DC0085 | Channels: http.log, ssl.log) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 5 of 7) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 14 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+14 0 obj
+<< /Length 5005 >>
+stream
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 36 760 Td (NETSLEUTH AI - FORENSIC INVESTIGATION REPORT) Tj ET
+0.7 0.7 0.7 RG 0.5 w 36 752 m 576 752 l S
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 657.0 540 73.0 re b
+0.1 0.1 0.1 rg
+BT /F2 8 Tf 40 719.0 Td (DNS) Tj ET
+BT /F4 8 Tf 220 719.0 Td (T1071.004) Tj ET
+BT /F2 7.5 Tf 320 719.0 Td (SUPPORTED) Tj ET
+BT /F1 8 Tf 410 719.0 Td (0.88) Tj ET
+BT /F4 7.5 Tf 490 719.0 Td (cd0bd925-b460-4bc9-ac60-55c2984c581d, 56edda50-3e24-43f4-98da-3895b78fd1d5, c1d6997d-dd93-4a00-8f6e-3442d71ddf79, 2de4b554-7692-4e2b-93d9-df80fb298ec3) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 40 708.0 Td (Tactic: TA0011 / Command and Control | Behavior: C2_MALWARE_COMMUNICATION |) Tj ET
+BT /F1 7.5 Tf 40 698.0 Td (Findings: F-C2-408a5965 | Rationale: DNS protocol evidence satisfies technique) Tj ET
+BT /F1 7.5 Tf 40 688.0 Td (requirements.) Tj ET
+BT /F4 7 Tf 40 678.0 Td (First Seen:  | Last Seen:  | Detect: DET0400 | Analytic: AN1125, AN1123, AN1124,) Tj ET
+BT /F4 7 Tf 40 668.5 Td (AN1122, AN1121 | DataComp: DC0085 | Channels: dns.log) Tj ET
+0.99 0.99 1.0 rg 0.88 0.90 0.93 RG 0.5 w 36 576.0 540 73.0 re b
+0.1 0.1 0.1 rg
+BT /F2 8 Tf 40 638.0 Td (Network Service Discovery) Tj ET
+BT /F4 8 Tf 220 638.0 Td (T1046) Tj ET
+BT /F2 7.5 Tf 320 638.0 Td (PARTIAL) Tj ET
+BT /F1 8 Tf 410 638.0 Td (0.6400000000000001) Tj ET
+BT /F4 7.5 Tf 490 638.0 Td (56edda50-3e24-43f4-98da-3895b78fd1d5, 8bcd00db-42ba-4c9e-935a-ead2b1ed5374) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 40 627.0 Td (Tactic: TA0007 / Discovery | Behavior: SCANNING_RECONNAISSANCE | Findings:) Tj ET
+BT /F1 7.5 Tf 40 617.0 Td (F-SCAN-408a5965 | Rationale: Network flow supports scanning behavior, but required) Tj ET
+BT /F1 7.5 Tf 40 607.0 Td (endpoint telemetry is unavailable.) Tj ET
+BT /F4 7 Tf 40 597.0 Td (First Seen:  | Last Seen:  | Detect: DET0376 | Analytic: AN1059, AN1057, AN1060,) Tj ET
+BT /F4 7 Tf 40 587.5 Td (AN1058 | DataComp: DC0078, auditd | Channels: conn.log) Tj ET
+0.3 0.3 0.3 rg
+BT /F2 8 Tf 36 554.0 Td (MITRE PROVENANCE) Tj ET
+BT /F1 7.5 Tf 160 554.0 Td (Framework: MITRE ATT&CK | Domain: enterprise | Version: 19.2 | Profile: netsleuth-network-evidence-v1) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 520.0 Td (ATTACK CHAIN EXECUTION STAGES) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 516.0 m 576 516.0 l S
+0.3 0.3 0.3 rg
+BT /F2 8 Tf 36 498.0 Td (ATTACK CHAIN STATUS: POTENTIAL) Tj ET
+0.96 0.97 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 450.0 540 30 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 44 468.0 Td ([stage-T1046] Network Service Discovery) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 380 468.0 Td () Tj ET
+BT /F1 7.5 Tf 44 457.0 Td (Findings: F-SCAN-408a5965 | Events: e691604a-22f7-4bfb-a745-e75df028e55) Tj ET
+0.5 0.5 0.5 rg
+BT /F2 9 Tf 48 446.0 Td (|) Tj ET
+0.96 0.97 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 404.0 540 30 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 44 422.0 Td ([stage-T1071.001] Web Protocols) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 380 422.0 Td () Tj ET
+BT /F1 7.5 Tf 44 411.0 Td (Findings: F-C2-408a5965 | Events: 40a18052-0d5d-4d61-9257-3a23fc8488b) Tj ET
+0.5 0.5 0.5 rg
+BT /F2 9 Tf 48 400.0 Td (|) Tj ET
+0.96 0.97 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 358.0 540 30 re b
+0.07 0.13 0.26 rg
+BT /F2 8.5 Tf 44 376.0 Td ([stage-T1071.004] DNS) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 380 376.0 Td () Tj ET
+BT /F1 7.5 Tf 44 365.0 Td (Findings: F-C2-408a5965 | Events: 40a18052-0d5d-4d61-9257-3a23fc8488b) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 11 Tf 36 334.0 Td (INVESTIGATION ASSESSMENT & ANALYSIS) Tj ET
+0.07 0.13 0.26 RG 1.5 w 36 330.0 m 576 330.0 l S
+0.2 0.2 0.2 rg
+BT /F2 8.5 Tf 36 312.0 Td (Assessment Summary: Investigation Engine Results) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 9.5 Tf 36 282.0 Td (--- INVESTIGATION HYPOTHESES ---) Tj ET
+0.98 0.98 0.99 rg 0.85 0.88 0.91 RG 0.5 w 36 206.5 540 57.5 re b
+BT /F2 7.5 Tf 430 252.0 Td (STATUS: POTENTIAL) Tj ET
+0.1 0.1 0.1 rg
+BT /F2 8.5 Tf 44 252.0 Td ([HYP-5267040f48f1] Possible network service reconnaissance) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 44 240.5 Td (Type: NETWORK_RECONNAISSANCE | Conf: 0.7 | Ev:) Tj ET
+BT /F1 7.5 Tf 44 230.5 Td (56edda50-3e24-43f4-98da-3895b78fd1d5, 8bcd00db-42ba-4c9e-935a-ead2b1ed5374 |) Tj ET
+BT /F1 7.5 Tf 44 220.5 Td (Findings: F-SCAN-408a5965 | MissingEv: -) Tj ET
+0.98 0.98 0.99 rg 0.85 0.88 0.91 RG 0.5 w 36 127.5 540 69.0 re b
+BT /F2 7.5 Tf 430 184.5 Td (STATUS: POTENTIAL) Tj ET
+0.1 0.1 0.1 rg
+BT /F2 8.5 Tf 44 184.5 Td ([HYP-a38f1fc17c46] Possible command-and-control) Tj ET
+BT /F2 8.5 Tf 44 173.0 Td (communication) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 44 161.5 Td (Type: C2_COMMUNICATION | Conf: 0.7 | Ev: 2de4b554-7692-4e2b-93d9-df80fb298ec3,) Tj ET
+BT /F1 7.5 Tf 44 151.5 Td (56edda50-3e24-43f4-98da-3895b78fd1d5, c1d6997d-dd93-4a00-8f6e-3442d71ddf79,) Tj ET
+BT /F1 7.5 Tf 44 141.5 Td (cd0bd925-b460-4bc9-ac60-55c2984c581d | Findings: F-C2-408a5965 | MissingEv: -) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 6 of 7) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 16 0 R /Resources << /Font << /F1 1000 0 R /F2 1001 0 R /F3 1002 0 R /F4 1003 0 R /F5 1004 0 R >> >> >>
+endobj
+16 0 obj
+<< /Length 3680 >>
+stream
+0.07 0.13 0.26 rg
+BT /F2 8 Tf 36 760 Td (NETSLEUTH AI - FORENSIC INVESTIGATION REPORT) Tj ET
+0.7 0.7 0.7 RG 0.5 w 36 752 m 576 752 l S
+0.07 0.13 0.26 rg
+BT /F2 9.5 Tf 36 716.0 Td (--- HYPOTHESIS VALIDATION ---) Tj ET
+0.98 0.99 0.98 rg 0.82 0.90 0.82 RG 0.5 w 36 640.5 540 57.5 re b
+0.1 0.1 0.1 rg
+BT /F2 8.5 Tf 44 686.0 Td ([VAL-8c692de26300] For Hypothesis: HYP-5267040f48f1) Tj ET
+BT /F2 7.5 Tf 410 686.0 Td (VALIDATED (0.7)) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 44 674.5 Td (ValidatedAt: 2026-08-18T13:32:01.133273Z | SuppEv:) Tj ET
+BT /F1 7.5 Tf 44 664.5 Td (56edda50-3e24-43f4-98da-3895b78fd1d5, 8bcd00db-42ba-4c9e-935a-ead2b1ed5374 |) Tj ET
+BT /F1 7.5 Tf 44 654.5 Td (ContraEv: -) Tj ET
+0.98 0.99 0.98 rg 0.82 0.90 0.82 RG 0.5 w 36 563.0 540 67.5 re b
+0.1 0.1 0.1 rg
+BT /F2 8.5 Tf 44 618.5 Td ([VAL-908e13f94aff] For Hypothesis: HYP-a38f1fc17c46) Tj ET
+BT /F2 7.5 Tf 410 618.5 Td (VALIDATED (0.9)) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 44 607.0 Td (ValidatedAt: 2026-08-18T13:32:01.063552Z | SuppEv:) Tj ET
+BT /F1 7.5 Tf 44 597.0 Td (2de4b554-7692-4e2b-93d9-df80fb298ec3, 56edda50-3e24-43f4-98da-3895b78fd1d5,) Tj ET
+BT /F1 7.5 Tf 44 587.0 Td (c1d6997d-dd93-4a00-8f6e-3442d71ddf79, cd0bd925-b460-4bc9-ac60-55c2984c581d |) Tj ET
+BT /F1 7.5 Tf 44 577.0 Td (ContraEv: -) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 9.5 Tf 36 539.0 Td (--- ROOT CAUSE ANALYSIS ---) Tj ET
+0.97 0.98 1.0 rg 0.1 0.4 0.8 RG 1.0 w 36 451.0 540 70.0 re b
+0.07 0.13 0.26 rg
+BT /F2 9 Tf 44 509.0 Td (ROOT CAUSE [RC-3ca1a4cf5db0]) Tj ET
+BT /F2 8 Tf 410 509.0 Td (STATUS: SUPPORTED (0.65)) Tj ET
+0.1 0.1 0.1 rg
+BT /F2 8.5 Tf 44 497.0 Td (Statement: Underlying activity is consistent with deliberate network service) Tj ET
+BT /F2 8.5 Tf 44 486.0 Td (discovery/reconnaissance.) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 44 475.0 Td (Hypotheses: HYP-5267040f48f1 | Ev: 56edda50-3e24-43f4-98da-3895b78fd1d5,) Tj ET
+BT /F1 7.5 Tf 44 465.0 Td (8bcd00db-42ba-4c9e-935a-ead2b1ed5374 | Rationale: - | MissingEv: -) Tj ET
+0.97 0.98 1.0 rg 0.1 0.4 0.8 RG 1.0 w 36 361.0 540 80.0 re b
+0.07 0.13 0.26 rg
+BT /F2 9 Tf 44 429.0 Td (ROOT CAUSE [RC-5a688d07d647]) Tj ET
+BT /F2 8 Tf 410 429.0 Td (STATUS: SUPPORTED (0.75)) Tj ET
+0.1 0.1 0.1 rg
+BT /F2 8.5 Tf 44 417.0 Td (Statement: Underlying cause is consistent with persistent external) Tj ET
+BT /F2 8.5 Tf 44 406.0 Td (command-and-control communication.) Tj ET
+0.3 0.3 0.3 rg
+BT /F1 7.5 Tf 44 395.0 Td (Hypotheses: HYP-a38f1fc17c46 | Ev: 2de4b554-7692-4e2b-93d9-df80fb298ec3,) Tj ET
+BT /F1 7.5 Tf 44 385.0 Td (56edda50-3e24-43f4-98da-3895b78fd1d5, c1d6997d-dd93-4a00-8f6e-3442d71ddf79,) Tj ET
+BT /F1 7.5 Tf 44 375.0 Td (cd0bd925-b460-4bc9-ac60-55c2984c581d | Rationale: - | MissingEv: -) Tj ET
+0.07 0.13 0.26 rg
+BT /F2 9.5 Tf 36 337.0 Td (--- IMPACT ASSESSMENT ---) Tj ET
+0.99 0.97 0.97 rg 0.85 0.7 0.7 RG 0.5 w 36 239.0 540 80.0 re b
+0.6 0.1 0.1 rg
+BT /F2 8.5 Tf 44 307.0 Td (IMPACT [IMP-90031f8defd5 / SYSTEM_COMPROMISE]) Tj ET
+BT /F2 7.5 Tf 380 307.0 Td (STATUS: INFERRED (0.7)) Tj ET
+0.2 0.1 0.1 rg
+BT /F2 8.5 Tf 44 295.0 Td (Statement: Observed or inferred impact associated with persistent external) Tj ET
+BT /F2 8.5 Tf 44 284.0 Td (command-and-control communication.) Tj ET
+0.4 0.3 0.3 rg
+BT /F1 7.5 Tf 44 273.0 Td (Evidence: 2de4b554-7692-4e2b-93d9-df80fb298ec3,) Tj ET
+BT /F1 7.5 Tf 44 263.0 Td (56edda50-3e24-43f4-98da-3895b78fd1d5, c1d6997d-dd93-4a00-8f6e-3442d71ddf79,) Tj ET
+BT /F1 7.5 Tf 44 253.0 Td (cd0bd925-b460-4bc9-ac60-55c2984c581d | Affected Entities: -) Tj ET
+0.5 0.5 0.5 RG 0.5 w 36 40 m 576 40 l S
+0.4 0.4 0.4 rg
+BT /F1 7.5 Tf 36 28 Td (NetSleuth AI  |  Case: 446ddf65-7617-470a-90b8-e7622031eece  |  Report: RPT-446ddf65-7617-470a-90b8-e7622031eece  |  Page 7 of 7) Tj ET
+endstream
+endobj
+1000 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+1001 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+1002 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>
+endobj
+1003 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+1004 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold >>
+endobj
+xref
+0 22
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000160 00000 n 
+0000000341 00000 n 
+0000004560 00000 n 
+0000004741 00000 n 
+0000009536 00000 n 
+0000009717 00000 n 
+0000014603 00000 n 
+0000014785 00000 n 
+0000019903 00000 n 
+0000020086 00000 n 
+0000025487 00000 n 
+0000025670 00000 n 
+0000030728 00000 n 
+0000030911 00000 n 
+0000034644 00000 n 
+0000034717 00000 n 
+0000034795 00000 n 
+0000034876 00000 n 
+0000034947 00000 n 
+trailer
+<< /Size 22 /Root 1 0 R >>
+startxref
+35023
+%%EOF
