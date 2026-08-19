@@ -96,3 +96,39 @@ class EvidenceService:
             observed_sha256=observed_hash,
             integrity_status=status
         )
+
+    async def export_evidence(self, evidence_id: UUID, current_user: UserModel, http_request: Request) -> tuple[bytes, str, str]:
+        ev = await self.ev_repo.get(evidence_id)
+        if not ev:
+            raise NotFoundError("Evidence not found")
+            
+        try:
+            artifact_bytes = await self.storage.get_evidence_bytes(ev.object_key)
+        except Exception as e:
+            raise InfrastructureError(f"Failed to fetch evidence from storage: {str(e)}")
+            
+        actor_id = current_user.user_id
+        actor_name = current_user.username
+        
+        await log_audit_event(
+            db=self.db,
+            action="EVIDENCE_EXPORTED",
+            target_entity_type="evidence",
+            target_entity_id=str(evidence_id),
+            result="success",
+            actor_id=actor_id,
+            actor_name=actor_name,
+            source_ip=get_client_ip(http_request),
+            metadata={"file_name": ev.file_name, "sha256": ev.sha256}
+        )
+        await self.db.commit()
+        
+        media_type = "application/octet-stream"
+        if ev.format:
+            fmt = ev.format.lower()
+            if fmt == "pcap":
+                media_type = "application/vnd.tcpdump.pcap"
+            elif fmt == "pcapng":
+                media_type = "application/x-pcapng"
+                
+        return artifact_bytes, media_type, ev.file_name

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
   FileText, X, Hash, Database, Check, Copy, 
-  AlertTriangle, FileCode, FileSpreadsheet, CheckCircle2 
+  AlertTriangle, FileCode, FileSpreadsheet, CheckCircle2,
+  ChevronDown, Download
 } from 'lucide-react';
 import { exportReportBlob } from '../api';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -17,6 +18,7 @@ export function ReportDetailModal({ report, caseId, onClose }: ReportDetailModal
   const [copied, setCopied] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<'json' | 'pdf' | 'txt' | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   // Keyboard navigation & body scroll lock
   useEffect(() => {
@@ -257,34 +259,66 @@ export function ReportDetailModal({ report, caseId, onClose }: ReportDetailModal
 
         {/* Bottom Action Bar */}
         <div className="flex items-center justify-between pt-4 border-t border-border-subtle flex-wrap gap-3">
-          {/* Export Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Unified Export Dropdown */}
+          <div className="relative">
             <button
-              onClick={() => handleExport('json')}
+              onClick={() => setIsExportOpen(!isExportOpen)}
               disabled={exportingFormat !== null}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-white bg-surface-elevated hover:bg-surface-elevated/80 border border-border-subtle rounded-lg shadow-sm transition-all duration-150 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-accent hover:bg-accent/90 rounded-lg shadow-sm transition-all duration-150 disabled:opacity-50"
+              aria-haspopup="true"
+              aria-expanded={isExportOpen}
             >
-              {exportingFormat === 'json' ? <Spinner size={12} /> : <FileCode className="h-3.5 w-3.5 text-accent" />}
-              <span>{exportingFormat === 'json' ? 'Exporting...' : 'Export JSON'}</span>
+              {exportingFormat ? (
+                <>
+                  <Spinner size={12} />
+                  <span className="capitalize">Exporting {exportingFormat}...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Export Report</span>
+                  <ChevronDown className="h-3.5 w-3.5 ml-1" />
+                </>
+              )}
             </button>
 
-            <button
-              onClick={() => handleExport('pdf')}
-              disabled={exportingFormat !== null}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-accent hover:bg-accent/90 rounded-lg shadow-sm transition-all duration-150 disabled:opacity-50"
-            >
-              {exportingFormat === 'pdf' ? <Spinner size={12} /> : <FileText className="h-3.5 w-3.5" />}
-              <span>{exportingFormat === 'pdf' ? 'Exporting PDF...' : 'Export PDF'}</span>
-            </button>
-
-            <button
-              onClick={() => handleExport('txt')}
-              disabled={exportingFormat !== null}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-white bg-surface-elevated hover:bg-surface-elevated/80 border border-border-subtle rounded-lg shadow-sm transition-all duration-150 disabled:opacity-50"
-            >
-              {exportingFormat === 'txt' ? <Spinner size={12} /> : <FileSpreadsheet className="h-3.5 w-3.5 text-accent" />}
-              <span>{exportingFormat === 'txt' ? 'Exporting...' : 'Export TXT'}</span>
-            </button>
+            {isExportOpen && !exportingFormat && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsExportOpen(false)} />
+                <div className="absolute left-0 bottom-full mb-2 w-48 rounded-lg bg-[#161b22] border border-border-subtle shadow-xl z-20 py-1.5 animate-in fade-in slide-in-from-bottom-2 duration-100">
+                  <button
+                    onClick={() => {
+                      handleExport('pdf');
+                      setIsExportOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs text-primary hover:bg-surface-elevated transition-colors text-left font-medium"
+                  >
+                    <FileText className="h-4 w-4 text-accent" />
+                    <span>PDF Document (Recommended)</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleExport('json');
+                      setIsExportOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs text-primary hover:bg-surface-elevated transition-colors text-left"
+                  >
+                    <FileCode className="h-4 w-4 text-muted" />
+                    <span>JSON Data Structure</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleExport('txt');
+                      setIsExportOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs text-primary hover:bg-surface-elevated transition-colors text-left"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 text-muted" />
+                    <span>Plain Text (TXT)</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Close Button */}

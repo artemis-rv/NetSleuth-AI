@@ -136,7 +136,11 @@ class OllamaClient(AbstractLLMClient):
                         "prompt": prompt,
                         "system": system_instruction,
                         "stream": False,
-                        "format": "json"
+                        "format": "json",
+                        "options": {
+                            "temperature": 0.1,
+                            "num_predict": 800
+                        }
                     }
                 )
         except httpx.TimeoutException:
