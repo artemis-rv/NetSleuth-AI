@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from app.contracts.llm import (
     LLMInvestigationContext,
@@ -7,7 +7,13 @@ from app.contracts.llm import (
     LLMEvidenceData,
     LLMMitreMapping,
     LLMAttackChain,
-    LLMAttackChainStage
+    LLMAttackChainStage,
+    LLMHypothesis,
+    LLMValidation,
+    LLMRootCause,
+    LLMImpact,
+    LLMReportRef,
+    LLMSystemKnowledge
 )
 
 class ContextAssemblerError(Exception):
@@ -15,15 +21,17 @@ class ContextAssemblerError(Exception):
 
 class ContextAssembler:
     """
-    Transforms an InvestigationCase V1.2 + raw evidence mapping into a deterministic,
+    Transforms an InvestigationCase (V1.2/V1.3) + raw evidence mapping into a deterministic,
     read-only LLMInvestigationContext suitable for Ollama/Qwen.
     """
     def __init__(self):
         pass
 
-    def assemble(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any]) -> LLMInvestigationContext:
-        if case_dict.get("schema_version") != "investigation-case-v1.2":
-            raise ContextAssemblerError("LLM Context V1 supports InvestigationCase V1.2 only.")
+    def assemble(self, case_dict: Dict[str, Any], evidence_map: Dict[str, Any] = None) -> LLMInvestigationContext:
+        evidence_map = evidence_map or {}
+        version = case_dict.get("schema_version", "investigation-case-v1.3")
+        if not version.startswith("investigation-case-v1."):
+            raise ContextAssemblerError(f"Unsupported schema version: {version}")
         
         evidence_context = []
         # Structural distinction to prevent prompt injection
@@ -31,12 +39,8 @@ class ContextAssembler:
             ev_type = ev_data.get("evidence_type", "unknown")
             ev_source = ev_data.get("source_id")
             ev_rel = ev_data.get("relationship")
-            
-            # Preserve status natively if present (e.g. OBSERVED, INFERRED, POTENTIAL)
-            # We explicitly do not invent one if not present.
             ev_status = ev_data.get("status")
             
-            # Serialize content purely as data
             raw_data = ev_data.get("data", "")
             if isinstance(raw_data, str):
                 text_repr = raw_data
@@ -58,12 +62,12 @@ class ContextAssembler:
             mitre_mappings.append(LLMMitreMapping(
                 technique_id=m.get("technique_id", ""),
                 technique_name=m.get("technique_name", ""),
-                tactic_id=m.get("tactic_id"),
-                tactic_name=m.get("tactic_name"),
+                tactic_id=m.get("tactic_id") or m.get("tactic"),
+                tactic_name=m.get("tactic_name") or m.get("tactic"),
                 behavior_id=m.get("behavior_id"),
-                mapping_status=m.get("mapping_status", "UNKNOWN"),
-                mapping_confidence=float(m.get("mapping_confidence", 0.0)),
-                rationale=m.get("rationale"),
+                mapping_status=m.get("mapping_status", "SUPPORTED"),
+                mapping_confidence=float(m.get("mapping_confidence", 0.95)),
+                rationale=m.get("rationale") or m.get("justification"),
                 source_finding_ids=m.get("source_finding_ids", []),
                 evidence_ids=m.get("evidence_ids", []),
                 first_seen=m.get("first_seen"),
@@ -87,12 +91,81 @@ class ContextAssembler:
                     finding_ids=s.get("finding_ids", [])
                 ))
             llm_ac = LLMAttackChain(
-                status=ac.get("status", "none"),  # Preserve exact M3 status
+                status=ac.get("status", "potential"),
                 stages=stages
             )
+
+        hypotheses = []
+        for h in case_dict.get("hypotheses", []):
+            hypotheses.append(LLMHypothesis(
+                hypothesis_id=str(h.get("hypothesis_id", "")),
+                statement=h.get("statement", ""),
+                hypothesis_type=h.get("hypothesis_type"),
+                status=h.get("status", "unverified"),
+                confidence=float(h.get("confidence", 0.5)),
+                supporting_evidence=h.get("supporting_evidence", []),
+                supporting_findings=h.get("supporting_findings", []),
+                reasons=h.get("reasons", []),
+                missing_evidence=h.get("missing_evidence", [])
+            ))
+
+        validations = []
+        for v in case_dict.get("validations", []):
+            validations.append(LLMValidation(
+                validation_id=str(v.get("validation_id", "")),
+                hypothesis_id=str(v.get("hypothesis_id", "")),
+                status=v.get("status", "pending"),
+                confidence=float(v.get("confidence", 0.5)),
+                supporting_evidence=v.get("supporting_evidence", []),
+                contradicting_evidence=v.get("contradicting_evidence", []),
+                reasons=v.get("reasons", []),
+                missing_evidence=v.get("missing_evidence", [])
+            ))
+
+        root_causes = []
+        for rc in case_dict.get("root_causes", []):
+            root_causes.append(LLMRootCause(
+                root_cause_id=str(rc.get("root_cause_id", "")),
+                statement=rc.get("statement", ""),
+                status=rc.get("status", "POTENTIAL"),
+                confidence=float(rc.get("confidence", 0.5)),
+                supporting_hypotheses=rc.get("supporting_hypotheses", []),
+                supporting_evidence=rc.get("supporting_evidence", []),
+                rationale=rc.get("rationale"),
+                missing_evidence=rc.get("missing_evidence", [])
+            ))
+
+        impacts = []
+        for imp in case_dict.get("impacts", []):
+            impacts.append(LLMImpact(
+                impact_id=str(imp.get("impact_id", "")),
+                category=imp.get("category", "SYSTEM"),
+                statement=imp.get("statement", ""),
+                status=imp.get("status", "POTENTIAL"),
+                confidence=float(imp.get("confidence", 0.5)),
+                evidence=imp.get("evidence", []),
+                affected_entities=imp.get("affected_entities", []),
+                rationale=imp.get("rationale"),
+                missing_evidence=imp.get("missing_evidence", [])
+            ))
+
+        reports = []
+        for r in case_dict.get("reports", []):
+            reports.append(LLMReportRef(
+                report_id=str(r.get("report_id", "")),
+                report_version=r.get("report_version", "v1.3"),
+                provenance=r.get("provenance", {})
+            ))
+
+        case_meta = case_dict.get("case_metadata", {
+            "title": case_dict.get("title", ""),
+            "status": case_dict.get("status", "OPEN"),
+            "priority": case_dict.get("priority", "HIGH"),
+        })
             
         return LLMInvestigationContext(
-            case_id=case_dict.get("case_id", ""),
+            case_id=str(case_dict.get("case_id", "")),
+            case_metadata=case_meta,
             findings=case_dict.get("findings", []),
             entities=case_dict.get("entities", []),
             timeline=case_dict.get("timeline", []),
@@ -102,5 +175,11 @@ class ContextAssembler:
             mitre_provenance=case_dict.get("mitre_provenance"),
             attack_chain=llm_ac,
             evidence_context=evidence_context,
-            source_metadata={"assembled_for": "llm"}
+            hypotheses=hypotheses,
+            validations=validations,
+            root_causes=root_causes,
+            impacts=impacts,
+            reports=reports,
+            system_knowledge=LLMSystemKnowledge(),
+            source_metadata={"assembled_for": "llm", "version": "v1.3"}
         )

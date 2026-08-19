@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { flowKeys } from './query-keys';
-import { getFlows, getFlow, getFlowEvents, getNetworkIPEntities } from './api';
+import { getFlows, getFlow, getFlowEvents, getNetworkIPEntities, getEndpointContexts, getEndpointContextDetail } from './api';
+import type { FlowsFilters, NetworkEndpointContext } from './types';
 
 export function useNetworkIPEntitiesQuery(caseId: string) {
   return useQuery({
@@ -9,11 +10,23 @@ export function useNetworkIPEntitiesQuery(caseId: string) {
     enabled: !!caseId,
   });
 }
-import type { FlowsFilters } from './types';
 
-/**
- * Query hook for the paginated flows list for a case.
- */
+export function useEndpointContextsQuery(caseId: string, filters: FlowsFilters = {}) {
+  return useQuery({
+    queryKey: ['network', 'endpoints', caseId, filters],
+    queryFn: () => getEndpointContexts(caseId, filters),
+    enabled: !!caseId,
+  });
+}
+
+export function useEndpointDetailQuery(caseId: string, ip: string) {
+  return useQuery<NetworkEndpointContext>({
+    queryKey: ['network', 'endpointDetail', caseId, ip],
+    queryFn: () => getEndpointContextDetail(caseId, ip),
+    enabled: !!caseId && !!ip,
+  });
+}
+
 export function useFlowsQuery(caseId: string, filters: FlowsFilters = {}) {
   return useQuery({
     queryKey: flowKeys.list(caseId, filters as Record<string, unknown>),
@@ -22,9 +35,6 @@ export function useFlowsQuery(caseId: string, filters: FlowsFilters = {}) {
   });
 }
 
-/**
- * Query hook for a single flow detail.
- */
 export function useFlowDetailQuery(flowId: string | null) {
   return useQuery({
     queryKey: flowKeys.detail(flowId ?? ''),
@@ -33,9 +43,6 @@ export function useFlowDetailQuery(flowId: string | null) {
   });
 }
 
-/**
- * Query hook for protocol events belonging to a flow.
- */
 export function useFlowEventsQuery(flowId: string | null) {
   return useQuery({
     queryKey: flowKeys.events(flowId ?? ''),

@@ -33,14 +33,14 @@ class TestLLMContextAssembler(unittest.TestCase):
     def test_v1_2_case_converts_successfully(self):
         ctx = self.assembler.assemble(self.valid_v1_2_case, {})
         self.assertEqual(ctx.case_id, "CASE-123")
-        self.assertEqual(ctx.schema_version, "llm-context-v1.0")
+        self.assertEqual(ctx.schema_version, "llm-context-v1.3")
         
     def test_v1_1_case_is_explicitly_rejected(self):
         case = self.valid_v1_2_case.copy()
-        case["schema_version"] = "investigation-case-v1.1"
+        case["schema_version"] = "unsupported-schema-v0"
         with self.assertRaises(ContextAssemblerError) as e:
             self.assembler.assemble(case, {})
-        self.assertIn("supports InvestigationCase V1.2 only", str(e.exception))
+        self.assertIn("Unsupported schema version", str(e.exception))
             
     def test_all_mitre_mappings_are_preserved(self):
         ctx = self.assembler.assemble(self.valid_v1_2_case, {})

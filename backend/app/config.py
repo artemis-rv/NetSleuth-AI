@@ -279,9 +279,9 @@ class _Settings:
         """
         Ollama Model for LLM processing.
         Set via: OLLAMA_MODEL
-        Default: qwen2.5-coder:latest
+        Default: qwen2.5:1.5b
         """
-        return os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:latest")
+        return os.environ.get("OLLAMA_MODEL", "qwen2.5:1.5b")
 
 
 

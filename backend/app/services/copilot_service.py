@@ -1,6 +1,6 @@
 import uuid
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request
 
@@ -14,16 +14,15 @@ from app.services.findings_service import FindingsService
 from app.persistence.models.identity_models import UserModel
 
 class CopilotOrchestrator:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, llm_service: Optional[LLMAssistantService] = None):
         self.db = db
-        self.client = OllamaClient()
-        self.llm_service = LLMAssistantService(self.client)
+        self.client = llm_service.client if (llm_service and hasattr(llm_service, "client")) else OllamaClient()
+        self.llm_service = llm_service or LLMAssistantService(self.client)
         self.context_assembler = ContextAssembler()
         self.investigation_service = InvestigationService(db)
         self.findings_service = FindingsService(db)
 
     async def _build_case_dict(self, case_id: uuid.UUID) -> Dict[str, Any]:
-        # Fetch everything via InvestigationService repositories
         entities = await self.investigation_service.entity_repo.list_by_case(case_id, skip=0, limit=1000)
         relationships = await self.investigation_service.relationship_repo.list_by_case(case_id, skip=0, limit=1000)
         timeline = await self.investigation_service.timeline_repo.list_by_case(case_id, skip=0, limit=1000)
@@ -31,10 +30,23 @@ class CopilotOrchestrator:
         attack_chain = await self.investigation_service.attack_chain_repo.get_by_case(case_id)
         findings = await self.findings_service.repository.list_by_case(case_id=case_id, skip=0, limit=1000)
         
-        # Build dict resembling V1.2
+        # V1.3 assessment objects
+        hypotheses_objs = await self.investigation_service.hypothesis_repo.list_by_case(case_id, skip=0, limit=1000) if hasattr(self.investigation_service, 'hypothesis_repo') else []
+        root_causes_objs = await self.investigation_service.root_cause_repo.list_by_case(case_id, skip=0, limit=1000) if hasattr(self.investigation_service, 'root_cause_repo') else []
+        impacts_objs = await self.investigation_service.impact_repo.list_by_case(case_id, skip=0, limit=1000) if hasattr(self.investigation_service, 'impact_repo') else []
+        
+        from app.persistence.repositories.investigation_repository import InvestigationCaseRepository
+        case_obj = await InvestigationCaseRepository(self.db).get(case_id)
+        case_title = case_obj.title if case_obj else "Investigation Case"
+        case_status = case_obj.status if case_obj else "OPEN"
+
         case_dict = {
-            "schema_version": "investigation-case-v1.2",
+            "schema_version": "investigation-case-v1.3",
             "case_id": str(case_id),
+            "case_metadata": {
+                "title": case_title,
+                "status": case_status,
+            },
             "findings": [
                 {
                     "finding_id": str(f.finding_id),
@@ -88,6 +100,44 @@ class CopilotOrchestrator:
                     "rationale": m.justification,
                     "evidence_ids": [f"ev-{m.technique_id}"],
                 } for m in mitre_mappings
+            ],
+            "hypotheses": [
+                {
+                    "hypothesis_id": str(h.hypothesis_id),
+                    "statement": h.statement,
+                    "hypothesis_type": getattr(h, 'hypothesis_type', None),
+                    "status": h.status,
+                    "confidence": h.confidence,
+                    "supporting_evidence": h.supporting_evidence or [],
+                    "supporting_findings": h.supporting_findings or [],
+                    "reasons": h.reasons or [],
+                    "missing_evidence": h.missing_evidence or []
+                } for h in hypotheses_objs
+            ],
+            "root_causes": [
+                {
+                    "root_cause_id": str(rc.root_cause_id),
+                    "statement": rc.statement,
+                    "status": rc.status,
+                    "confidence": rc.confidence,
+                    "supporting_hypotheses": rc.supporting_hypotheses or [],
+                    "supporting_evidence": rc.supporting_evidence or [],
+                    "rationale": getattr(rc, 'rationale', None),
+                    "missing_evidence": rc.missing_evidence or []
+                } for rc in root_causes_objs
+            ],
+            "impacts": [
+                {
+                    "impact_id": str(imp.impact_id),
+                    "category": imp.category,
+                    "statement": imp.statement,
+                    "status": imp.status,
+                    "confidence": imp.confidence,
+                    "evidence": imp.evidence or [],
+                    "affected_entities": imp.affected_entities or [],
+                    "rationale": getattr(imp, 'rationale', None),
+                    "missing_evidence": imp.missing_evidence or []
+                } for imp in impacts_objs
             ]
         }
         
@@ -103,8 +153,6 @@ class CopilotOrchestrator:
         return case_dict
 
     async def _build_evidence_map(self, case_id: uuid.UUID) -> Dict[str, Any]:
-        # For a full implementation, this should fetch actual PCAP/Zeek strings
-        # Currently we just return empty data to satisfy the contract without breaking.
         return {}
 
     async def _get_context(self, case_id: uuid.UUID) -> Any:
@@ -129,6 +177,24 @@ class CopilotOrchestrator:
         await self.db.commit()
         return resp
 
+    async def generate_finding_explanation(self, case_id: uuid.UUID, finding_id: str, user: UserModel, req: Request) -> LLMInvestigationResponse:
+        ctx = await self._get_context(case_id)
+        resp = await self.llm_service.generate_finding_explanation(ctx, finding_id)
+        
+        await log_audit_event(
+            db=self.db,
+            action="COPILOT_FINDING_EXPLANATION_GENERATED",
+            target_entity_type="investigation_case",
+            target_entity_id=str(case_id),
+            result="success" if resp.status == "SUCCESS" else "failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            source_ip=get_client_ip(req),
+            metadata={"finding_id": finding_id}
+        )
+        await self.db.commit()
+        return resp
+
     async def generate_mitre_explanation(self, case_id: uuid.UUID, technique_id: str, user: UserModel, req: Request) -> LLMInvestigationResponse:
         ctx = await self._get_context(case_id)
         resp = await self.llm_service.generate_mitre_explanation(ctx, technique_id)
@@ -143,6 +209,60 @@ class CopilotOrchestrator:
             actor_name=user.username,
             source_ip=get_client_ip(req),
             metadata={"technique_id": technique_id}
+        )
+        await self.db.commit()
+        return resp
+
+    async def generate_hypothesis_explanation(self, case_id: uuid.UUID, hypothesis_id: str, user: UserModel, req: Request) -> LLMInvestigationResponse:
+        ctx = await self._get_context(case_id)
+        resp = await self.llm_service.generate_hypothesis_explanation(ctx, hypothesis_id)
+        
+        await log_audit_event(
+            db=self.db,
+            action="COPILOT_HYPOTHESIS_EXPLANATION_GENERATED",
+            target_entity_type="investigation_case",
+            target_entity_id=str(case_id),
+            result="success" if resp.status == "SUCCESS" else "failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            source_ip=get_client_ip(req),
+            metadata={"hypothesis_id": hypothesis_id}
+        )
+        await self.db.commit()
+        return resp
+
+    async def generate_root_cause_explanation(self, case_id: uuid.UUID, root_cause_id: str, user: UserModel, req: Request) -> LLMInvestigationResponse:
+        ctx = await self._get_context(case_id)
+        resp = await self.llm_service.generate_root_cause_explanation(ctx, root_cause_id)
+        
+        await log_audit_event(
+            db=self.db,
+            action="COPILOT_ROOT_CAUSE_EXPLANATION_GENERATED",
+            target_entity_type="investigation_case",
+            target_entity_id=str(case_id),
+            result="success" if resp.status == "SUCCESS" else "failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            source_ip=get_client_ip(req),
+            metadata={"root_cause_id": root_cause_id}
+        )
+        await self.db.commit()
+        return resp
+
+    async def generate_impact_explanation(self, case_id: uuid.UUID, impact_id: str, user: UserModel, req: Request) -> LLMInvestigationResponse:
+        ctx = await self._get_context(case_id)
+        resp = await self.llm_service.generate_impact_explanation(ctx, impact_id)
+        
+        await log_audit_event(
+            db=self.db,
+            action="COPILOT_IMPACT_EXPLANATION_GENERATED",
+            target_entity_type="investigation_case",
+            target_entity_id=str(case_id),
+            result="success" if resp.status == "SUCCESS" else "failure",
+            actor_id=user.user_id,
+            actor_name=user.username,
+            source_ip=get_client_ip(req),
+            metadata={"impact_id": impact_id}
         )
         await self.db.commit()
         return resp

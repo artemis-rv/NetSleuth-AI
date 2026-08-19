@@ -1,11 +1,15 @@
 import uuid
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from app.contracts.llm import LLMInvestigationContext
 from app.engines.llm_assistant.models import (
     LLMInvestigationResponse, 
     LLMMitreExplanation, 
+    LLMFindingExplanation,
+    LLMHypothesisExplanation,
+    LLMRootCauseExplanation,
+    LLMImpactExplanation,
     LLMResponseStatus
 )
 from app.engines.llm_assistant.client import AbstractLLMClient, LLMConnectionError, LLMModelUnavailableError
@@ -21,7 +25,6 @@ class LLMAssistantService:
         
     def _validate_groundedness(self, text: str, context: LLMInvestigationContext):
         lower_text = text.lower()
-        # Heuristic check for ungrounded claims matching the required test behavior
         if "known malicious" in lower_text:
             ctx_dump = context.model_dump_json().lower()
             if "known malicious" not in ctx_dump and "malicious" not in ctx_dump:
@@ -59,12 +62,10 @@ class LLMAssistantService:
                 except json.JSONDecodeError:
                     pass
             
-            # Final fallback: if model outputs plain text or unparseable JSON, wrap text directly
             return {
                 "summary": cleaned,
                 "answer": cleaned,
                 "explanation": cleaned,
-                "technique_id": getattr(context, "technique_id", None)
             }
 
     async def generate_summary(self, context: LLMInvestigationContext) -> LLMInvestigationResponse:
@@ -94,6 +95,44 @@ class LLMAssistantService:
             
         return base_resp
 
+    async def generate_finding_explanation(self, context: LLMInvestigationContext, finding_id: str) -> LLMInvestigationResponse:
+        prompt = self.prompts.build_finding_explanation_prompt(context, finding_id)
+        req_id = str(uuid.uuid4())
+        base_resp = LLMInvestigationResponse(
+            request_id=req_id,
+            case_id=context.case_id,
+            provenance={"model": getattr(self.client, "model", "unknown")}
+        )
+        
+        try:
+            target_finding = next((f for f in context.findings if str(f.get("finding_id")) == str(finding_id)), None)
+            if not target_finding:
+                base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+                base_resp.explanation = f"Finding ID '{finding_id}' not found in authoritative M3 case context."
+                return base_resp
+
+            data = await self._execute_raw(prompt, context)
+            explanation = data.get("explanation") or data.get("answer") or data.get("response") or str(data)
+            self._validate_groundedness(explanation, context)
+            
+            exp_item = LLMFindingExplanation(
+                finding_id=finding_id,
+                explanation=explanation
+            )
+            base_resp.finding_explanations.append(exp_item)
+            base_resp.explanation = explanation
+            base_resp.status = LLMResponseStatus.SUCCESS
+        except GroundingError:
+            base_resp.status = LLMResponseStatus.LLM_UNGROUNDED
+        except LLMModelUnavailableError:
+            base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
+        except LLMConnectionError:
+            base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
+        except Exception:
+            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+            
+        return base_resp
+
     async def generate_mitre_explanation(self, context: LLMInvestigationContext, technique_id: str) -> LLMInvestigationResponse:
         prompt = self.prompts.build_mitre_explanation_prompt(context, technique_id)
         req_id = str(uuid.uuid4())
@@ -104,17 +143,16 @@ class LLMAssistantService:
         )
         
         try:
-            data = await self._execute_raw(prompt, context)
-            returned_tech = data.get("technique_id", technique_id)
-            explanation = data.get("explanation") or data.get("answer") or data.get("response") or str(data)
-            
-            self._validate_groundedness(explanation, context)
-            
             target_mapping = next((m for m in context.mitre_mappings if m.technique_id == technique_id), None)
             if not target_mapping:
                 base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+                base_resp.explanation = f"MITRE Technique ID '{technique_id}' not found in authoritative M3 case context."
                 return base_resp
-                
+
+            data = await self._execute_raw(prompt, context)
+            explanation = data.get("explanation") or data.get("answer") or data.get("response") or str(data)
+            self._validate_groundedness(explanation, context)
+            
             mitre_exp = LLMMitreExplanation(
                 technique_id=target_mapping.technique_id,
                 technique_name=target_mapping.technique_name,
@@ -124,8 +162,114 @@ class LLMAssistantService:
                 explanation=explanation
             )
             base_resp.mitre_explanations.append(mitre_exp)
+            base_resp.explanation = explanation
             base_resp.status = LLMResponseStatus.SUCCESS
             
+        except GroundingError:
+            base_resp.status = LLMResponseStatus.LLM_UNGROUNDED
+        except LLMModelUnavailableError:
+            base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
+        except LLMConnectionError:
+            base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
+        except Exception:
+            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+            
+        return base_resp
+
+    async def generate_hypothesis_explanation(self, context: LLMInvestigationContext, hypothesis_id: str) -> LLMInvestigationResponse:
+        prompt = self.prompts.build_hypothesis_explanation_prompt(context, hypothesis_id)
+        req_id = str(uuid.uuid4())
+        base_resp = LLMInvestigationResponse(
+            request_id=req_id,
+            case_id=context.case_id,
+            provenance={"model": getattr(self.client, "model", "unknown")}
+        )
+        
+        try:
+            target_h = next((h for h in context.hypotheses if str(h.hypothesis_id) == str(hypothesis_id)), None)
+            if not target_h:
+                base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+                base_resp.explanation = f"Hypothesis ID '{hypothesis_id}' not found in authoritative M3 case context."
+                return base_resp
+
+            data = await self._execute_raw(prompt, context)
+            explanation = data.get("explanation") or data.get("answer") or str(data)
+            self._validate_groundedness(explanation, context)
+            
+            exp = LLMHypothesisExplanation(hypothesis_id=hypothesis_id, explanation=explanation)
+            base_resp.hypothesis_explanations.append(exp)
+            base_resp.explanation = explanation
+            base_resp.status = LLMResponseStatus.SUCCESS
+        except GroundingError:
+            base_resp.status = LLMResponseStatus.LLM_UNGROUNDED
+        except LLMModelUnavailableError:
+            base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
+        except LLMConnectionError:
+            base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
+        except Exception:
+            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+            
+        return base_resp
+
+    async def generate_root_cause_explanation(self, context: LLMInvestigationContext, root_cause_id: str) -> LLMInvestigationResponse:
+        prompt = self.prompts.build_root_cause_explanation_prompt(context, root_cause_id)
+        req_id = str(uuid.uuid4())
+        base_resp = LLMInvestigationResponse(
+            request_id=req_id,
+            case_id=context.case_id,
+            provenance={"model": getattr(self.client, "model", "unknown")}
+        )
+        
+        try:
+            target_rc = next((rc for rc in context.root_causes if str(rc.root_cause_id) == str(root_cause_id)), None)
+            if not target_rc:
+                base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+                base_resp.explanation = f"Root Cause ID '{root_cause_id}' not found in authoritative M3 case context."
+                return base_resp
+
+            data = await self._execute_raw(prompt, context)
+            explanation = data.get("explanation") or data.get("answer") or str(data)
+            self._validate_groundedness(explanation, context)
+            
+            exp = LLMRootCauseExplanation(root_cause_id=root_cause_id, explanation=explanation)
+            base_resp.root_cause_explanations.append(exp)
+            base_resp.explanation = explanation
+            base_resp.status = LLMResponseStatus.SUCCESS
+        except GroundingError:
+            base_resp.status = LLMResponseStatus.LLM_UNGROUNDED
+        except LLMModelUnavailableError:
+            base_resp.status = LLMResponseStatus.LLM_MODEL_UNAVAILABLE
+        except LLMConnectionError:
+            base_resp.status = LLMResponseStatus.LLM_UNAVAILABLE
+        except Exception:
+            base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+            
+        return base_resp
+
+    async def generate_impact_explanation(self, context: LLMInvestigationContext, impact_id: str) -> LLMInvestigationResponse:
+        prompt = self.prompts.build_impact_explanation_prompt(context, impact_id)
+        req_id = str(uuid.uuid4())
+        base_resp = LLMInvestigationResponse(
+            request_id=req_id,
+            case_id=context.case_id,
+            provenance={"model": getattr(self.client, "model", "unknown")}
+        )
+        
+        try:
+            target_imp = next((imp for imp in context.impacts if str(imp.impact_id) == str(impact_id)), None)
+            if not target_imp:
+                base_resp.status = LLMResponseStatus.LLM_INVALID_RESPONSE
+                base_resp.explanation = f"Impact ID '{impact_id}' not found in authoritative M3 case context."
+                return base_resp
+
+            data = await self._execute_raw(prompt, context)
+            explanation = data.get("explanation") or data.get("answer") or str(data)
+            self._validate_groundedness(explanation, context)
+            
+            exp = LLMImpactExplanation(impact_id=impact_id, explanation=explanation)
+            base_resp.impact_explanations.append(exp)
+            base_resp.explanation = explanation
+            base_resp.status = LLMResponseStatus.SUCCESS
         except GroundingError:
             base_resp.status = LLMResponseStatus.LLM_UNGROUNDED
         except LLMModelUnavailableError:
@@ -152,6 +296,7 @@ class LLMAssistantService:
             self._validate_groundedness(answer, context)
             
             base_resp.investigator_answers[question] = answer
+            base_resp.explanation = answer
             base_resp.status = LLMResponseStatus.SUCCESS
         except GroundingError:
             base_resp.status = LLMResponseStatus.LLM_UNGROUNDED
