@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Edit2, X, Calendar, Clock, User, Zap, Target, 
   CheckSquare, Square, Plus, Save, LayoutDashboard, AlertTriangle, 
@@ -376,6 +376,7 @@ function InvestigationTabGroup({ caseId }: { caseId: string }) {
 export function CaseDetailPage() {
   const { caseId, tab } = useParams<{ caseId: string, tab?: string }>();
   const activeTab = (tab as TabId) || 'overview';
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
 
   const { data: caseData, isLoading, isError, error, refetch } = useCaseQuery(caseId ?? '');
@@ -505,7 +506,7 @@ export function CaseDetailPage() {
             aria-labelledby={`tab-${activeTab}`}
             className="min-h-[500px]"
           >
-            {activeTab === 'overview' && <CaseOverview caseData={caseData} />}
+            {activeTab === 'overview' && <CaseOverview caseData={caseData} onTabChange={(t) => navigate(`/investigations/${caseData.case_id}/${t}`)} />}
             {activeTab === 'findings' && <FindingsSection caseId={caseData.case_id} />}
             {activeTab === 'network' && <NetworkSection caseId={caseData.case_id} />}
             {activeTab === 'timeline' && <InvestigationTabGroup caseId={caseData.case_id} />}

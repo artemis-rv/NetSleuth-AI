@@ -231,7 +231,7 @@ export function AnalysisSection({ caseId, acquisitionId, acquisitions = [], onVi
                             </Badge>
                           </div>
                           {job.status === 'completed' && (
-                            <Button variant="ghost" size="sm" onClick={onViewFindings} className="h-6 text-[11px] px-2 text-accent hover:text-accent hover:bg-accent/10">
+                            <Button variant="secondary" size="sm" onClick={onViewFindings} className="h-6 text-[11px] px-3 font-semibold tracking-wider hover:bg-surface-elevated transition-colors border border-border-subtle/50 shadow-sm hover:shadow-md">
                               View
                             </Button>
                           )}
