@@ -110,8 +110,10 @@ def calculate_risk_score(
         raw_risk = 0.5 * anom * (1.0 - 0.4 * conf) + 0.3 * vol * anom + 0.2 * pers * anom
     else:
         # Threat component weighted by severity and confidence
-        threat = severity * (0.4 + 0.6 * conf)
-        raw_risk = 0.50 * threat + 0.30 * anom + 0.10 * vol + 0.10 * pers
+        threat = severity * (0.5 + 0.5 * conf)
+        # Ensure high-severity malicious activity maintains an appropriate risk floor
+        base_floor = 0.65 * severity if severity >= 0.8 else 0.40 * severity
+        raw_risk = max(base_floor, 0.55 * threat + 0.25 * anom + 0.10 * vol + 0.10 * pers)
 
     bounded = max(0.0, min(1.0, float(raw_risk)))
     if not math.isfinite(bounded):

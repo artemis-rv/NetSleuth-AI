@@ -32,7 +32,7 @@ interface GraphSectionProps {
 
 export function GraphSection({ caseId }: GraphSectionProps) {
   const { data: graphData, isLoading, isError, error } = useGraphQuery(caseId);
-  const { data: findingsData } = useFindingsQuery(caseId, { page_size: 1000 });
+  const { data: findingsData } = useFindingsQuery(caseId, { page_size: 100 });
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);

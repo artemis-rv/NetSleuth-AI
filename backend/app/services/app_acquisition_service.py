@@ -69,16 +69,34 @@ class AppAcquisitionService:
             # Check for existing acquisition by SHA256 to avoid UniqueViolationError
             existing_acq = await self.acq_repo.get_by_sha256(acquisition_ref.sha256)
             if existing_acq:
+                ev = existing_acq.evidence[0] if existing_acq.evidence else None
+                target_key = ev.object_key if (ev and ev.object_key) else object_key
+                
+                # Always upload to ensure the file physically exists in MinIO
+                try:
+                    await self.storage.upload_evidence(temp_path, target_key)
+                except Exception as e:
+                    logger.warning(f"Could not upload to MinIO key {target_key}: {e}")
+
+                if not ev:
+                    ev = EvidenceModel(
+                        evidence_id=uuid.UUID(acquisition_ref.evidence_id),
+                        acquisition_id=existing_acq.acquisition_id,
+                        minio_bucket=self.storage.bucket_name,
+                        object_key=target_key,
+                        sha256=existing_acq.sha256,
+                        size_bytes=existing_acq.file_size,
+                        content_type="application/vnd.tcpdump.pcap"
+                    )
+                    await self.ev_repo.create(ev)
+
                 # Link existing acquisition to the new case
                 await self.acq_repo.link_to_case(case_id, existing_acq.acquisition_id)
                 await self.db.commit()
                 
-                # Use existing evidence ID if available, otherwise just generate a fake one for response
-                ev_id = existing_acq.evidence[0].evidence_id if existing_acq.evidence else uuid.uuid4()
-                
                 return AcquisitionUploadResponse(
                     acquisition_id=existing_acq.acquisition_id,
-                    evidence_id=ev_id,
+                    evidence_id=ev.evidence_id,
                     case_id=case_id,
                     file_name=existing_acq.file_name,
                     format=existing_acq.format,

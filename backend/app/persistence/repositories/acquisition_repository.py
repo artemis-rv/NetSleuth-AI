@@ -26,7 +26,7 @@ class AcquisitionRepository:
         from sqlalchemy.orm import selectinload
         stmt = select(AcquisitionModel).options(selectinload(AcquisitionModel.evidence)).where(AcquisitionModel.sha256 == sha256)
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return result.scalars().first()
 
     async def list_by_case(
         self,

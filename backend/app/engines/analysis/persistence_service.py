@@ -61,15 +61,25 @@ class M2PersistenceService:
                 if finding.classification_result:
                     class_probs = finding.classification_result.class_probabilities
                 
-                # CRITICAL M2 SEVERITY BRIDGE DOCUMENTATION
-                # ---------------------------------------------------------------------------------
-                # M2 (Analysis Engine) does NOT determine true investigation severity. 
-                # Severity mapping is exclusively owned by M3 (Correlation & Investigation).
-                # We hardcode `severity="low"` here SOLELY to satisfy the PostgreSQL DB-6 
-                # `analytics.findings` check constraint which requires a non-null severity value.
-                # This is a persistence-layer bridge only; it is NOT an analytical conclusion.
-                # ---------------------------------------------------------------------------------
-                severity = "low"
+                # Calculate dynamic finding severity based on activity taxonomy and risk score
+                if finding.activity_class in (ActivityClass.C2_MALWARE_COMMUNICATION, ActivityClass.POSSIBLE_EXFILTRATION):
+                    severity = "critical" if (finding.risk_score or 0.0) >= 0.75 else "high"
+                elif finding.activity_class in (ActivityClass.DNS_ANOMALY_TUNNELING, ActivityClass.SUSPICIOUS_WEB_ACTIVITY):
+                    severity = "high" if (finding.risk_score or 0.0) >= 0.60 else "medium"
+                elif finding.activity_class == ActivityClass.SCANNING_RECONNAISSANCE:
+                    severity = "medium" if (finding.risk_score or 0.0) >= 0.50 else "low"
+                elif finding.activity_class == ActivityClass.BENIGN:
+                    severity = "low" if (finding.risk_score or 0.0) < 0.50 else "medium"
+                else:
+                    risk_val = finding.risk_score or 0.0
+                    if risk_val >= 0.85:
+                        severity = "critical"
+                    elif risk_val >= 0.70:
+                        severity = "high"
+                    elif risk_val >= 0.40:
+                        severity = "medium"
+                    else:
+                        severity = "low"
                 
                 # Determine detection method
                 if finding.classification_result and finding.anomaly_result:
